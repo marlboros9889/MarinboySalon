@@ -1,0 +1,40 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-08-12T17:42:40.351+09:00  INFO 1204 --- [marinboy-v3] [           main] com.marinboy.MarinboyApplication         : Starting MarinboyApplication using Java 21.0.11 with PID 1204 (C:\Users\tj-bu-703-21\OneDrive\Desktop\Marinboy_v3\target\classes started by tj-bu-703-21 in C:\Users\tj-bu-703-21\OneDrive\Desktop\Marinboy_v3)
+2026-08-12T17:42:40.354+09:00  INFO 1204 --- [marinboy-v3] [           main] com.marinboy.MarinboyApplication         : The following 1 profile is active: "local"
+2026-08-12T17:42:41.601+09:00  INFO 1204 --- [marinboy-v3] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-08-12T17:42:41.604+09:00  INFO 1204 --- [marinboy-v3] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-12T17:42:41.635+09:00  INFO 1204 --- [marinboy-v3] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 20 ms. Found 0 JPA repository interfaces.
+2026-08-12T17:42:41.668+09:00  INFO 1204 --- [marinboy-v3] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-08-12T17:42:41.670+09:00  INFO 1204 --- [marinboy-v3] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-08-12T17:42:41.693+09:00  INFO 1204 --- [marinboy-v3] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 0 Redis repository interfaces.
+2026-08-12T17:42:42.644+09:00  INFO 1204 --- [marinboy-v3] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-08-12T17:42:42.663+09:00  INFO 1204 --- [marinboy-v3] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-12T17:42:42.663+09:00  INFO 1204 --- [marinboy-v3] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-08-12T17:42:42.751+09:00  INFO 1204 --- [marinboy-v3] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-12T17:42:42.752+09:00  INFO 1204 --- [marinboy-v3] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2339 ms
+2026-08-12T17:42:43.078+09:00  INFO 1204 --- [marinboy-v3] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-12T17:42:43.159+09:00  INFO 1204 --- [marinboy-v3] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-08-12T17:42:43.204+09:00  INFO 1204 --- [marinboy-v3] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-08-12T17:42:43.602+09:00  INFO 1204 --- [marinboy-v3] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-08-12T17:42:43.643+09:00  INFO 1204 --- [marinboy-v3] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-12T17:42:44.110+09:00  INFO 1204 --- [marinboy-v3] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@6b6fd0
+2026-08-12T17:42:44.112+09:00  INFO 1204 --- [marinboy-v3] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-12T17:42:44.337+09:00  WARN 1204 --- [marinboy-v3] [           main] org.hibernate.dialect.Dialect            : HHH000511: The 18.0.0 version for [org.hibernate.dialect.OracleDialect] is no longer supported, hence certain features may not work properly. The minimum supported version is 19.0.0. Check the community dialects project for available legacy versions.
+2026-08-12T17:42:45.023+09:00  INFO 1204 --- [marinboy-v3] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-08-12T17:42:45.036+09:00  INFO 1204 --- [marinboy-v3] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-12T17:42:45.535+09:00  WARN 1204 --- [marinboy-v3] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-12T17:42:45.731+09:00  INFO 1204 --- [marinboy-v3] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2026-08-12T17:42:46.816+09:00  INFO 1204 --- [marinboy-v3] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2026-08-12T17:42:46.827+09:00  INFO 1204 --- [marinboy-v3] [           main] com.marinboy.MarinboyApplication         : Started MarinboyApplication in 6.998 seconds (process running for 7.581)
+2026-08-12T17:42:55.705+09:00  INFO 1204 --- [marinboy-v3] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-12T17:42:55.705+09:00  INFO 1204 --- [marinboy-v3] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-12T17:42:55.707+09:00  INFO 1204 --- [marinboy-v3] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms

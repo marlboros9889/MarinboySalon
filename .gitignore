@@ -1,10 +1,1 @@
-target/
-uploads/
-*.log
-.idea/
-.metadata/
-.settings/
-.project
-.classpath
-application-local.properties
-.env
+# 사용자 요청에 따라 현재 프로젝트의 모든 파일을 저장소에 포함합니다.
