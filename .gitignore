@@ -1,0 +1,10 @@
+target/
+uploads/
+*.log
+.idea/
+.metadata/
+.settings/
+.project
+.classpath
+application-local.properties
+.env
