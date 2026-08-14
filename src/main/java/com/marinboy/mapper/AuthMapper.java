@@ -10,5 +10,8 @@ public interface AuthMapper {
     // username으로 사용자를 조회하며 비밀번호 검증은 AuthService에서 수행합니다.
     UserDto findByUsername(@Param("username") String username);
 
+    // 회원가입 시 CUSTOMER 권한의 일반 계정을 저장합니다.
+    int insertCustomer(UserDto user);
+
     int updatePassword(@Param("id") Long id, @Param("password") String password);
 }

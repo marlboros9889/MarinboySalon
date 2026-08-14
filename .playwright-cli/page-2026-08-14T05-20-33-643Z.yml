@@ -1,0 +1,16 @@
+- main [ref=f1e2]:
+  - generic [ref=f1e4]:
+    - heading "마린보이 로그인" [level=1] [ref=f1e5]
+    - paragraph [ref=f1e6]: "고객: customer / customer123관리자: admin / admin123"
+    - generic [ref=f1e7]:
+      - textbox "아이디" [ref=f1e8]
+      - textbox "비밀번호" [ref=f1e9]
+      - button "로그인" [ref=f1e10] [cursor=pointer]
+    - generic [ref=f1e11]: 또는
+    - link "카카오로 로그인" [ref=f1e12] [cursor=pointer]:
+      - /url: /oauth2/authorization/kakao
+    - link "NAVER로 로그인" [ref=f1e13] [cursor=pointer]:
+      - /url: /oauth2/authorization/naver
+    - link "Google로 로그인" [ref=f1e14] [cursor=pointer]:
+      - /url: /oauth2/authorization/google
+    - paragraph

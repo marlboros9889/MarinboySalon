@@ -2,7 +2,11 @@ package com.marinboy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.marinboy.db.DbSchemaService;
@@ -18,7 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
@@ -86,7 +93,9 @@ class MarinboyApplicationTests {
     void controllerEndpointsReturnCustomerScreenData() throws Exception {
         // HomeController가 고객 예약 화면을 렌더링하는지 검증합니다.
         mockMvc.perform(get("/"))
-                .andExpect(status().isOk());
+                // 기본 주소는 통합 React v3 고객 화면으로 이동해야 합니다.
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://127.0.0.1:5173"));
 
         // SalonReservationApiController가 고객 화면에 필요한 시술 데이터를 JSON으로 내려주는지 검증합니다.
         mockMvc.perform(get("/api/services"))
@@ -145,5 +154,52 @@ class MarinboyApplicationTests {
         salonReservationService.cancelCustomerReservation(created.getId(), phone);
         assertThat(salonReservationDao.findCustomerReservation(created.getId(), phone).getStatus())
                 .isEqualTo("CANCELED");
+    }
+
+    /** 회원가입 후 일반 로그인 세션이 고객 조회 API까지 이어지는지 검증합니다. */
+    @Test
+    @Transactional
+    void signupLoginAndSessionLookupAreConnected() throws Exception {
+        String username = "qa_login_" + System.nanoTime();
+        String password = "test-password-2026";
+        String signupJson = "{\"username\":\"" + username + "\",\"password\":\"" + password
+                + "\",\"name\":\"QA Customer\",\"email\":\"" + username
+                + "@example.test\",\"phone\":\"010-7777-7777\"}";
+
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(signupJson))
+                .andExpect(status().isNoContent());
+
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(username))
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+        mockMvc.perform(get("/api/auth/me").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(username));
+    }
+
+    /** React 개발 서버가 세션 쿠키를 포함한 인증 API를 호출할 수 있는지 검증합니다. */
+    @Test
+    void reactCorsAllowsCredentialedAuthAndServiceRequests() throws Exception {
+        String reactOrigin = "http://127.0.0.1:5173";
+
+        mockMvc.perform(options("/api/auth/login")
+                        .header("Origin", reactOrigin)
+                        .header("Access-Control-Request-Method", "POST")
+                        .header("Access-Control-Request-Headers", "Content-Type"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", reactOrigin))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+
+        mockMvc.perform(get("/api/services").header("Origin", reactOrigin))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", reactOrigin))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
     }
 }

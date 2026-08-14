@@ -1,0 +1,310 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - link "Marinboy Salon 홈" [ref=e5] [cursor=pointer]:
+      - /url: "#top"
+      - text: MARINBOY SALON
+    - navigation "주요 메뉴" [ref=e6]:
+      - link "이달의 추천" [ref=e7] [cursor=pointer]:
+        - /url: "#monthly"
+      - link "시술 메뉴" [ref=e8] [cursor=pointer]:
+        - /url: "#services"
+      - link "매장 안내" [ref=e9] [cursor=pointer]:
+        - /url: "#visit"
+    - generic [ref=e10]:
+      - link "로그인" [ref=e11] [cursor=pointer]:
+        - /url: "#login"
+      - button "예약하기" [ref=e12] [cursor=pointer]
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - paragraph [ref=e15]: SUMMER EDITION · 2026
+      - heading [level=1] [ref=e16]:
+        - text: 나에게 가장 잘 어울리는
+        - emphasis [ref=e17]: 여름의 변화
+      - paragraph [ref=e18]: 섬세한 상담부터 완성도 높은 디자인까지,마린보이살롱에서 편안하게 경험하세요.
+      - generic [ref=e19]:
+        - button "시술 예약하기" [ref=e20] [cursor=pointer]
+        - link "메뉴 둘러보기" [ref=e21] [cursor=pointer]:
+          - /url: "#services"
+      - generic [ref=e23] [cursor=pointer]:
+        - checkbox "노쇼 및 당일 취소 제한 안내를 확인하고 동의합니다." [ref=e24]
+        - text: 노쇼 및 당일 취소 제한 안내를 확인하고 동의합니다.
+    - generic [ref=e25]:
+      - img "마린보이살롱 대표 시술" [ref=e26]
+      - generic [ref=e27]:
+        - strong [ref=e28]: "08"
+        - generic [ref=e29]: Cool & clearbeauty moment
+  - generic [ref=e31]:
+    - generic [ref=e32]:
+      - paragraph [ref=e33]: MEMBERSHIP
+      - heading "더 편리한 예약, 회원으로 시작하세요." [level=2] [ref=e34]: 더 편리한 예약,회원으로 시작하세요.
+    - generic [ref=e35]:
+      - generic [ref=e36]:
+        - textbox "아이디" [ref=e37]
+        - textbox "비밀번호" [ref=e38]
+        - button "로그인" [ref=e39] [cursor=pointer]
+      - generic [ref=e40]:
+        - button "카카오로 시작하기" [ref=e41] [cursor=pointer]
+        - button "네이버로 시작하기" [ref=e42] [cursor=pointer]
+        - button "Google로 시작하기" [ref=e43] [cursor=pointer]
+      - button "처음이신가요? 회원가입" [ref=e44] [cursor=pointer]
+  - generic [ref=e45]:
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - paragraph [ref=e48]: MONTHLY TOP 5
+        - heading "이번 달 가장 사랑받은 시술이에요." [level=2] [ref=e49]: 이번 달 가장 사랑받은시술이에요.
+      - paragraph [ref=e50]: 고객님들이 선택한 여름 스타일을지금 만나보세요.
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - heading "HAIR TOP 5" [level=3] [ref=e53]
+        - button "01 웨이브 펌 95,000원 예약" [ref=e54] [cursor=pointer]:
+          - generic [ref=e55]: "01"
+          - generic [ref=e56]:
+            - generic [ref=e57]: 웨이브 펌
+            - generic [ref=e58]: 95,000원
+          - emphasis [ref=e59]: 예약
+        - button "02 시그니처 컷 35,000원 예약" [ref=e60] [cursor=pointer]:
+          - generic [ref=e61]: "02"
+          - generic [ref=e62]:
+            - generic [ref=e63]: 시그니처 컷
+            - generic [ref=e64]: 35,000원
+          - emphasis [ref=e65]: 예약
+        - button "03 두피 클리닉 55,000원 예약" [ref=e66] [cursor=pointer]:
+          - generic [ref=e67]: "03"
+          - generic [ref=e68]:
+            - generic [ref=e69]: 두피 클리닉
+            - generic [ref=e70]: 55,000원
+          - emphasis [ref=e71]: 예약
+        - button "04 레이어드 허쉬컷 55,000원 예약" [ref=e72] [cursor=pointer]:
+          - generic [ref=e73]: "04"
+          - generic [ref=e74]:
+            - generic [ref=e75]: 레이어드 허쉬컷
+            - generic [ref=e76]: 55,000원
+          - emphasis [ref=e77]: 예약
+        - button "05 태슬컷 50,000원 예약" [ref=e78] [cursor=pointer]:
+          - generic [ref=e79]: "05"
+          - generic [ref=e80]:
+            - generic [ref=e81]: 태슬컷
+            - generic [ref=e82]: 50,000원
+          - emphasis [ref=e83]: 예약
+      - generic [ref=e84]:
+        - heading "NAIL TOP 5" [level=3] [ref=e85]
+        - button "01 젤 네일 기본 40,000원 예약" [ref=e86] [cursor=pointer]:
+          - generic [ref=e87]: "01"
+          - generic [ref=e88]:
+            - generic [ref=e89]: 젤 네일 기본
+            - generic [ref=e90]: 40,000원
+          - emphasis [ref=e91]: 예약
+        - button "02 글레이즈드 펄 오로라 네일 75,000원 예약" [ref=e92] [cursor=pointer]:
+          - generic [ref=e93]: "02"
+          - generic [ref=e94]:
+            - generic [ref=e95]: 글레이즈드 펄 오로라 네일
+            - generic [ref=e96]: 75,000원
+          - emphasis [ref=e97]: 예약
+        - button "03 버터 옐로우 시럽 네일 70,000원 예약" [ref=e98] [cursor=pointer]:
+          - generic [ref=e99]: "03"
+          - generic [ref=e100]:
+            - generic [ref=e101]: 버터 옐로우 시럽 네일
+            - generic [ref=e102]: 70,000원
+          - emphasis [ref=e103]: 예약
+        - button "04 실버 마그네틱 캣아이 85,000원 예약" [ref=e104] [cursor=pointer]:
+          - generic [ref=e105]: "04"
+          - generic [ref=e106]:
+            - generic [ref=e107]: 실버 마그네틱 캣아이
+            - generic [ref=e108]: 85,000원
+          - emphasis [ref=e109]: 예약
+        - button "05 워터드롭 입체 젤리 네일 85,000원 예약" [ref=e110] [cursor=pointer]:
+          - generic [ref=e111]: "05"
+          - generic [ref=e112]:
+            - generic [ref=e113]: 워터드롭 입체 젤리 네일
+            - generic [ref=e114]: 85,000원
+          - emphasis [ref=e115]: 예약
+  - generic [ref=e117]:
+    - generic [ref=e118]:
+      - generic [ref=e119]:
+        - paragraph [ref=e120]: SIGNATURE MENU
+        - heading "당신의 취향을 담은 시술을 골라보세요." [level=2] [ref=e121]: 당신의 취향을 담은시술을 골라보세요.
+      - button "상담 후 예약하기" [ref=e122] [cursor=pointer]
+    - tablist [ref=e123]:
+      - button "전체 시술" [ref=e124] [cursor=pointer]
+      - button "헤어" [ref=e125] [cursor=pointer]
+      - button "네일" [ref=e126] [cursor=pointer]
+    - generic [ref=e127]:
+      - article [ref=e128]:
+        - img "웨이브 펌" [ref=e129]
+        - generic [ref=e130]:
+          - text: HAIR
+          - heading "웨이브 펌" [level=3] [ref=e131]
+          - paragraph [ref=e132]: 1인 미용실에서 진행하는 부드러운 웨이브 펌 시술입니다.
+          - strong [ref=e133]: 95,000원
+          - button "웨이브 펌 예약하기" [ref=e134] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e135]: →
+      - article [ref=e136]:
+        - img "시그니처 컷" [ref=e137]
+        - generic [ref=e138]:
+          - text: HAIR
+          - heading "시그니처 컷" [level=3] [ref=e139]
+          - paragraph [ref=e140]: 상담을 포함한 맞춤형 커트 시술입니다.
+          - strong [ref=e141]: 35,000원
+          - button "시그니처 컷 예약하기" [ref=e142] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e143]: →
+      - article [ref=e144]:
+        - img "두피 클리닉" [ref=e145]
+        - generic [ref=e146]:
+          - text: HAIR
+          - heading "두피 클리닉" [level=3] [ref=e147]
+          - paragraph [ref=e148]: 두피 상태를 점검하고 진정 케어를 진행하는 클리닉입니다.
+          - strong [ref=e149]: 55,000원
+          - button "두피 클리닉 예약하기" [ref=e150] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e151]: →
+      - article [ref=e152]:
+        - img "젤 네일 기본" [ref=e153]
+        - generic [ref=e154]:
+          - text: NAIL
+          - heading "젤 네일 기본" [level=3] [ref=e155]
+          - paragraph [ref=e156]: 손톱 케어와 기본 젤 컬러를 진행하는 네일 시술입니다.
+          - strong [ref=e157]: 40,000원
+          - button "젤 네일 기본 예약하기" [ref=e158] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e159]: →
+      - article [ref=e160]:
+        - img "꾸미기 화장" [ref=e161]
+        - generic [ref=e162]:
+          - text: HAIR
+          - heading "꾸미기 화장" [level=3] [ref=e163]
+          - paragraph [ref=e164]: 소개팅, 촬영, 중요한 약속 전 자연스럽게 완성하는 메이크업입니다.
+          - strong [ref=e165]: 110,000원
+          - button "꾸미기 화장 예약하기" [ref=e166] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e167]: →
+      - article [ref=e168]:
+        - img "신부 화장" [ref=e169]
+        - generic [ref=e170]:
+          - text: HAIR
+          - heading "신부 화장" [level=3] [ref=e171]
+          - paragraph [ref=e172]: 본식 또는 웨딩 촬영을 위한 신부 헤어와 메이크업 패키지입니다.
+          - strong [ref=e173]: 250,000원
+          - button "신부 화장 예약하기" [ref=e174] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e175]: →
+      - article [ref=e176]:
+        - img "레이어드 허쉬컷" [ref=e177]
+        - generic [ref=e178]:
+          - text: HAIR
+          - heading "레이어드 허쉬컷" [level=3] [ref=e179]
+          - paragraph [ref=e180]: 가벼운 질감과 자연스러운 층을 살린 레이어드 스타일입니다.
+          - strong [ref=e181]: 55,000원
+          - button "레이어드 허쉬컷 예약하기" [ref=e182] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e183]: →
+      - article [ref=e184]:
+        - img "태슬컷" [ref=e185]
+        - generic [ref=e186]:
+          - text: HAIR
+          - heading "태슬컷" [level=3] [ref=e187]
+          - paragraph [ref=e188]: 깔끔한 라인으로 완성하는 세련된 태슬컷입니다.
+          - strong [ref=e189]: 50,000원
+          - button "태슬컷 예약하기" [ref=e190] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e191]: →
+      - article [ref=e192]:
+        - img "레이어드 C컬펌" [ref=e193]
+        - generic [ref=e194]:
+          - text: HAIR
+          - heading "레이어드 C컬펌" [level=3] [ref=e195]
+          - paragraph [ref=e196]: 부드러운 C컬로 손질이 편한 레이어드 펌입니다.
+          - strong [ref=e197]: 120,000원
+          - button "레이어드 C컬펌 예약하기" [ref=e198] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e199]: →
+      - article [ref=e200]:
+        - img "슬릭컷 사이드뱅" [ref=e201]
+        - generic [ref=e202]:
+          - text: HAIR
+          - heading "슬릭컷 사이드뱅" [level=3] [ref=e203]
+          - paragraph [ref=e204]: 얼굴선을 자연스럽게 감싸는 슬릭컷과 사이드뱅입니다.
+          - strong [ref=e205]: 65,000원
+          - button "슬릭컷 사이드뱅 예약하기" [ref=e206] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e207]: →
+      - article [ref=e208]:
+        - img "로우번 웻스타일링" [ref=e209]
+        - generic [ref=e210]:
+          - text: HAIR
+          - heading "로우번 웻스타일링" [level=3] [ref=e211]
+          - paragraph [ref=e212]: 차분하고 시원한 무드의 로우번 웻 스타일링입니다.
+          - strong [ref=e213]: 70,000원
+          - button "로우번 웻스타일링 예약하기" [ref=e214] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e215]: →
+      - article [ref=e216]:
+        - img "글레이즈드 펄 오로라 네일" [ref=e217]
+        - generic [ref=e218]:
+          - text: NAIL
+          - heading "글레이즈드 펄 오로라 네일" [level=3] [ref=e219]
+          - paragraph [ref=e220]: 은은한 펄과 오로라 광택이 돋보이는 젤 네일입니다.
+          - strong [ref=e221]: 75,000원
+          - button "글레이즈드 펄 오로라 네일 예약하기" [ref=e222] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e223]: →
+      - article [ref=e224]:
+        - img "버터 옐로우 시럽 네일" [ref=e225]
+        - generic [ref=e226]:
+          - text: NAIL
+          - heading "버터 옐로우 시럽 네일" [level=3] [ref=e227]
+          - paragraph [ref=e228]: 맑고 따뜻한 버터 옐로우 컬러의 시럽 네일입니다.
+          - strong [ref=e229]: 70,000원
+          - button "버터 옐로우 시럽 네일 예약하기" [ref=e230] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e231]: →
+      - article [ref=e232]:
+        - img "실버 마그네틱 캣아이" [ref=e233]
+        - generic [ref=e234]:
+          - text: NAIL
+          - heading "실버 마그네틱 캣아이" [level=3] [ref=e235]
+          - paragraph [ref=e236]: 빛의 각도에 따라 움직이는 실버 캣아이 네일입니다.
+          - strong [ref=e237]: 85,000원
+          - button "실버 마그네틱 캣아이 예약하기" [ref=e238] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e239]: →
+      - article [ref=e240]:
+        - img "워터드롭 입체 젤리 네일" [ref=e241]
+        - generic [ref=e242]:
+          - text: NAIL
+          - heading "워터드롭 입체 젤리 네일" [level=3] [ref=e243]
+          - paragraph [ref=e244]: 투명한 물방울 질감으로 완성하는 입체 젤리 네일입니다.
+          - strong [ref=e245]: 85,000원
+          - button "워터드롭 입체 젤리 네일 예약하기" [ref=e246] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e247]: →
+      - article [ref=e248]:
+        - img "치크 마이크로 프렌치 네일" [ref=e249]
+        - generic [ref=e250]:
+          - text: NAIL
+          - heading "치크 마이크로 프렌치 네일" [level=3] [ref=e251]
+          - paragraph [ref=e252]: 은은한 치크 컬러와 섬세한 프렌치 라인의 조화입니다.
+          - strong [ref=e253]: 78,000원
+          - button "치크 마이크로 프렌치 네일 예약하기" [ref=e254] [cursor=pointer]:
+            - text: 예약하기
+            - generic [ref=e255]: →
+  - generic [ref=e256]:
+    - generic [ref=e257]:
+      - paragraph [ref=e258]: VISIT MARINBOY
+      - heading "당신의 일상에 기분 좋은 변화를." [level=2] [ref=e259]: 당신의 일상에기분 좋은 변화를.
+      - paragraph [ref=e260]: 전문 디자이너와 편안하게 상담하고,나만의 아름다움을 발견해 보세요.
+      - button "지금 예약하기" [ref=e261] [cursor=pointer]
+    - generic [ref=e262]:
+      - paragraph [ref=e263]:
+        - generic [ref=e264]: OPEN
+        - text: 10:00 – 20:00
+      - paragraph [ref=e265]:
+        - generic [ref=e266]: CONTACT
+        - text: 02.0000.0000
+      - paragraph [ref=e267]:
+        - generic [ref=e268]: LOCATION
+        - text: 서울특별시 마린보이살롱
+  - generic [ref=e270]:
+    - strong [ref=e271]: MARINBOY SALON
+    - generic [ref=e272]: © 2026 MARINBOY SALON. ALL RIGHTS RESERVED.

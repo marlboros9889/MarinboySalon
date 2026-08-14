@@ -2,6 +2,7 @@ package com.marinboy.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
@@ -11,9 +12,6 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,31 +19,48 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.marinboy.dto.UserDto;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /** 세션 기반 자체 로그인과 REST 요청을 사용할 수 있도록 Spring Security를 설정합니다. */
 @Configuration
 public class SecurityConfig {
     private final SocialLoginSuccessHandler socialLoginSuccessHandler;
+    private final List<String> reactAllowedOrigins;
 
-    public SecurityConfig(SocialLoginSuccessHandler socialLoginSuccessHandler) {
+    public SecurityConfig(
+            SocialLoginSuccessHandler socialLoginSuccessHandler,
+            @Value("${app.cors.allowed-origin:http://localhost:5173}") String configuredOrigin
+    ) {
         this.socialLoginSuccessHandler = socialLoginSuccessHandler;
+        // 배포 주소와 로컬 Vite 주소를 함께 허용해 React의 세션 쿠키 요청을 지원합니다.
+        LinkedHashSet<String> origins = new LinkedHashSet<>();
+        if (configuredOrigin != null && !configuredOrigin.isBlank()) {
+            origins.add(configuredOrigin.trim());
+        }
+        origins.add("http://localhost:5173");
+        origins.add("http://127.0.0.1:5173");
+        this.reactAllowedOrigins = List.copyOf(origins);
     }
 
     // 관리자 및 DB 진단 경로는 세션의 관리자 역할을 확인한 뒤 접근을 허용합니다.
     @Bean
     SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            ClientRegistrationRepository clientRegistrationRepository
+            HttpSecurity http
     ) throws Exception {
         return http
                 // JSON·파일 업로드 API 호출 시 CSRF 토큰을 요구하지 않습니다.
                 .csrf(AbstractHttpConfigurer::disable)
+                // React 개발 서버가 로그인 세션 쿠키를 포함해 legacy API를 호출할 수 있도록 허용합니다.
+                .cors(cors -> cors.configurationSource(legacyCorsConfigurationSource()))
                 .addFilterBefore(sessionAuthenticationFilter(), AnonymousAuthenticationFilter.class)
                 // 공개 고객 기능과 관리자 전용 기능을 URL 수준에서도 분리합니다.
                 .authorizeHttpRequests(auth -> auth
@@ -58,27 +73,39 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/api/**")))
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")
-                        .authorizationEndpoint(endpoint -> endpoint
-                                .authorizationRequestResolver(kakaoLoginAuthorizationRequestResolver(clientRegistrationRepository)))
                         .successHandler(socialLoginSuccessHandler)
                         .failureHandler((request, response, exception) -> {
-                            String message = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
+                            // 공급자 내부 오류 전문은 노출하지 않고 고객이 이해할 수 있는 안내만 전달합니다.
+                            String message = URLEncoder.encode(oauthFailureMessage(exception), StandardCharsets.UTF_8);
                             response.sendRedirect("/login?oauthError=" + message);
                         }))
                 .build();
     }
 
-    // 카카오 계정 세션이 남아 있어도 매번 카카오 계정 인증 화면을 표시합니다.
-    private OAuth2AuthorizationRequestResolver kakaoLoginAuthorizationRequestResolver(
-            ClientRegistrationRepository clientRegistrationRepository
-    ) {
-        DefaultOAuth2AuthorizationRequestResolver resolver =
-                new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
-        resolver.setAuthorizationRequestCustomizer(customizer ->
-                customizer.additionalParameters(parameters -> parameters.put("prompt", "login")));
-        return resolver;
+    /** React 기본 화면에서 사용하는 /api/** 요청에 credential 포함 CORS 정책을 적용합니다. */
+    private CorsConfigurationSource legacyCorsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(reactAllowedOrigins);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(List.of("Location"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 
+    /** OAuth 토큰 교환 실패를 설정 점검이 가능한 안내 문구로 변환합니다. */
+    private String oauthFailureMessage(Exception exception) {
+        String detail = exception.getMessage() == null ? "" : exception.getMessage();
+        if (detail.contains("invalid_token_response") || detail.contains("401 Unauthorized")) {
+            return "소셜 로그인 설정을 확인 중입니다. 잠시 후 다시 시도해 주세요.";
+        }
+        return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+    }
+
+    // 카카오 계정 세션이 남아 있어도 매번 카카오 계정 인증 화면을 표시합니다.
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

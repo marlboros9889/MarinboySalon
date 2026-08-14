@@ -1,0 +1,14 @@
+[     316ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=a9a4d08f:14333
+[     563ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:5173/:0
+[     602ms] [ERROR] Access to fetch at 'http://127.0.0.1:8082/api/services' from origin 'http://127.0.0.1:5173' has been blocked by CORS policy: The value of the 'Access-Control-Allow-Credentials' header in the response is '' which must be 'true' when the request's credentials mode is 'include'. @ http://127.0.0.1:5173/:0
+[     602ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8082/api/services:0
+[     647ms] [ERROR] Access to fetch at 'http://127.0.0.1:8082/api/auth/me' from origin 'http://127.0.0.1:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5173/:0
+[     647ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8082/api/auth/me:0
+[     761ms] [ERROR] Access to fetch at 'http://127.0.0.1:8082/api/services' from origin 'http://127.0.0.1:5173' has been blocked by CORS policy: The value of the 'Access-Control-Allow-Credentials' header in the response is '' which must be 'true' when the request's credentials mode is 'include'. @ http://127.0.0.1:5173/:0
+[     761ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8082/api/services:0
+[     762ms] [ERROR] Access to fetch at 'http://127.0.0.1:8082/api/auth/me' from origin 'http://127.0.0.1:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5173/:0
+[     762ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8082/api/auth/me:0
+[   50803ms] [ERROR] Access to fetch at 'http://127.0.0.1:8082/api/auth/login' from origin 'http://127.0.0.1:5173' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5173/:0
+[   50803ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8082/api/auth/login:0
+[  150112ms] [ERROR] Access to fetch at 'http://127.0.0.1:8082/api/auth/signup' from origin 'http://127.0.0.1:5173' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5173/:0
+[  150112ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8082/api/auth/signup:0
