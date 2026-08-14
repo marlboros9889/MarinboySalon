@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- TestDao와 연결되는 DB 연결 검증용 mapper입니다. -->
+<mapper namespace="com.marinboy.dao.TestDao">
+
+    <!-- Oracle 서버 시간이 조회되면 DB 연결과 MyBatis mapper 연결이 모두 정상이라는 뜻입니다. -->
+    <select id="readTime" resultType="string">
+        SELECT TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') FROM DUAL
+    </select>
+</mapper>

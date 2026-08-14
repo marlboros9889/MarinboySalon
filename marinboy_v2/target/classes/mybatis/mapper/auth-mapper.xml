@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 사용자 인증에 필요한 계정 조회 SQL을 AuthDao와 연결합니다. -->
+<mapper namespace="com.marinboy.dao.AuthDao">
+    <!-- 일치하는 계정의 비밀번호를 제외한 세션 사용자 정보를 반환합니다. -->
+    <select id="findByUsername" resultType="com.marinboy.dto.UserDto">
+        SELECT ID AS id, USERNAME AS username, PASSWORD AS password, NAME AS name,
+               EMAIL AS email, PHONE AS phone, ROLE AS role
+        FROM MB_USER WHERE USERNAME = #{username}
+    </select>
+    <update id="updatePassword">
+        UPDATE MB_USER SET PASSWORD = #{password}, UPDATED_AT = SYSTIMESTAMP WHERE ID = #{id}
+    </update>
+</mapper>
