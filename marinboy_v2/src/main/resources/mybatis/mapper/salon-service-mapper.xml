@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- SalonServiceDao와 연결되어 시술 메뉴와 이미지 정보를 조회하는 mapper입니다. -->
+<mapper namespace="com.marinboy.dao.SalonServiceDao">
+
+    <!-- 시술 기본 정보를 ServiceDto에 매핑합니다. -->
+    <resultMap id="serviceResultMap" type="com.marinboy.dto.ServiceDto">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="category" column="CATEGORY"/>
+        <result property="durationMinutes" column="DURATION_MINUTES"/>
+        <result property="price" column="PRICE"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="topRank" column="TOP_RANK"/>
+        <result property="reservationCount" column="RESERVATION_COUNT"/>
+    </resultMap>
+
+    <!-- 시술 이미지도 같은 ServiceDto에 매핑합니다. -->
+    <resultMap id="serviceImageResultMap" type="com.marinboy.dto.ServiceDto">
+        <result property="serviceId" column="SERVICE_ID"/>
+        <result property="imageUrl" column="IMAGE_URL"/>
+        <result property="imageType" column="IMAGE_TYPE"/>
+    </resultMap>
+
+    <!-- 고객 화면에 표시할 시술 메뉴를 추천 순서와 이름 순서로 조회합니다. -->
+    <select id="findAllServices" resultMap="serviceResultMap">
+        SELECT ID,
+               NAME,
+               CATEGORY,
+               DURATION_MINUTES,
+               PRICE,
+               DESCRIPTION,
+               TOP_RANK,
+               (SELECT COUNT(*)
+                  FROM MB_RESERVATION R
+                 WHERE R.SERVICE_ID = S.ID
+                   AND R.RESERVATION_DATE_TIME &gt;= TRUNC(SYSDATE, 'MM')
+                   AND R.RESERVATION_DATE_TIME &lt; ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
+                   AND R.STATUS NOT IN ('CANCELED', 'REJECTED')) AS RESERVATION_COUNT
+        FROM MB_SERVICE_ITEM S
+        WHERE CATEGORY &lt;&gt; 'DELETED'
+        ORDER BY NVL(TOP_RANK, 99), ID
+    </select>
+
+    <!-- 시술 메뉴의 대표 이미지와 상세 이미지를 정렬 순서대로 조회합니다. -->
+    <select id="findAllServiceImages" resultMap="serviceImageResultMap">
+        SELECT SERVICE_ID,
+               IMAGE_URL,
+               IMAGE_TYPE
+        FROM MB_SERVICE_IMAGE
+        ORDER BY SERVICE_ID, IMAGE_TYPE DESC, SORT_ORDER, ID
+    </select>
+
+    <!-- 예약 가능 시간 계산에 필요한 시술 소요 시간을 조회합니다. -->
+    <select id="findDurationMinutesById" resultType="int">
+        SELECT DURATION_MINUTES
+        FROM MB_SERVICE_ITEM
+        WHERE ID = #{serviceId}
+    </select>
+    <!-- 메뉴와 이미지를 같은 ID로 연결하기 위해 저장 전에 다음 메뉴 ID를 조회합니다. -->
+    <insert id="insertService" useGeneratedKeys="true" keyProperty="id" keyColumn="ID">
+        INSERT INTO MB_SERVICE_ITEM (NAME, CATEGORY, DURATION_MINUTES, PRICE, DESCRIPTION)
+        VALUES (#{name}, #{category}, #{durationMinutes}, #{price}, #{description})
+    </insert>
+    <update id="updateService">
+        UPDATE MB_SERVICE_ITEM SET NAME=#{name}, CATEGORY=#{category}, DURATION_MINUTES=#{durationMinutes}, PRICE=#{price}, DESCRIPTION=#{description}, UPDATED_AT=SYSTIMESTAMP WHERE ID=#{id}
+    </update>
+    <!-- 대표 이미지는 메뉴별 한 장만 유지합니다. -->
+    <delete id="deleteRepresentativeImage">
+        DELETE FROM MB_SERVICE_IMAGE WHERE SERVICE_ID=#{serviceId} AND IMAGE_TYPE='REPRESENTATIVE'
+    </delete>
+    <insert id="insertRepresentativeImage">
+        INSERT INTO MB_SERVICE_IMAGE (SERVICE_ID, IMAGE_URL, IMAGE_TYPE, SORT_ORDER)
+        VALUES (#{serviceId}, #{imageUrl}, 'REPRESENTATIVE', 1)
+    </insert>
+    <!-- 메뉴별 4~5장의 상세 이미지 묶음을 순서대로 저장합니다. -->
+    <delete id="deleteDetailImages">
+        DELETE FROM MB_SERVICE_IMAGE WHERE SERVICE_ID=#{serviceId} AND IMAGE_TYPE='DETAIL'
+    </delete>
+    <insert id="insertDetailImage">
+        INSERT INTO MB_SERVICE_IMAGE (SERVICE_ID, IMAGE_URL, IMAGE_TYPE, SORT_ORDER)
+        VALUES (#{serviceId}, #{imageUrl}, 'DETAIL', #{sortOrder})
+    </insert>
+    <!-- 예약 이력의 외래키를 보존하면서 고객/관리자 목록에서 제외합니다. -->
+    <delete id="deleteService">
+        UPDATE MB_SERVICE_ITEM
+        SET NAME = '[삭제] ' || NAME,
+            CATEGORY = 'DELETED',
+            TOP_RANK = NULL,
+            UPDATED_AT = SYSTIMESTAMP
+        WHERE ID = #{id}
+          AND CATEGORY &lt;&gt; 'DELETED'
+    </delete>
+</mapper>

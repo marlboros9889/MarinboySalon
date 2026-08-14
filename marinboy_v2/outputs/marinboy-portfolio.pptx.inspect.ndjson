@@ -1,0 +1,161 @@
+{"kind":"deck","id":"pr/vrj7s9","name":"Deck"}
+{"kind":"layout","layoutId":"064fd6a9-39d8-4a93-a7a3-1b0ebdb1dfe2","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"e9e9e34d-51bf-4615-afd3-8c3d121e0ab6","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/yfzwbg","slide":1,"title":"MARINBOY","textShapes":4}
+{"kind":"shape","id":"sh/fyhs3etw","slide":1,"bbox":[800,0,480,720]}
+{"kind":"shape","id":"sh/0zqtcjah","slide":1,"bbox":[870,80,280,480]}
+{"kind":"textbox","id":"sh/10ja5ob2","slide":1,"text":"MARINBOY","textPreview":"MARINBOY","textChars":8,"textLines":1,"bbox":[70,75,500,35]}
+{"kind":"textbox","id":"sh/qt8r69sf","slide":1,"text":"미용실 예약의 전 과정을\n하나의 서비스로","textPreview":"미용실 예약의 전 과정을 | 하나의 서비스로","textChars":22,"textLines":2,"bbox":[70,165,680,190]}
+{"kind":"textbox","id":"sh/ruhszetk","slide":1,"text":"Spring Boot · MyBatis · Oracle 기반\n고객 예약 및 관리자 운영 플랫폼","textPreview":"Spring Boot · MyBatis · Oracle 기반 | 고객 예약 및 관리자 운영 플랫폼","textChars":52,"textLines":2,"bbox":[75,390,650,80]}
+{"kind":"textbox","id":"sh/svqt8za5","slide":1,"text":"FULL-STACK PORTFOLIO  |  2026","textPreview":"FULL-STACK PORTFOLIO  |  2026","textChars":29,"textLines":1,"bbox":[75,625,600,28]}
+{"kind":"notes","id":"nt/yfzwbg","slide":1,"text":""}
+{"kind":"slide","id":"sl/aowxi6","slide":2,"title":"MARINBOY PORTFOLIO","textShapes":9}
+{"kind":"textbox","id":"sh/yt0bmxcf","slide":2,"text":"MARINBOY PORTFOLIO","textPreview":"MARINBOY PORTFOLIO","textChars":18,"textLines":1,"bbox":[64,35,500,28]}
+{"kind":"textbox","id":"sh/lwbahcbq","slide":2,"text":"전화 예약의 불편을 웹 흐름으로 바꿨습니다","textPreview":"전화 예약의 불편을 웹 흐름으로 바꿨습니다","textChars":23,"textLines":1,"bbox":[64,74,1150,70]}
+{"kind":"textbox","id":"sh/kv2to7u5","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1170,665,50,20]}
+{"kind":"shape","id":"sh/7ytcjmtw","slide":2,"bbox":[65,180,350,390]}
+{"kind":"shape","id":"sh/6xkbqhcb","slide":2,"bbox":[65,180,10,390]}
+{"kind":"textbox","id":"sh/tkbulcb2","slide":2,"text":"고객의 불편","textPreview":"고객의 불편","textChars":6,"textLines":1,"bbox":[95,202,295,36]}
+{"kind":"textbox","id":"sh/8z2ts7uh","slide":2,"text":"가능 시간 확인이 어렵고\n예약 변경·취소 과정이 번거롭습니다.","textPreview":"가능 시간 확인이 어렵고 | 예약 변경·취소 과정이 번거롭습니다.","textChars":34,"textLines":2,"bbox":[95,248,295,302]}
+{"kind":"shape","id":"sh/n2ps7its","slide":2,"bbox":[465,180,350,390]}
+{"kind":"shape","id":"sh/m1gbedc7","slide":2,"bbox":[465,180,10,390]}
+{"kind":"textbox","id":"sh/83m50jud","slide":2,"text":"운영자의 불편","textPreview":"운영자의 불편","textChars":7,"textLines":1,"bbox":[495,202,295,36]}
+{"kind":"textbox","id":"sh/94vm9ovy","slide":2,"text":"예약 현황·휴무일·메뉴 정보가\n여러 곳에 흩어져 관리됩니다.","textPreview":"예약 현황·휴무일·메뉴 정보가 | 여러 곳에 흩어져 관리됩니다.","textChars":33,"textLines":2,"bbox":[495,248,295,302]}
+{"kind":"shape","id":"sh/m14ny9w7","slide":2,"bbox":[865,180,350,390]}
+{"kind":"shape","id":"sh/72d47eds","slide":2,"bbox":[865,180,10,390]}
+{"kind":"textbox","id":"sh/wr654ju9","slide":2,"text":"해결 방향","textPreview":"해결 방향","textChars":5,"textLines":1,"bbox":[895,202,295,36]}
+{"kind":"textbox","id":"sh/hsfmdovu","slide":2,"text":"고객 예약과 관리자 운영을\n하나의 데이터 흐름으로 연결했습니다.","textPreview":"고객 예약과 관리자 운영을 | 하나의 데이터 흐름으로 연결했습니다.","textChars":35,"textLines":2,"bbox":[895,248,295,302]}
+{"kind":"notes","id":"nt/aowxi6","slide":2,"text":""}
+{"kind":"slide","id":"sl/5cvlef","slide":3,"title":"MARINBOY PORTFOLIO","textShapes":11}
+{"kind":"textbox","id":"sh/hkva1032","slide":3,"text":"MARINBOY PORTFOLIO","textPreview":"MARINBOY PORTFOLIO","textChars":18,"textLines":1,"bbox":[64,35,500,28]}
+{"kind":"textbox","id":"sh/uxkr6l4r","slide":3,"text":"고객과 관리자가 같은 예약 데이터를 공유합니다","textPreview":"고객과 관리자가 같은 예약 데이터를 공유합니다","textChars":25,"textLines":1,"bbox":[64,74,1150,70]}
+{"kind":"textbox","id":"sh/fitszq5w","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1170,665,50,20]}
+{"kind":"textbox","id":"sh/4nm9cvmt","slide":3,"text":"CUSTOMER","textPreview":"CUSTOMER","textChars":8,"textLines":1,"bbox":[75,175,260,40]}
+{"kind":"textbox","id":"sh/pova503e","slide":3,"text":"ADMIN","textPreview":"ADMIN","textChars":5,"textLines":1,"bbox":[945,175,260,40]}
+{"kind":"shape","id":"sh/2l4ral4n","slide":3,"bbox":[65,240,310,270]}
+{"kind":"shape","id":"sh/3mds3ql8","slide":3,"bbox":[65,240,10,270]}
+{"kind":"textbox","id":"sh/kr290bm9","slide":3,"text":"고객 흐름","textPreview":"고객 흐름","textChars":5,"textLines":1,"bbox":[95,262,255,36]}
+{"kind":"textbox","id":"sh/5sbqtgnu","slide":3,"text":"로그인 → 시술 조회\n→ 가능 시간 선택\n→ 예약·변경·취소","textPreview":"로그인 → 시술 조회 | → 가능 시간 선택 | → 예약·변경·취소","textChars":33,"textLines":3,"bbox":[95,308,255,182]}
+{"kind":"shape","id":"sh/dcbihsji","slide":3,"bbox":[905,240,310,270]}
+{"kind":"shape","id":"sh/sb2hon2x","slide":3,"bbox":[905,240,10,270]}
+{"kind":"textbox","id":"sh/rat0fi1c","slide":3,"text":"관리자 흐름","textPreview":"관리자 흐름","textChars":6,"textLines":1,"bbox":[935,262,255,36]}
+{"kind":"textbox","id":"sh/q9kzmdk7","slide":3,"text":"예약 상태 관리\n휴무일 설정\n메뉴·이미지 관리","textPreview":"예약 상태 관리 | 휴무일 설정 | 메뉴·이미지 관리","textChars":25,"textLines":3,"bbox":[935,308,255,182]}
+{"kind":"shape","id":"sh/1gvilsju","slide":3,"bbox":[475,210,330,330]}
+{"kind":"textbox","id":"sh/0fmhsn29","slide":3,"text":"통합 예약 데이터","textPreview":"통합 예약 데이터","textChars":9,"textLines":1,"bbox":[515,270,250,60]}
+{"kind":"textbox","id":"sh/fet0j21o","slide":3,"text":"권한과 도메인 규칙을\n서버에서 일관되게 적용","textPreview":"권한과 도메인 규칙을 | 서버에서 일관되게 적용","textChars":24,"textLines":2,"bbox":[525,365,230,80]}
+{"kind":"notes","id":"nt/5cvlef","slide":3,"text":""}
+{"kind":"slide","id":"sl/bycsmy","slide":4,"title":"MARINBOY PORTFOLIO","textShapes":16}
+{"kind":"textbox","id":"sh/xwjupk3i","slide":4,"text":"MARINBOY PORTFOLIO","textPreview":"MARINBOY PORTFOLIO","textChars":18,"textLines":1,"bbox":[64,35,500,28]}
+{"kind":"textbox","id":"sh/atsve547","slide":4,"text":"예약 가능 시간은 네 가지 규칙으로 계산합니다","textPreview":"예약 가능 시간은 네 가지 규칙으로 계산합니다","textChars":25,"textLines":1,"bbox":[64,74,1150,70]}
+{"kind":"textbox","id":"sh/bu1cnals","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1170,665,50,20]}
+{"kind":"shape","id":"sh/o7adcvm1","slide":4,"bbox":[65,200,260,330]}
+{"kind":"textbox","id":"sh/9sjul03m","slide":4,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[90,225,80,45]}
+{"kind":"textbox","id":"sh/m58va54v","slide":4,"text":"영업시간","textPreview":"영업시간","textChars":4,"textLines":1,"bbox":[90,305,210,40]}
+{"kind":"textbox","id":"sh/n6hcjqlg","slide":4,"text":"운영 가능한 시간 범위","textPreview":"운영 가능한 시간 범위","textChars":12,"textLines":1,"bbox":[90,370,210,75]}
+{"kind":"shape","id":"sh/03qd8vm5","slide":4,"bbox":[365,200,260,330]}
+{"kind":"textbox","id":"sh/14zuh03a","slide":4,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[390,225,80,45]}
+{"kind":"textbox","id":"sh/d8j2do7u","slide":4,"text":"휴무일","textPreview":"휴무일","textChars":3,"textLines":1,"bbox":[390,305,210,40]}
+{"kind":"textbox","id":"sh/s7a1kj69","slide":4,"text":"예약 불가 날짜 제외","textPreview":"예약 불가 날짜 제외","textChars":11,"textLines":1,"bbox":[390,370,210,75]}
+{"kind":"shape","id":"sh/r61kbepo","slide":4,"bbox":[665,200,260,330]}
+{"kind":"textbox","id":"sh/q5sji9oj","slide":4,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[690,225,80,45]}
+{"kind":"textbox","id":"sh/5kj2947y","slide":4,"text":"시술 시간","textPreview":"시술 시간","textChars":5,"textLines":1,"bbox":[690,305,210,40]}
+{"kind":"textbox","id":"sh/4ja1gz6d","slide":4,"text":"서비스별 소요 시간 반영","textPreview":"서비스별 소요 시간 반영","textChars":13,"textLines":1,"bbox":[690,370,210,75]}
+{"kind":"shape","id":"sh/3ihk7ups","slide":4,"bbox":[965,200,260,330]}
+{"kind":"textbox","id":"sh/ih8je9o7","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[990,225,80,45]}
+{"kind":"textbox","id":"sh/hgzi547m","slide":4,"text":"기존 예약","textPreview":"기존 예약","textChars":5,"textLines":1,"bbox":[990,305,210,40]}
+{"kind":"textbox","id":"sh/gfq1cz61","slide":4,"text":"겹치는 시간대 제거","textPreview":"겹치는 시간대 제거","textChars":10,"textLines":1,"bbox":[990,370,210,75]}
+{"kind":"textbox","id":"sh/8zu1szex","slide":4,"text":"결과: 충돌하지 않는 시간만 고객에게 노출","textPreview":"결과: 충돌하지 않는 시간만 고객에게 노출","textChars":23,"textLines":1,"bbox":[65,585,1150,45]}
+{"kind":"notes","id":"nt/bycsmy","slide":4,"text":""}
+{"kind":"slide","id":"sl/ta8scu","slide":5,"title":"MARINBOY PORTFOLIO","textShapes":15}
+{"kind":"textbox","id":"sh/wn6pkned","slide":5,"text":"MARINBOY PORTFOLIO","textPreview":"MARINBOY PORTFOLIO","textChars":18,"textLines":1,"bbox":[64,35,500,28]}
+{"kind":"textbox","id":"sh/bmxobids","slide":5,"text":"계층을 분리해 변경과 검증 지점을 명확히 했습니다","textPreview":"계층을 분리해 변경과 검증 지점을 명확히 했습니다","textChars":27,"textLines":1,"bbox":[64,74,1150,70]}
+{"kind":"textbox","id":"sh/alo7ixw7","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1170,665,50,20]}
+{"kind":"shape","id":"sh/9kf69svm","slide":5,"bbox":[45,265,170,110]}
+{"kind":"textbox","id":"sh/oz6pgne1","slide":5,"text":"Browser","textPreview":"Browser","textChars":7,"textLines":1,"bbox":[55,290,150,55]}
+{"kind":"textbox","id":"sh/nyxo7idw","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[215,292,35,50]}
+{"kind":"shape","id":"sh/mxo7edwb","slide":5,"bbox":[250,265,170,110]}
+{"kind":"textbox","id":"sh/tgjqlcv6","slide":5,"text":"Controller","textPreview":"Controller","textChars":10,"textLines":1,"bbox":[260,290,150,55]}
+{"kind":"textbox","id":"sh/8vaps7el","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[420,292,35,50]}
+{"kind":"shape","id":"sh/2t8f6p87","slide":5,"bbox":[455,265,170,110]}
+{"kind":"textbox","id":"sh/3uhwfu9s","slide":5,"text":"Service","textPreview":"Service","textChars":7,"textLines":1,"bbox":[465,290,150,55]}
+{"kind":"textbox","id":"sh/4vqx8zqx","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[625,292,35,50]}
+{"kind":"shape","id":"sh/pgzeh4ri","slide":5,"bbox":[660,265,170,110]}
+{"kind":"textbox","id":"sh/upof258v","slide":5,"text":"DAO","textPreview":"DAO","textChars":3,"textLines":1,"bbox":[670,290,150,55]}
+{"kind":"textbox","id":"sh/fqxwba9g","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[830,292,35,50]}
+{"kind":"shape","id":"sh/gr6x4fq1","slide":5,"bbox":[865,265,170,110]}
+{"kind":"textbox","id":"sh/hszedkrm","slide":5,"text":"MyBatis XML","textPreview":"MyBatis XML","textChars":11,"textLines":1,"bbox":[875,290,150,55]}
+{"kind":"textbox","id":"sh/elsfe98f","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[1035,292,35,50]}
+{"kind":"shape","id":"sh/zm1gne9k","slide":5,"bbox":[1070,265,170,110]}
+{"kind":"textbox","id":"sh/bu9kj2l0","slide":5,"text":"Oracle XE","textPreview":"Oracle XE","textChars":9,"textLines":1,"bbox":[1080,290,150,55]}
+{"kind":"textbox","id":"sh/at03qxkf","slide":5,"text":"Controller는 요청을 받고 · Service는 규칙을 검증하며 · Mapper는 SQL을 관리합니다","textPreview":"Controller는 요청을 받고 · Service는 규칙을 검증하며 · Mapper는 SQL을 관리합니다","textChars":59,"textLines":1,"bbox":[90,455,1100,60]}
+{"kind":"notes","id":"nt/ta8scu","slide":5,"text":""}
+{"kind":"slide","id":"sl/5gvu9r","slide":6,"title":"MARINBOY PORTFOLIO","textShapes":15}
+{"kind":"textbox","id":"sh/07y1gbex","slide":6,"text":"MARINBOY PORTFOLIO","textPreview":"MARINBOY PORTFOLIO","textChars":18,"textLines":1,"bbox":[64,35,500,28]}
+{"kind":"textbox","id":"sh/z6p076dc","slide":6,"text":"핵심 기능을 실제 운영 흐름까지 확장했습니다","textPreview":"핵심 기능을 실제 운영 흐름까지 확장했습니다","textChars":24,"textLines":1,"bbox":[64,74,1150,70]}
+{"kind":"textbox","id":"sh/y5gje1wr","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1170,665,50,20]}
+{"kind":"shape","id":"sh/d47i5wf6","slide":6,"bbox":[65,180,555,110]}
+{"kind":"shape","id":"sh/c3y1crel","slide":6,"bbox":[65,180,10,110]}
+{"kind":"textbox","id":"sh/b2p03mx0","slide":6,"text":"고객","textPreview":"고객","textChars":2,"textLines":1,"bbox":[95,202,500,36]}
+{"kind":"textbox","id":"sh/q1wja1wv","slide":6,"text":"시술·가격 조회 / 가능 시간 조회 / 예약 CRUD / 이용 내역","textPreview":"시술·가격 조회 / 가능 시간 조회 / 예약 CRUD / 이용 내역","textChars":37,"textLines":1,"bbox":[95,248,500,22]}
+{"kind":"shape","id":"sh/x0r2h0va","slide":6,"bbox":[65,315,555,110]}
+{"kind":"shape","id":"sh/wzi1ove5","slide":6,"bbox":[65,315,10,110]}
+{"kind":"textbox","id":"sh/qxk7a9o3","slide":6,"text":"인증","textPreview":"인증","textChars":2,"textLines":1,"bbox":[95,337,500,36]}
+{"kind":"textbox","id":"sh/byt8je5o","slide":6,"text":"세션 로그인 / Kakao OAuth2 / 역할 기반 접근","textPreview":"세션 로그인 / Kakao OAuth2 / 역할 기반 접근","textChars":32,"textLines":1,"bbox":[95,383,500,22]}
+{"kind":"shape","id":"sh/cz2pcj6t","slide":6,"bbox":[65,450,555,110]}
+{"kind":"shape","id":"sh/d0vqlone","slide":6,"bbox":[65,450,10,110]}
+{"kind":"textbox","id":"sh/2tk769or","slide":6,"text":"품질","textPreview":"품질","textChars":2,"textLines":1,"bbox":[95,472,500,36]}
+{"kind":"textbox","id":"sh/3ut8fe5c","slide":6,"text":"예외 응답 표준화 / 전화번호 마스킹 / 데이터 검증","textPreview":"예외 응답 표준화 / 전화번호 마스킹 / 데이터 검증","textChars":29,"textLines":1,"bbox":[95,518,500,22]}
+{"kind":"shape","id":"sh/ov2p8j6x","slide":6,"bbox":[660,180,555,110]}
+{"kind":"shape","id":"sh/pwbqh4ni","slide":6,"bbox":[660,180,10,110]}
+{"kind":"textbox","id":"sh/mp4ritob","slide":6,"text":"관리자","textPreview":"관리자","textChars":3,"textLines":1,"bbox":[690,202,500,36]}
+{"kind":"textbox","id":"sh/nqd8ry5g","slide":6,"text":"예약 상세·상태·거절 관리","textPreview":"예약 상세·상태·거절 관리","textChars":14,"textLines":1,"bbox":[690,248,500,22]}
+{"kind":"shape","id":"sh/jy5wn6hw","slide":6,"bbox":[660,315,555,110]}
+{"kind":"shape","id":"sh/yxwvu10b","slide":6,"bbox":[660,315,10,110]}
+{"kind":"textbox","id":"sh/l0nepgz2","slide":6,"text":"운영","textPreview":"운영","textChars":2,"textLines":1,"bbox":[690,337,500,36]}
+{"kind":"textbox","id":"sh/kzedwbih","slide":6,"text":"휴무일·시술 메뉴 관리","textPreview":"휴무일·시술 메뉴 관리","textChars":12,"textLines":1,"bbox":[690,383,500,22]}
+{"kind":"shape","id":"sh/7m5wr6hs","slide":6,"bbox":[660,450,555,110]}
+{"kind":"shape","id":"sh/61wvy10n","slide":6,"bbox":[660,450,10,110]}
+{"kind":"textbox","id":"sh/to7etgzy","slide":6,"text":"콘텐츠","textPreview":"콘텐츠","textChars":3,"textLines":1,"bbox":[690,472,500,36]}
+{"kind":"textbox","id":"sh/8nyx0bid","slide":6,"text":"대표·갤러리 이미지 업로드","textPreview":"대표·갤러리 이미지 업로드","textChars":14,"textLines":1,"bbox":[690,518,500,22]}
+{"kind":"notes","id":"nt/5gvu9r","slide":6,"text":""}
+{"kind":"slide","id":"sl/0btpad","slide":7,"title":"MARINBOY PORTFOLIO","textShapes":9}
+{"kind":"textbox","id":"sh/v61knq5o","slide":7,"text":"MARINBOY PORTFOLIO","textPreview":"MARINBOY PORTFOLIO","textChars":18,"textLines":1,"bbox":[64,35,500,28]}
+{"kind":"textbox","id":"sh/w7u1wvm9","slide":7,"text":"도메인 문제를 서버 규칙으로 해결했습니다","textPreview":"도메인 문제를 서버 규칙으로 해결했습니다","textChars":22,"textLines":1,"bbox":[64,74,1150,70]}
+{"kind":"textbox","id":"sh/x832p0nu","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1170,665,50,20]}
+{"kind":"shape","id":"sh/i9cjy54f","slide":7,"bbox":[65,180,360,390]}
+{"kind":"shape","id":"sh/jalkra5k","slide":7,"bbox":[65,180,10,390]}
+{"kind":"textbox","id":"sh/kbu10fm5","slide":7,"text":"중복 예약","textPreview":"중복 예약","textChars":5,"textLines":1,"bbox":[95,202,305,36]}
+{"kind":"textbox","id":"sh/5c32tknq","slide":7,"text":"기존 예약 시작·종료 시간과\n신규 시술 시간을 교차 비교해\n충돌을 차단했습니다.","textPreview":"기존 예약 시작·종료 시간과 | 신규 시술 시간을 교차 비교해 | 충돌을 차단했습니다.","textChars":44,"textLines":3,"bbox":[95,248,305,302]}
+{"kind":"shape","id":"sh/ed8jmlov","slide":7,"bbox":[460,180,360,390]}
+{"kind":"shape","id":"sh/zeh0f65g","slide":7,"bbox":[460,180,10,390]}
+{"kind":"textbox","id":"sh/3mtgjahg","slide":7,"text":"권한 분리","textPreview":"권한 분리","textChars":5,"textLines":1,"bbox":[490,202,305,36]}
+{"kind":"textbox","id":"sh/2lkfq50v","slide":7,"text":"세션 역할을 확인하고 고객은\n본인 예약만, 관리자는 운영 API만\n접근하도록 제한했습니다.","textPreview":"세션 역할을 확인하고 고객은 | 본인 예약만, 관리자는 운영 API만 | 접근하도록 제한했습니다.","textChars":50,"textLines":3,"bbox":[490,248,305,302]}
+{"kind":"shape","id":"sh/pobylkzm","slide":7,"bbox":[855,180,360,390]}
+{"kind":"shape","id":"sh/on2xsfi1","slide":7,"bbox":[855,180,10,390]}
+{"kind":"textbox","id":"sh/fi9wfahk","slide":7,"text":"운영 반영","textPreview":"운영 반영","textChars":5,"textLines":1,"bbox":[885,202,305,36]}
+{"kind":"textbox","id":"sh/eh0fm50z","slide":7,"text":"영업시간과 휴무일을\n예약 슬롯 계산에 포함해\n현실적인 예약 가능 시간을 제공합니다.","textPreview":"영업시간과 휴무일을 | 예약 슬롯 계산에 포함해 | 현실적인 예약 가능 시간을 제공합니다.","textChars":46,"textLines":3,"bbox":[885,248,305,302]}
+{"kind":"notes","id":"nt/0btpad","slide":7,"text":""}
+{"kind":"slide","id":"sl/m4czbd","slide":8,"title":"MARINBOY PORTFOLIO","textShapes":10}
+{"kind":"textbox","id":"sh/83y90721","slide":8,"text":"MARINBOY PORTFOLIO","textPreview":"MARINBOY PORTFOLIO","textChars":18,"textLines":1,"bbox":[64,35,500,28]}
+{"kind":"textbox","id":"sh/7258721g","slide":8,"text":"풀스택 구현 경험을 운영 가능한 기반으로 만들었습니다","textPreview":"풀스택 구현 경험을 운영 가능한 기반으로 만들었습니다","textChars":29,"textLines":1,"bbox":[64,74,1150,70]}
+{"kind":"textbox","id":"sh/m1wryxkv","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1170,665,50,20]}
+{"kind":"shape","id":"sh/l0nq5sjq","slide":8,"bbox":[65,185,1150,180]}
+{"kind":"textbox","id":"sh/kzepwn25","slide":8,"text":"단순 CRUD를 넘어 시간 충돌·권한·휴무일이라는\n실제 예약 도메인 규칙을 구현했습니다.","textPreview":"단순 CRUD를 넘어 시간 충돌·권한·휴무일이라는 | 실제 예약 도메인 규칙을 구현했습니다.","textChars":49,"textLines":2,"bbox":[110,220,1060,110]}
+{"kind":"shape","id":"sh/zy583i1k","slide":8,"bbox":[65,410,350,170]}
+{"kind":"shape","id":"sh/yxw7udkz","slide":8,"bbox":[65,410,10,170]}
+{"kind":"textbox","id":"sh/xcnq18je","slide":8,"text":"현재 성과","textPreview":"현재 성과","textChars":5,"textLines":1,"bbox":[95,432,295,36]}
+{"kind":"textbox","id":"sh/cbepsn2t","slide":8,"text":"화면·API·DB를 연결한\n예약 서비스 완성","textPreview":"화면·API·DB를 연결한 | 예약 서비스 완성","textChars":24,"textLines":2,"bbox":[95,478,295,82]}
+{"kind":"shape","id":"sh/6hg3ih4z","slide":8,"bbox":[465,410,350,170]}
+{"kind":"shape","id":"sh/ripkrmlk","slide":8,"bbox":[465,410,10,170]}
+{"kind":"textbox","id":"sh/sjylkrm5","slide":8,"text":"다음 개선","textPreview":"다음 개선","textChars":5,"textLines":1,"bbox":[495,432,295,36]}
+{"kind":"textbox","id":"sh/tk72tw3q","slide":8,"text":"자동화 테스트 확대\nCI/CD와 운영 배포","textPreview":"자동화 테스트 확대 | CI/CD와 운영 배포","textChars":23,"textLines":2,"bbox":[495,478,295,82]}
+{"kind":"shape","id":"sh/idw3eh43","slide":8,"bbox":[865,410,350,170]}
+{"kind":"shape","id":"sh/je5knmlo","slide":8,"bbox":[865,410,10,170]}
+{"kind":"textbox","id":"sh/4felgrm9","slide":8,"text":"확장 방향","textPreview":"확장 방향","textChars":5,"textLines":1,"bbox":[895,432,295,36]}
+{"kind":"textbox","id":"sh/5gn2pw3u","slide":8,"text":"알림 연동과\n운영 통계 대시보드","textPreview":"알림 연동과 | 운영 통계 대시보드","textChars":17,"textLines":2,"bbox":[895,478,295,82]}
+{"kind":"notes","id":"nt/m4czbd","slide":8,"text":""}
+{"kind":"slide","id":"sl/t49h90","slide":9,"title":"마린보이는 예약을 받는 화면이 아니라,","textShapes":3}
+{"kind":"textbox","id":"sh/udsnipg7","slide":9,"text":"마린보이는 예약을 받는 화면이 아니라,\n고객과 운영자를 연결하는 시스템입니다.","textPreview":"마린보이는 예약을 받는 화면이 아니라, | 고객과 운영자를 연결하는 시스템입니다.","textChars":43,"textLines":2,"bbox":[100,190,1080,150]}
+{"kind":"textbox","id":"sh/hg3mt4fi","slide":9,"text":"감사합니다","textPreview":"감사합니다","textChars":5,"textLines":1,"bbox":[100,430,1080,60]}
+{"kind":"textbox","id":"sh/gfu5kzyx","slide":9,"text":"Q & A","textPreview":"Q & A","textChars":5,"textLines":1,"bbox":[100,525,1080,50]}
+{"kind":"notes","id":"nt/t49h90","slide":9,"text":""}

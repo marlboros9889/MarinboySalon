@@ -1,30 +1,34 @@
-# marinboy_mybatis
+# Marinboy Salon
 
+Marinboy Salon 프로젝트의 버전별 소스와 실행 자료를 한 저장소에서 관리합니다.
 
-## 목표 구조
+| 버전 | 폴더 | 설명 |
+|---|---|---|
+| v2 | [`marinboy_v2/`](marinboy_v2/) | Spring Boot, Thymeleaf, MyBatis 기반 기본 베이스 |
+| v3 | [`marinboy_v3/`](marinboy_v3/) | React 포트폴리오 UI, JWT·Redis·JPA 및 관리자 기능 확장 버전 |
 
-```text
-src/main/java/com/marinboy
-├── api
-├── config
-├── controller
-├── dao
-├── dto
-├── llmrag
-├── security
-├── service
-└── util
+## 실행
 
-src/main/resources
-└── mybatis/mapper
+### v2
+
+```powershell
+cd marinboy_v2
+mvn spring-boot:run
 ```
 
-## 1차 검증 목표
+### v3 백엔드
 
-```text
-Oracle 연결 확인
--> TestDao
--> test-mapper.xml
--> SELECT SYSDATE FROM DUAL
--> /api/db-time 응답
+```powershell
+cd marinboy_v3
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
+
+### v3 프론트엔드
+
+```powershell
+cd marinboy_v3/frontend
+npm install
+npm run dev
+```
+
+기능 흐름과 최종 점검 결과는 [`marinboy_v3/docs/`](marinboy_v3/docs/)에서 확인할 수 있습니다.

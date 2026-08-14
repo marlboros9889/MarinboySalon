@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- DbSchemaDao와 연결되어 Oracle DB에 생성된 프로젝트 테이블 구조를 읽는 mapper입니다. -->
+<mapper namespace="com.marinboy.db.DbSchemaDao">
+
+    <!-- USER_TABLES 조회 결과를 DbTableResponse 필드로 매핑합니다. -->
+    <resultMap id="dbTableResultMap" type="com.marinboy.db.DbSchemaDto">
+        <result property="tableName" column="TABLE_NAME"/>
+    </resultMap>
+
+    <!-- USER_TAB_COLUMNS 조회 결과를 DbColumnResponse 필드로 매핑합니다. -->
+    <resultMap id="dbColumnResultMap" type="com.marinboy.db.DbSchemaDto">
+        <result property="tableName" column="TABLE_NAME"/>
+        <result property="columnName" column="COLUMN_NAME"/>
+        <result property="dataType" column="DATA_TYPE"/>
+        <result property="nullable" column="NULLABLE"/>
+        <result property="columnOrder" column="COLUMN_ORDER"/>
+    </resultMap>
+
+    <!-- MB_ 접두어를 가진 테이블만 조회해 이전 프로젝트의 SALON_ 테이블과 섞이지 않게 합니다. -->
+    <select id="findProjectTables" resultMap="dbTableResultMap">
+        SELECT TABLE_NAME
+        FROM USER_TABLES
+        WHERE SUBSTR(TABLE_NAME, 1, 3) = 'MB_'
+        ORDER BY TABLE_NAME
+    </select>
+
+    <!-- 각 MB_ 테이블의 컬럼명, 타입, NULL 허용 여부, 컬럼 순서를 조회합니다. -->
+    <select id="findProjectColumns" resultMap="dbColumnResultMap">
+        SELECT TABLE_NAME,
+               COLUMN_NAME,
+               DATA_TYPE,
+               NULLABLE,
+               COLUMN_ID AS COLUMN_ORDER
+        FROM USER_TAB_COLUMNS
+        WHERE SUBSTR(TABLE_NAME, 1, 3) = 'MB_'
+        ORDER BY TABLE_NAME, COLUMN_ID
+    </select>
+</mapper>

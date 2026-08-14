@@ -1,0 +1,10 @@
+target/
+*.log
+.idea/
+.settings/
+.project
+.classpath
+.factorypath
+.metadata/
+Servers/
+uploads/
