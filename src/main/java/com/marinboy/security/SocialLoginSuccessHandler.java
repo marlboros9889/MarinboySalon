@@ -10,10 +10,16 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.core.env.Environment;
 
 // 소셜 로그인 성공 시 사용자 정보를 세션에 담고 메인 화면으로 이동시키는 처리 클래스입니다.
 @Component
 public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler {
+    private final Environment environment;
+
+    public SocialLoginSuccessHandler(Environment environment) {
+        this.environment = environment;
+    }
 
     // OAuth2 인증 결과에서 제공자와 사용자 정보를 추출한 뒤 세션 기반 로그인 상태를 만듭니다.
     @Override
@@ -42,6 +48,9 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler {
                     oauthToken.getAuthorizedClientRegistrationId().toUpperCase());
         }
 
-        response.sendRedirect("/");
+        // v3에서는 React가 세션을 JWT로 교환하도록 콜백 주소로 이동하고, 기존 화면은 그대로 유지합니다.
+        boolean v3Active = java.util.Arrays.asList(environment.getActiveProfiles()).contains("v3");
+        String redirectUri = environment.getProperty("app.react.redirect-uri", "http://127.0.0.1:5173");
+        response.sendRedirect(v3Active ? redirectUri + "?socialLogin=success" : "/");
     }
 }

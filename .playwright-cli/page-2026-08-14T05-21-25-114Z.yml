@@ -1,0 +1,91 @@
+- main [ref=f1e3]:
+  - generic [ref=f1e4]:
+    - link "Marinboy Salon 홈" [ref=f1e5] [cursor=pointer]:
+      - /url: "#top"
+      - text: MARINBOY SALON
+    - navigation "주요 메뉴" [ref=f1e6]:
+      - link "이달의 추천" [ref=f1e7] [cursor=pointer]:
+        - /url: "#monthly"
+      - link "시술 메뉴" [ref=f1e8] [cursor=pointer]:
+        - /url: "#services"
+      - link "매장 안내" [ref=f1e9] [cursor=pointer]:
+        - /url: "#visit"
+    - generic [ref=f1e10]:
+      - link "로그인" [ref=f1e11] [cursor=pointer]:
+        - /url: "#login"
+      - button "예약하기" [ref=f1e12] [cursor=pointer]
+  - generic [ref=f1e13]:
+    - generic [ref=f1e14]:
+      - paragraph [ref=f1e15]: SUMMER EDITION · 2026
+      - heading [level=1] [ref=f1e16]:
+        - text: 나에게 가장 잘 어울리는
+        - emphasis [ref=f1e17]: 여름의 변화
+      - paragraph [ref=f1e18]: 섬세한 상담부터 완성도 높은 디자인까지,마린보이살롱에서 편안하게 경험하세요.
+      - generic [ref=f1e19]:
+        - button "시술 예약하기" [ref=f1e20] [cursor=pointer]
+        - link "메뉴 둘러보기" [ref=f1e21] [cursor=pointer]:
+          - /url: "#services"
+    - generic [ref=f1e22]:
+      - img "마린보이살롱 대표 시술" [ref=f1e23]
+      - generic [ref=f1e24]:
+        - strong [ref=f1e25]: "08"
+        - generic [ref=f1e26]: Cool & clearbeauty moment
+  - generic [ref=f1e27]:
+    - generic [ref=f1e28]:
+      - generic [ref=f1e29]:
+        - paragraph [ref=f1e30]: MEMBERSHIP
+        - heading "더 편리한 예약, 회원으로 시작하세요." [level=2] [ref=f1e31]: 더 편리한 예약,회원으로 시작하세요.
+      - generic [ref=f1e32]:
+        - generic [ref=f1e33]:
+          - textbox "아이디" [ref=f1e34]
+          - textbox "비밀번호" [ref=f1e35]
+          - button "로그인" [ref=f1e36] [cursor=pointer]
+        - generic [ref=f1e37]:
+          - button "카카오로 시작하기" [ref=f1e38] [cursor=pointer]
+          - button "네이버로 시작하기" [ref=f1e39] [cursor=pointer]
+          - button "Google로 시작하기" [ref=f1e40] [cursor=pointer]
+        - button "처음이신가요? 회원가입" [ref=f1e41] [cursor=pointer]
+    - paragraph [ref=f1e42]: 시술 메뉴를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+  - generic [ref=f1e43]:
+    - generic [ref=f1e44]:
+      - generic [ref=f1e45]:
+        - paragraph [ref=f1e46]: MONTHLY TOP 5
+        - heading "이번 달 가장 사랑받은 시술이에요." [level=2] [ref=f1e47]: 이번 달 가장 사랑받은시술이에요.
+      - paragraph [ref=f1e48]: 고객님들이 선택한 여름 스타일을지금 만나보세요.
+    - generic [ref=f1e49]:
+      - generic [ref=f1e50]:
+        - heading "HAIR TOP 5" [level=3] [ref=f1e51]
+        - paragraph [ref=f1e52]: 헤어 인기 시술을 준비하고 있어요.
+      - generic [ref=f1e53]:
+        - heading "NAIL TOP 5" [level=3] [ref=f1e54]
+        - paragraph [ref=f1e55]: 네일 인기 시술을 준비하고 있어요.
+  - generic [ref=f1e57]:
+    - generic [ref=f1e58]:
+      - generic [ref=f1e59]:
+        - paragraph [ref=f1e60]: SIGNATURE MENU
+        - heading "당신의 취향을 담은 시술을 골라보세요." [level=2] [ref=f1e61]: 당신의 취향을 담은시술을 골라보세요.
+      - button "상담 후 예약하기" [ref=f1e62] [cursor=pointer]
+    - tablist [ref=f1e63]:
+      - button "전체 시술" [ref=f1e64] [cursor=pointer]
+      - button "헤어" [ref=f1e65] [cursor=pointer]
+      - button "네일" [ref=f1e66] [cursor=pointer]
+    - paragraph [ref=f1e67]: 등록된 시술 메뉴를 준비하고 있습니다.
+  - generic [ref=f1e68]:
+    - generic [ref=f1e69]:
+      - paragraph [ref=f1e70]: VISIT MARINBOY
+      - heading "당신의 일상에 기분 좋은 변화를." [level=2] [ref=f1e71]: 당신의 일상에기분 좋은 변화를.
+      - paragraph [ref=f1e72]: 전문 디자이너와 편안하게 상담하고,나만의 아름다움을 발견해 보세요.
+      - button "지금 예약하기" [ref=f1e73] [cursor=pointer]
+    - generic [ref=f1e74]:
+      - paragraph [ref=f1e75]:
+        - generic [ref=f1e76]: OPEN
+        - text: 10:00 – 20:00
+      - paragraph [ref=f1e77]:
+        - generic [ref=f1e78]: CONTACT
+        - text: 02.0000.0000
+      - paragraph [ref=f1e79]:
+        - generic [ref=f1e80]: LOCATION
+        - text: 서울특별시 마린보이살롱
+  - generic [ref=f1e82]:
+    - strong [ref=f1e83]: MARINBOY SALON
+    - generic [ref=f1e84]: © 2026 MARINBOY SALON. ALL RIGHTS RESERVED.

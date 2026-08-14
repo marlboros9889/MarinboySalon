@@ -8,6 +8,11 @@
                EMAIL AS email, PHONE AS phone, ROLE AS role
         FROM MB_USER WHERE USERNAME = #{username}
     </select>
+    <!-- 일반 회원은 기본 CUSTOMER 권한으로 생성하고 비밀번호는 BCrypt 값만 저장합니다. -->
+    <insert id="insertCustomer" parameterType="com.marinboy.dto.UserDto">
+        INSERT INTO MB_USER (USERNAME, PASSWORD, NAME, EMAIL, PHONE, ROLE)
+        VALUES (#{username}, #{password}, #{name}, #{email}, #{phone}, 'CUSTOMER')
+    </insert>
     <update id="updatePassword">
         UPDATE MB_USER SET PASSWORD = #{password}, UPDATED_AT = SYSTIMESTAMP WHERE ID = #{id}
     </update>

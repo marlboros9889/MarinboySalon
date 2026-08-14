@@ -21,15 +21,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class AuthController {
     private final AuthService authService;
     private final boolean kakaoLoginEnabled;
+    private final boolean googleLoginEnabled;
+    private final boolean naverLoginEnabled;
     // 실제 계정 조회와 비밀번호 검증은 인증 서비스에 위임합니다.
     public AuthController(AuthService authService,
-            @Value("${spring.security.oauth2.client.registration.kakao.client-id:not-configured}") String kakaoClientId) {
+            @Value("${spring.security.oauth2.client.registration.kakao.client-id:not-configured}") String kakaoClientId,
+            @Value("${spring.security.oauth2.client.registration.google.client-id:not-configured}") String googleClientId,
+            @Value("${spring.security.oauth2.client.registration.naver.client-id:not-configured}") String naverClientId) {
         this.authService = authService;
         this.kakaoLoginEnabled = !"not-configured".equals(kakaoClientId) && !kakaoClientId.isBlank();
+        this.googleLoginEnabled = !"not-configured".equals(googleClientId) && !googleClientId.isBlank();
+        this.naverLoginEnabled = !"not-configured".equals(naverClientId) && !naverClientId.isBlank();
     }
     // 브라우저에 로그인 템플릿을 반환합니다.
     @GetMapping("/login") public String loginPage(Model model) {
         model.addAttribute("kakaoLoginEnabled", kakaoLoginEnabled);
+        model.addAttribute("googleLoginEnabled", googleLoginEnabled);
+        model.addAttribute("naverLoginEnabled", naverLoginEnabled);
         return "login";
     }
     /** 로그인 폼에서 호출하는 인증 REST API입니다. */
@@ -50,6 +58,15 @@ public class AuthController {
             session.setAttribute(SecurityConstants.LOGIN_USER, user);
             session.setAttribute(SecurityConstants.LOGIN_PROVIDER, "DATABASE");
             return ResponseEntity.ok(user);
+        }
+
+        /** POST /api/auth/signup 요청으로 고객 일반 회원가입을 처리합니다. */
+        @PostMapping("/api/auth/signup")
+        @Operation(summary = "고객 회원가입")
+        ResponseEntity<Void> signup(@RequestBody UserDto request) {
+            // 회원가입은 고객 권한만 생성하며 관리자 권한은 이 API로 만들 수 없습니다.
+            authService.signup(request);
+            return ResponseEntity.noContent().build();
         }
     }
 }

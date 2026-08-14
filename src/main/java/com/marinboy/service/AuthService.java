@@ -33,6 +33,28 @@ public class AuthService {
         return user;
     }
 
+    /** 고객 회원가입 정보를 검증하고 BCrypt 비밀번호로 일반 계정을 생성합니다. */
+    @Transactional
+    public void signup(UserDto request) {
+        if (request == null || isBlank(request.getUsername()) || isBlank(request.getPassword())
+                || isBlank(request.getName()) || isBlank(request.getEmail()) || isBlank(request.getPhone())) {
+            throw new IllegalArgumentException("회원가입 정보를 모두 입력해 주세요.");
+        }
+        String username = request.getUsername().trim();
+        if (authMapper.findByUsername(username) != null) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
+        }
+        request.setUsername(username);
+        request.setPassword(passwordEncoder.encode(request.getPassword()));
+        request.setRole("CUSTOMER");
+        authMapper.insertCustomer(request);
+        request.setPassword(null);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
     private boolean passwordMatches(String rawPassword, String storedPassword) {
         if (storedPassword == null) return false;
         return storedPassword.startsWith("$2")
