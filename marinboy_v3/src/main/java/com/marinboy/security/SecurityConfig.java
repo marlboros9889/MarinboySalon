@@ -63,7 +63,9 @@ public class SecurityConfig {
                 // 세션 쿠키를 사용하는 기존 API는 쿠키와 헤더의 CSRF 토큰이 일치해야 변경할 수 있습니다.
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository())
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        // 모바일 API는 세션 쿠키 대신 검증된 Firebase Bearer 토큰을 사용합니다.
+                        .ignoringRequestMatchers("/api/mobile/**"))
                 .addFilterAfter(csrfCookieFilter(), BasicAuthenticationFilter.class)
                 // React 개발 서버가 로그인 세션 쿠키를 포함해 legacy API를 호출할 수 있도록 허용합니다.
                 .cors(cors -> cors.configurationSource(legacyCorsConfigurationSource()))
