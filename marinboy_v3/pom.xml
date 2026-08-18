@@ -31,6 +31,19 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- 새 예약 알림을 관리자 이메일로 선택 발송합니다. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- 모바일 앱의 Firebase ID 토큰을 서버에서 검증합니다. -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.10.0</version>
+        </dependency>
+
         <!-- 포트폴리오 고객 예약 화면의 서버 템플릿 렌더링에 사용합니다. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

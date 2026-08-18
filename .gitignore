@@ -1,0 +1,27 @@
+# 빌드·프런트엔드 산출물
+**/target/
+**/node_modules/
+**/dist/
+!marinboy_v3/frontend/dist/
+!marinboy_v3/frontend/dist/**
+
+# IDE·테스트 도구 메타데이터
+**/.metadata/
+**/.settings/
+**/.playwright-cli/
+**/.idea/
+**/.vscode/
+**/.project
+**/.classpath
+
+# 로그·로컬 설정
+**/*.log
+**/logs/
+**/application-local.properties
+**/.env
+**/.env.*
+!**/.env.example
+
+# 로컬 생성 파일
+.drive-upload/
+**/uploads/

@@ -1,9 +1,11 @@
 package com.marinboy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -17,6 +19,7 @@ import com.marinboy.service.ReservationService;
 import com.marinboy.service.MenuService;
 import com.marinboy.util.MoneyFormatUtil;
 import com.marinboy.util.PhoneMaskingUtil;
+import com.marinboy.security.SocialLoginUser;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -27,7 +30,9 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.core.JdbcTemplate;
 import java.time.LocalDate;
+import java.util.Map;
 
 // MyBatis 재설계 프로젝트의 핵심 연결 상태를 검증하는 테스트입니다.
 @SpringBootTest
@@ -54,6 +59,9 @@ class MarinboyApplicationTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void oracleConnectionWorksThroughMyBatisMapper() {
@@ -122,6 +130,21 @@ class MarinboyApplicationTests {
     }
 
     @Test
+    void socialLoginMapsProviderPhoneWhenItIsProvided() {
+        // 네이버가 내려준 mobile 값을 소셜 로그인 세션 연락처로 보존하는지 검증합니다.
+        SocialLoginUser user = SocialLoginUser.from("naver", Map.of("response", Map.of(
+                "id", "naver-id", "name", "소셜 고객", "email", "social@example.test",
+                "mobile", "010-1234-5678")));
+
+        assertThat(user.phone()).isEqualTo("010-1234-5678");
+
+        SocialLoginUser kakaoUser = SocialLoginUser.from("kakao", Map.of(
+                "id", 1L,
+                "kakao_account", Map.of("phone_number", "+82 10-9876-5432", "profile", Map.of("nickname", "카카오 고객"))));
+        assertThat(kakaoUser.phone()).isEqualTo("010-9876-5432");
+    }
+
+    @Test
     @Transactional
     void reservationCreateAndUpdateAreConnectedThroughMyBatis() {
         LocalDate date = LocalDate.now().plusDays(1);
@@ -143,9 +166,20 @@ class MarinboyApplicationTests {
         request.setMemo("생성 연결 검증");
         salonReservationService.createReservation(request);
 
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT PASSWORD FROM MB_USER WHERE PHONE = ?",
+                String.class,
+                phone)).startsWith("{GUEST}");
+
         ReservationDto created = salonReservationDao.findCustomerHistory(phone).get(0);
         request.setReservationDateTime(slots.getAvailableSlots().get(0));
         request.setMemo("수정 연결 검증");
+        request.setNoShowPolicyAgreed(false);
+        assertThatThrownBy(() -> salonReservationService.updateCustomerReservation(created.getId(), phone, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("노쇼 방지 안내");
+
+        request.setNoShowPolicyAgreed(true);
         salonReservationService.updateCustomerReservation(created.getId(), phone, request);
 
         assertThat(salonReservationDao.findCustomerReservation(created.getId(), phone).getMemo())
@@ -167,11 +201,29 @@ class MarinboyApplicationTests {
                 + "@example.test\",\"phone\":\"010-7777-7777\"}";
 
         mockMvc.perform(post("/api/auth/signup")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(signupJson))
                 .andExpect(status().isNoContent());
 
+        mockMvc.perform(get("/api/auth/check-username").param("username", username))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(false));
+        mockMvc.perform(get("/api/auth/check-email").param("email", username + "@example.test"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(false));
+
+        mockMvc.perform(post("/api/auth/signup")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"" + username + "_other\",\"password\":\"" + password
+                                + "\",\"name\":\"QA Customer\",\"email\":\"" + username
+                                + "@example.test\",\"phone\":\"010-8888-8888\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("이미 가입된 이메일입니다."));
+
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}"))
                 .andExpect(status().isOk())
@@ -182,6 +234,13 @@ class MarinboyApplicationTests {
         mockMvc.perform(get("/api/auth/me").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value(username));
+    }
+
+    /** 세션 API의 상태 변경 요청은 CSRF 토큰이 없으면 거부되는지 검증합니다. */
+    @Test
+    void sessionMutationRequiresCsrfToken() throws Exception {
+        mockMvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isForbidden());
     }
 
     /** React 개발 서버가 세션 쿠키를 포함한 인증 API를 호출할 수 있는지 검증합니다. */

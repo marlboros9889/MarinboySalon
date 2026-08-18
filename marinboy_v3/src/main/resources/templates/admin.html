@@ -6,7 +6,7 @@
 :root{--sage:#7f9270;--deep:#53664c;--ivory:#f5f2e9;--gold:#a77b3f;--ink:#293227}
 body{background:radial-gradient(circle at 90% 0,#dfe6d4,transparent 30rem),var(--ivory);color:var(--ink)}
 .wrap{max-width:1280px}
-.hero{position:relative;overflow:hidden;background:linear-gradient(125deg,#44543f,#87997b);color:#fff;border-radius:28px;box-shadow:0 25px 60px #36462f26}
+.hero{position:relative;z-index:200;overflow:visible;background:linear-gradient(125deg,#44543f,#87997b);color:#fff;border-radius:28px;box-shadow:0 25px 60px #36462f26}
 .card{border:1px solid #7f927024;border-radius:22px;background:#fffef9;box-shadow:0 18px 45px #36462f13}
 .service-card{border:1px solid #7f92702b;border-radius:18px;padding:18px;height:100%;background:#fffefb;box-shadow:0 12px 28px #36462f0d}
 .service-image{width:100%;height:180px;object-fit:cover;border-radius:14px;background:#e7ebdf}
@@ -19,9 +19,27 @@ body{background:radial-gradient(circle at 90% 0,#dfe6d4,transparent 30rem),var(-
 .btn-dark{background:var(--deep);border-color:var(--deep)}.btn-complete{background:linear-gradient(135deg,#087f8c,#0aa6a6);border-color:#087f8c;color:#fff;box-shadow:0 8px 18px #087f8c3d}.btn-complete:hover{background:#076e78;color:#fff}.btn.action-done,.btn.action-done:disabled{background:#e1e7dc;border-color:#c4d0bc;color:#56664e;opacity:1;box-shadow:none;cursor:default}.status-pill{display:inline-flex;align-items:center;gap:.35rem;padding:.36rem .68rem;border-radius:999px;font-weight:800;box-shadow:inset 0 0 0 1px transparent}.status-requested{background:#fff1d6;color:#8a5b12;box-shadow:inset 0 0 0 1px #e8bb6b66}.status-confirmed{background:#def2df;color:#256b36;box-shadow:inset 0 0 0 1px #56a46966}.status-complete{background:#d8f3ef;color:#056b70;box-shadow:inset 0 0 0 1px #07939a42}.status-complete:before,.status-confirmed:before{content:"✓"}.status-rejected,.status-canceled,.status-no-show{background:#f9e1e1;color:#a13e3e;box-shadow:inset 0 0 0 1px #cb666655}.btn-outline-primary{color:var(--deep);border-color:var(--sage)}
 .table>:not(caption)>*>*{padding:.9rem .75rem;border-color:#7f927021}.table thead th{color:#607057;font-size:.83rem;letter-spacing:.05em;text-transform:uppercase}
 .action-group{display:flex;flex-wrap:wrap;gap:.35rem}
+.hero .dropdown{position:relative;z-index:2010}
+.notification-menu{z-index:2020!important;width:min(360px,90vw);max-height:420px;overflow-y:auto;box-shadow:0 18px 45px #0003}
+#reservationNotificationModal{position:fixed!important;z-index:10050!important}
+#reservationNotificationModal .modal-dialog{position:relative;z-index:10051!important}
+.modal-backdrop.show{z-index:10040!important;opacity:.72!important}
+.reservation-speech-dialog{width:92vw;max-width:1200px!important;margin-right:auto;margin-left:auto;padding:1.5rem}
+.reservation-speech{position:relative;min-height:68vh;border:3px solid var(--sage)!important;border-radius:42px!important;background:#fffef9;box-shadow:0 32px 80px #26352055!important}
+.reservation-speech:after{content:"";position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);border-width:34px 32px 0;border-style:solid;border-color:var(--sage) transparent transparent}
+.reservation-speech:before{content:"";position:absolute;z-index:1;left:50%;bottom:-28px;transform:translateX(-50%);border-width:29px 27px 0;border-style:solid;border-color:#fffef9 transparent transparent}
+.reservation-speech .modal-header{padding:2rem 2.25rem 1.25rem;border:0;background:transparent}
+.reservation-speech .modal-body{display:flex;align-items:center;padding:1rem 2.25rem 2rem!important}
+.reservation-speech .modal-body>.row{width:100%}
+.reservation-speech .modal-footer{padding:0 2.25rem 2rem;border:0}
+.reservation-alert-title{font-size:clamp(1.65rem,4vw,2.55rem);font-weight:900;color:var(--deep)}
+.reservation-detail-box{height:100%;min-height:96px;padding:1.25rem 1.4rem;border:1px solid #7f927038;border-radius:18px;background:#f7f8f2}
+.reservation-detail-box small{display:block;margin-bottom:.35rem;color:#687561;font-weight:700}
+.reservation-detail-box strong{font-size:1.05rem;color:#263520}
+@media(max-width:576px){.reservation-speech-dialog{width:96vw;padding:.5rem}.reservation-speech{min-height:82vh;border-radius:28px!important}.reservation-speech .modal-body{display:block}.reservation-speech .modal-header,.reservation-speech .modal-body,.reservation-speech .modal-footer{padding-left:1.25rem!important;padding-right:1.25rem!important}}
 </style>
 <link href="/css/marinboy-v3-theme.css" rel="stylesheet"></head><body><th:block th:replace="~{fragments/layout :: header}"></th:block><main class="container wrap py-4">
-<section class="hero p-4 mb-4 d-flex justify-content-between"><div><h1>예약 운영 대시보드</h1><p class="mb-0">예약 상태·휴무일·시술 메뉴 관리</p></div><a class="btn btn-light align-self-center" href="/">← 메인 화면으로</a></section>
+<section class="hero p-4 mb-4 d-flex justify-content-between"><div><h1>예약 운영 대시보드</h1><p class="mb-0">예약 상태·휴무일·시술 메뉴 관리</p></div><div class="d-flex gap-2 align-items-center"><div class="dropdown"><button id="notificationButton" class="btn btn-light position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="예약 알림">알림<span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span></button><ul id="notificationList" class="dropdown-menu dropdown-menu-end notification-menu"><li class="dropdown-item text-muted">불러오는 중입니다.</li></ul></div><a class="btn btn-light" href="/">← 메인 화면으로</a></div></section>
 <div class="row g-4"><section id="reservation-status" class="col-lg-8"><div class="card"><div class="card-body p-4"><h2 class="h4">전체 예약 현황</h2><div class="table-responsive"><table class="table"><thead><tr><th>예약일시</th><th>고객 / 시술</th><th>상태</th><th>처리</th></tr></thead><tbody id="list"></tbody></table></div><div class="d-flex justify-content-between"><button id="prev" class="btn btn-outline-secondary">이전</button><span id="pageInfo"></span><button id="next" class="btn btn-outline-secondary">다음</button></div></div></div></section>
 <aside class="col-lg-4"><div class="card"><div class="card-body p-4"><h2 class="h4">휴무일 관리</h2><form id="holidayForm"><input class="form-control mb-2" name="date" type="date" required><input class="form-control mb-2" name="reason" placeholder="휴무 사유"><button class="btn btn-gold w-100">저장</button></form><ul id="holidays" class="list-group mt-3"></ul></div></div></aside>
 <section id="service-management" class="col-12"><div class="card"><div class="card-body p-4"><h2 class="h4">시술 메뉴 관리</h2>
@@ -43,4 +61,23 @@ retentionCleanup.onclick=async()=>{const confirmation=retentionConfirmation.valu
 // 파일을 포함한 FormData를 그대로 전송해 메뉴 정보와 대표 이미지를 함께 저장합니다.
 serviceForm.onsubmit=async e=>{e.preventDefault();let f=e.target,id=field(f,'id').value,data=new FormData(f),files=[...field(f,'galleryImages').files,...field(f,'image').files];if(files.some(file=>file.size>10*1024*1024)){alert('이미지는 한 장당 10MB 이하로 선택해 주세요.');return}if(files.reduce((sum,file)=>sum+file.size,0)>60*1024*1024){alert('전체 이미지 용량은 60MB 이하로 선택해 주세요.');return}data.delete('id');if(await request(api+'services'+(id?'/'+id:''),{method:id?'PATCH':'POST',body:data})){f.reset();alert('시술 메뉴가 저장되었습니다.');load()}};
 prev.onclick=()=>{page--;load()};next.onclick=()=>{page++;load()};load();loadRetentionSummary();
-</script><th:block th:replace="~{fragments/layout :: footer}"></th:block></body></html>
+</script>
+<!-- 작은 토스트 대신 화면 중앙에서 예약 전체 내용을 보여주는 큰 말풍선 창입니다. -->
+<div id="reservationNotificationModal" class="modal fade" tabindex="-1" aria-labelledby="reservationNotificationTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable reservation-speech-dialog"><div class="modal-content reservation-speech">
+    <div class="modal-header align-items-start"><div><span class="badge rounded-pill bg-success mb-2">실시간 예약 접수</span><h2 id="reservationNotificationTitle" class="modal-title reservation-alert-title">새로운 예약이 들어왔습니다</h2><p class="mb-0 mt-2 text-muted">고객이 신청한 예약 내용을 확인해 주세요.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button></div>
+    <div class="modal-body p-4"><div class="row g-3">
+      <div class="col-md-4"><div class="reservation-detail-box"><small>예약 번호</small><strong id="notificationReservationId"></strong></div></div>
+      <div class="col-md-4"><div class="reservation-detail-box"><small>예약 상태</small><strong id="notificationStatus"></strong></div></div>
+      <div class="col-md-4"><div class="reservation-detail-box"><small>예약 일시</small><strong id="notificationReservationDateTime"></strong></div></div>
+      <div class="col-md-4"><div class="reservation-detail-box"><small>고객명</small><strong id="notificationCustomerName"></strong></div></div>
+      <div class="col-md-4"><div class="reservation-detail-box"><small>연락처</small><strong id="notificationCustomerPhone"></strong></div></div>
+      <div class="col-md-4"><div class="reservation-detail-box"><small>이메일</small><strong id="notificationCustomerEmail" class="text-break"></strong></div></div>
+      <div class="col-md-6"><div class="reservation-detail-box"><small>시술명</small><strong id="notificationServiceName"></strong></div></div>
+      <div class="col-md-6"><div class="reservation-detail-box"><small>시술 분류 / 소요 시간</small><strong id="notificationServiceDetail"></strong></div></div>
+      <div class="col-12"><div class="reservation-detail-box"><small>고객 요청 사항</small><p id="notificationMemo" class="mb-0 fs-5"></p></div></div>
+    </div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-dark px-5 py-2" data-bs-dismiss="modal">예약 내용 확인</button></div>
+  </div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="/js/notification.js"></script><th:block th:replace="~{fragments/layout :: footer}"></th:block></body></html>

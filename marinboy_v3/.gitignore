@@ -1,1 +1,36 @@
-# 사용자 요청에 따라 현재 프로젝트의 모든 파일을 저장소에 포함합니다.
+# 빌드 산출물
+target/
+**/target/
+# frontend/dist는 정적 배포본으로 저장소에 포함합니다.
+
+# 프런트엔드 의존성
+node_modules/
+**/node_modules/
+
+# IDE/도구 메타데이터
+.metadata/
+**/.metadata/
+.settings/
+**/.settings/
+.playwright-cli/
+**/.playwright-cli/
+.idea/
+.vscode/
+.project
+.classpath
+
+# 실행 로그
+*.log
+logs/
+
+# 로컬 전용 설정과 업로드 임시 파일
+application-local.properties
+**/application-local.properties
+.env
+.env.*
+!.env.example
+.drive-upload/
+
+# 운영 중 생성되는 업로드 파일
+uploads/
+**/uploads/

@@ -3,6 +3,7 @@ package com.marinboy.exception;
 import com.marinboy.dto.ApiErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -18,6 +19,13 @@ public class ApiExceptionHandler {
         // 예약 중복, 휴무일, 노쇼 동의 누락처럼 사용자가 수정 가능한 오류를 400으로 내려줍니다.
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorResponse(exception.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrity(DataIntegrityViolationException exception) {
+        // 동시 예약이나 중복 키 충돌은 내부 SQL을 노출하지 않고 409 응답으로 통일합니다.
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiErrorResponse("이미 처리된 값과 충돌했습니다. 최신 상태를 확인해 주세요."));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

@@ -9,6 +9,18 @@ const SOCIAL_PROVIDERS = [
   { name: 'Google', key: 'google', label: 'Google로 시작하기' },
 ];
 
+/** 세션 API의 상태 변경 요청에 서버가 발급한 CSRF 토큰을 추가합니다. */
+async function sessionFetch(path, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const headers = new Headers(options.headers || {});
+  if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
+    const tokenResponse = await fetch(`${API_BASE_URL}/api/csrf`, { credentials: 'include' });
+    if (!tokenResponse.ok) throw new Error('CSRF token request failed');
+    headers.set('X-XSRF-TOKEN', (await tokenResponse.json()).token);
+  }
+  return fetch(`${API_BASE_URL}${path}`, { ...options, headers, credentials: 'include' });
+}
+
 /** 서비스 이미지 경로를 안전하게 반환합니다. */
 function serviceImage(item) {
   const category = item?.category || '';
@@ -19,7 +31,7 @@ function serviceImage(item) {
   return `${API_BASE_URL}${item.imageUrl}`;
 }
 
-/** 대표·상세·카탈로그 이미지를 조합해 메뉴마다 최소 3장의 갤러리를 구성합니다. */
+/** 등록된 대표·상세 이미지 전체를 반환하고, 이미지가 없을 때만 기본 카탈로그를 사용합니다. */
 function serviceGalleryImages(item) {
   const category = item?.category || '';
   const type = /NAIL|네일/i.test(category) ? 'nail' : 'hair';
@@ -31,7 +43,7 @@ function serviceGalleryImages(item) {
     (index) => `${API_BASE_URL}/images/catalog/catalog-${type}-${catalogNumber}-${index}.jpg`,
   );
 
-  return [...new Set([...uploadedImages, ...catalogImages])].slice(0, 3);
+  return [...new Set(uploadedImages.length ? uploadedImages : catalogImages)];
 }
 
 /** 대표 서비스의 카테고리별 목록을 구성합니다. */
@@ -53,6 +65,17 @@ function monthlyTopFive(items, keyword) {
     .slice(0, 5);
 }
 
+/** 현재 월 예약 DB 건수를 기준으로 카테고리 1위는 BEST, 나머지 인기 메뉴는 HIT로 표시합니다. */
+function popularityBadges(items) {
+  const badges = new Map();
+  ['HAIR', 'NAIL'].forEach((category) => {
+    monthlyTopFive(items, category)
+      .filter((item) => Number(item.reservationCount) > 0)
+      .forEach((item, index) => badges.set(item.id, index === 0 ? 'BEST' : 'HIT'));
+  });
+  return badges;
+}
+
 function App() {
   const [services, setServices] = useState([]);
   const [activeCategory, setActiveCategory] = useState('ALL');
@@ -60,9 +83,14 @@ function App() {
   const [password, setPassword] = useState('');
   const [signupMode, setSignupMode] = useState(false);
   const [signup, setSignup] = useState({ username: '', password: '', name: '', email: '', phone: '' });
+  const [duplicateChecks, setDuplicateChecks] = useState({ username: 'idle', email: 'idle' });
+  const [showSignupPolicy, setShowSignupPolicy] = useState(false);
+  const [signupPolicyAgreed, setSignupPolicyAgreed] = useState(false);
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState('');
   const [policyMessage, setPolicyMessage] = useState('');
+  const [heroPolicyAgreed, setHeroPolicyAgreed] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const policyCheckboxRef = useRef(null);
 
@@ -89,14 +117,51 @@ function App() {
     ? services : groupServices(services, activeCategory);
   const hairTopFive = monthlyTopFive(services, 'HAIR');
   const nailTopFive = monthlyTopFive(services, 'NAIL');
-  const heroImage = serviceImage(services[0]);
+  const serviceBadges = useMemo(() => popularityBadges(services), [services]);
+  const heroImages = useMemo(
+    () => [...new Set(services.flatMap((service) => serviceGalleryImages(service)))],
+    [services],
+  );
+  const heroImage = heroImages[heroImageIndex % Math.max(heroImages.length, 1)] || serviceImage(null);
+
+  useEffect(() => {
+    // 메인 대표 이미지를 2초마다 다음 등록 시술 이미지로 변경합니다.
+    if (heroImages.length < 2) return undefined;
+    const timer = window.setInterval(() => {
+      setHeroImageIndex((current) => (current + 1) % heroImages.length);
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [heroImages]);
+
+  const checkDuplicate = async (field) => {
+    const value = signup[field].trim();
+    if (!value) {
+      setDuplicateChecks((current) => ({ ...current, [field]: 'empty' }));
+      return;
+    }
+    const path = field === 'username' ? 'check-username?username=' : 'check-email?email=';
+    try {
+      const response = await sessionFetch(`/api/auth/${path}${encodeURIComponent(value)}`);
+      const result = response.ok ? await response.json() : { available: false };
+      setDuplicateChecks((current) => ({ ...current, [field]: result.available ? 'available' : 'duplicate' }));
+    } catch {
+      setDuplicateChecks((current) => ({ ...current, [field]: 'error' }));
+    }
+  };
+
+  const changeSignupField = (field, value) => {
+    setSignup((current) => ({ ...current, [field]: value }));
+    if (field === 'username' || field === 'email') {
+      setDuplicateChecks((current) => ({ ...current, [field]: 'idle' }));
+    }
+  };
 
   const signIn = async (event) => {
     event.preventDefault();
     setMessage('');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      const response = await sessionFetch('/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         // 서버 AuthService는 이메일이 아닌 username 필드를 로그인 식별자로 사용합니다.
         body: JSON.stringify({ username, password }),
       });
@@ -113,8 +178,12 @@ function App() {
   const signUp = async (event) => {
     event.preventDefault();
     setMessage('');
+    if (duplicateChecks.username !== 'available' || duplicateChecks.email !== 'available') {
+      setMessage('아이디와 이메일 중복 확인을 모두 완료해 주세요.');
+      return;
+    }
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+      const response = await sessionFetch('/api/auth/signup', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signup),
       });
@@ -122,14 +191,15 @@ function App() {
       setUsername(signup.username);
       setPassword('');
       setSignupMode(false);
-      setMessage('회원가입이 완료되었습니다. 가입한 아이디로 로그인해 주세요.');
+      setSignupPolicyAgreed(false);
+      setShowSignupPolicy(true);
     } catch {
-      setMessage('회원가입에 실패했습니다. 아이디 중복과 입력 정보를 확인해 주세요.');
+      setMessage('회원가입에 실패했습니다. 아이디·이메일 중복과 입력 정보를 확인해 주세요.');
     }
   };
 
   const signOut = async () => {
-    await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => null);
+    await sessionFetch('/api/auth/logout', { method: 'POST' }).catch(() => null);
     setUser(null);
     setMessage('로그아웃되었습니다.');
   };
@@ -143,6 +213,10 @@ function App() {
     }
     setPolicyMessage('');
     window.location.href = `${API_BASE_URL}/reservation`;
+  };
+  const moveToMyReservations = () => {
+    // 로그인 고객의 예약 신청 화면이 아닌 예약 현황 화면으로 이동합니다.
+    window.location.href = `${API_BASE_URL}/my-reservations`;
   };
   const openGallery = (service) => setSelectedService(service);
   const socialLogin = (provider) => { window.location.href = `${API_BASE_URL}/oauth2/authorization/${provider}`; };
@@ -161,39 +235,42 @@ function App() {
       </header>
 
       <section id="top" className="v3-hero container">
+        <div className="v3-hero-visual">
+          <img key={heroImage} className="v3-hero-rotating-image" src={heroImage} alt="마린보이살롱 대표 시술" />
+          <div className="v3-hero-caption"><strong>08</strong><span>PRIVATE BEAUTY<br />ARCHIVE</span></div>
+        </div>
         <div className="v3-hero-copy">
-          <p className="v3-eyebrow">SUMMER EDITION · 2026</p>
-          <h1>나에게 가장 잘 어울리는<br /><em>여름의 변화</em></h1>
+          <p className="v3-eyebrow">MARINBOY PRIVATE SALON · 2026</p>
+          <h1>나만의 결을 위한<br /><em>1:1 Private Beauty Design</em></h1>
           <p className="v3-lead">섬세한 상담부터 완성도 높은 디자인까지,<br />마린보이살롱에서 편안하게 경험하세요.</p>
           <div className="v3-hero-buttons">
             <button className="v3-primary-button" onClick={moveToReservation}>시술 예약하기</button>
             <a className="v3-secondary-button" href="#services">메뉴 둘러보기</a>
           </div>
           <div id="policy-agreement" className="v3-policy-agreement">
-            <label>
+            <label className={`salon-check-field${heroPolicyAgreed ? ' is-agreed' : ''}`}>
               <input
                 ref={policyCheckboxRef}
+                className="salon-checkbox"
                 type="checkbox"
                 onChange={(event) => {
+                  setHeroPolicyAgreed(event.target.checked);
                   if (event.target.checked) setPolicyMessage('');
                 }}
               />
-              노쇼 및 당일 취소 제한 안내를 확인하고 동의합니다.
+              <span className="salon-check-copy"><strong>필수 동의</strong><small>노쇼 및 당일 취소 제한 안내를 확인했습니다.</small></span>
+              <span className="salon-check-state">{heroPolicyAgreed ? '동의 완료' : '미동의'}</span>
             </label>
             {policyMessage && <p role="alert">{policyMessage}</p>}
           </div>
-        </div>
-        <div className="v3-hero-visual">
-          <img src={heroImage} alt="마린보이살롱 대표 시술" />
-          <div className="v3-hero-caption"><strong>08</strong><span>Cool &amp; clear<br />beauty moment</span></div>
         </div>
       </section>
 
       <section id="login" className="v3-login-section">
         <div className="container v3-login-grid">
           <div><p className="v3-eyebrow">MEMBERSHIP</p><h2>더 편리한 예약,<br />회원으로 시작하세요.</h2></div>
-          {user ? <div className="v3-welcome"><strong>{user.name || '고객'}님</strong><span>예약 내역과 맞춤 서비스를 확인할 수 있어요.</span>{user.role === 'ADMIN' ? <div className="v3-welcome-actions"><a className="v3-secondary-button" href={`${API_BASE_URL}/admin#reservation-status`}>예약 현황보기</a><a className="v3-primary-button" href={`${API_BASE_URL}/admin#service-management`}>시술 메뉴 수정</a></div> : <button className="v3-secondary-button" onClick={moveToReservation}>내 예약 보기</button>}</div>
-            : signupMode ? <form className="v3-login-form" onSubmit={signUp}><div className="v3-signup-grid"><input value={signup.username} onChange={(e) => setSignup({ ...signup, username: e.target.value })} placeholder="아이디" required /><input value={signup.password} onChange={(e) => setSignup({ ...signup, password: e.target.value })} type="password" placeholder="비밀번호" required /><input value={signup.name} onChange={(e) => setSignup({ ...signup, name: e.target.value })} placeholder="이름" required /><input value={signup.email} onChange={(e) => setSignup({ ...signup, email: e.target.value })} type="email" placeholder="이메일" required /><input value={signup.phone} onChange={(e) => setSignup({ ...signup, phone: e.target.value })} placeholder="연락처" required /><button className="v3-primary-button" type="submit">가입하기</button></div><button className="v3-inline-button" type="button" onClick={() => setSignupMode(false)}>로그인으로 돌아가기</button></form>
+          {user ? <div className="v3-welcome"><strong>{user.name || '고객'}님</strong><span>예약 내역과 맞춤 서비스를 확인할 수 있어요.</span>{user.role === 'ADMIN' ? <div className="v3-welcome-actions"><a className="v3-secondary-button" href={`${API_BASE_URL}/admin#reservation-status`}>예약 현황보기</a><a className="v3-primary-button" href={`${API_BASE_URL}/admin#service-management`}>시술 메뉴 수정</a></div> : <button className="v3-secondary-button" onClick={moveToMyReservations}>나의 예약 보기</button>}</div>
+            : signupMode ? <form className="v3-login-form" onSubmit={signUp}><div className="v3-signup-grid"><DuplicateField label="아이디" value={signup.username} status={duplicateChecks.username} onChange={(value) => changeSignupField('username', value)} onCheck={() => checkDuplicate('username')} /><input value={signup.password} onChange={(e) => changeSignupField('password', e.target.value)} type="password" placeholder="비밀번호" required /><input value={signup.name} onChange={(e) => changeSignupField('name', e.target.value)} placeholder="이름" required /><DuplicateField label="이메일" type="email" value={signup.email} status={duplicateChecks.email} onChange={(value) => changeSignupField('email', value)} onCheck={() => checkDuplicate('email')} /><input value={signup.phone} onChange={(e) => changeSignupField('phone', e.target.value)} placeholder="연락처" required /><button className="v3-primary-button" type="submit">가입하기</button></div><button className="v3-inline-button" type="button" onClick={() => setSignupMode(false)}>로그인으로 돌아가기</button></form>
               : <form className="v3-login-form" onSubmit={signIn}>
                 <div className="v3-input-row"><input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="아이디" required /><input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="비밀번호" required /><button className="v3-primary-button" type="submit">로그인</button></div>
                 <div className="v3-social-row">{SOCIAL_PROVIDERS.map((provider) => <button type="button" className={`v3-social-button ${provider.key}`} onClick={() => socialLogin(provider.key)} key={provider.key}>{provider.label}</button>)}</div><button className="v3-inline-button" type="button" onClick={() => setSignupMode(true)}>처음이신가요? 회원가입</button>
@@ -205,8 +282,8 @@ function App() {
       <section id="monthly" className="container v3-section">
         <div className="v3-section-title"><div><p className="v3-eyebrow">MONTHLY TOP 5</p><h2>이번 달 가장 사랑받은<br />시술이에요.</h2></div><p>고객님들이 선택한 여름 스타일을<br />지금 만나보세요.</p></div>
         <div className="v3-top-grid">
-          <TopList title="HAIR TOP 5" services={hairTopFive} fallback="헤어 인기 시술을 준비하고 있어요." onOpen={openGallery} />
-          <TopList title="NAIL TOP 5" services={nailTopFive} fallback="네일 인기 시술을 준비하고 있어요." onOpen={openGallery} />
+          <TopList title="HAIR TOP 5" services={hairTopFive} badges={serviceBadges} fallback="헤어 인기 시술을 준비하고 있어요." onOpen={openGallery} />
+          <TopList title="NAIL TOP 5" services={nailTopFive} badges={serviceBadges} fallback="네일 인기 시술을 준비하고 있어요." onOpen={openGallery} />
         </div>
       </section>
 
@@ -214,7 +291,7 @@ function App() {
         <div className="container v3-section">
           <div className="v3-section-title"><div><p className="v3-eyebrow">SIGNATURE MENU</p><h2>당신의 취향을 담은<br />시술을 골라보세요.</h2></div><button className="v3-outline-button" onClick={moveToReservation}>상담 후 예약하기</button></div>
           <div className="v3-filter" role="tablist">{categories.map((category) => <button key={category.id} className={activeCategory === category.id ? 'active' : ''} onClick={() => setActiveCategory(category.id)}>{category.label}</button>)}</div>
-          <div className="v3-menu-grid">{visibleServices.map((item) => <article className="v3-menu-card" key={item.id}><button className="v3-gallery-open" type="button" onClick={() => openGallery(item)} aria-label={`${item.name} 사진 3장 보기`}><img src={serviceImage(item)} alt={item.name} onError={(event) => { event.currentTarget.src = `${API_BASE_URL}/images/catalog/catalog-hair-2-1.jpg`; }} /><span>사진 3장 보기</span></button><div><span>{/NAIL|네일/i.test(item.category || '') ? 'NAIL' : 'HAIR'}</span><h3>{item.name}</h3><p>{item.description || '맞춤 상담 후 가장 잘 어울리는 스타일을 제안해 드립니다.'}</p><strong>{Number(item.price || 0).toLocaleString()}원</strong><button onClick={moveToReservation} aria-label={`${item.name} 예약하기`}>예약하기 <b>→</b></button></div></article>)}</div>
+          <div className="v3-menu-grid">{visibleServices.map((item) => <article className="v3-menu-card" key={item.id}><button className="v3-gallery-open" type="button" onClick={() => openGallery(item)} aria-label={`${item.name} 전체 사진 보기`}><RotatingServiceImage service={item} badge={serviceBadges.get(item.id)} /><span>전체 사진 보기</span></button><div><span>{/NAIL|네일/i.test(item.category || '') ? 'NAIL' : 'HAIR'}</span><h3>{item.name}</h3><p>{item.description || '맞춤 상담 후 가장 잘 어울리는 스타일을 제안해 드립니다.'}</p><strong>{Number(item.price || 0).toLocaleString()}원</strong><button onClick={moveToReservation} aria-label={`${item.name} 예약하기`}>예약하기 <b>→</b></button></div></article>)}</div>
           {!visibleServices.length && <p className="v3-empty">등록된 시술 메뉴를 준비하고 있습니다.</p>}
         </div>
       </section>
@@ -223,15 +300,43 @@ function App() {
 
       <footer className="v3-footer"><div className="container"><strong>MARINBOY SALON</strong><span>© 2026 MARINBOY SALON. ALL RIGHTS RESERVED.</span>{user?.role === 'ADMIN' && <a className="v3-admin-edit-button" href={`${API_BASE_URL}/admin`}>메뉴 수정</a>}</div></footer>
       {selectedService && <ServiceGallery service={selectedService} onClose={() => setSelectedService(null)} onReserve={moveToReservation} />}
+      {showSignupPolicy && <SignupPolicyModal agreed={signupPolicyAgreed} onAgree={setSignupPolicyAgreed} onConfirm={() => { setShowSignupPolicy(false); setMessage('회원가입이 완료되었습니다. 가입한 아이디로 로그인해 주세요.'); }} />}
     </main>
   );
 }
 
-function TopList({ title, services, fallback, onOpen }) {
-  return <div className="v3-top-list"><h3>{title}</h3>{services.length ? services.map((item, index) => <button key={item.id} onClick={() => onOpen(item)} aria-label={`${item.name} 사진 3장 보기`}><span>0{index + 1}</span><img src={serviceImage(item)} alt="" /><i><b>{item.name}</b><small>{Number(item.price || 0).toLocaleString()}원</small></i><em>사진 보기</em></button>) : <p>{fallback}</p>}</div>;
+function DuplicateField({ label, type = 'text', value, status, onChange, onCheck }) {
+  const statusText = { available: '사용 가능', duplicate: '이미 사용 중', empty: '입력 필요', error: '확인 실패' }[status];
+  return <div className="v3-duplicate-field"><div><input aria-label={label} type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={label} required /><button type="button" onClick={onCheck}>중복 확인</button></div>{statusText && <small className={status === 'available' ? 'available' : 'unavailable'}>{statusText}</small>}</div>;
 }
 
-/** 선택한 시술의 사진 3장과 예약 이동 버튼을 제공하는 상세 갤러리입니다. */
+function SignupPolicyModal({ agreed, onAgree, onConfirm }) {
+  return <div className="v3-policy-backdrop"><section className="v3-policy-modal" role="dialog" aria-modal="true" aria-labelledby="signup-policy-title"><p className="v3-eyebrow">RESERVATION POLICY</p><h2 id="signup-policy-title">노쇼·예약 취소 안내</h2><ul><li>방문이 어려운 경우 예약 시간 전에 반드시 취소해 주세요.</li><li>무단 불참, 10분 이상 지각, 당일 취소 시 이후 예약이 제한될 수 있습니다.</li><li>예약은 고객과 매장이 함께 지키는 소중한 약속입니다.</li></ul><label className={`salon-check-field${agreed ? ' is-agreed' : ''}`}><input className="salon-checkbox" type="checkbox" checked={agreed} onChange={(event) => onAgree(event.target.checked)} /><span className="salon-check-copy"><strong>필수 동의</strong><small>안내 내용을 읽고 확인했습니다.</small></span><span className="salon-check-state">{agreed ? '동의 완료' : '미동의'}</span></label><button className="v3-primary-button" type="button" disabled={!agreed} onClick={onConfirm}>확인하고 로그인으로 이동</button></section></div>;
+}
+
+function TopList({ title, services, badges, fallback, onOpen }) {
+  return <div className="v3-top-list"><h3>{title}</h3>{services.length ? services.map((item, index) => <button key={item.id} onClick={() => onOpen(item)} aria-label={`${item.name} 전체 사진 보기`}><span>0{index + 1}</span><RotatingServiceImage service={item} badge={badges.get(item.id)} compact /><i><b>{item.name}</b><small>{Number(item.price || 0).toLocaleString()}원</small></i><em>사진 보기</em></button>) : <p>{fallback}</p>}</div>;
+}
+
+/** 시술별 대표·상세 이미지 전체를 2초 간격으로 순환합니다. */
+function RotatingServiceImage({ service, badge, compact = false }) {
+  const images = useMemo(() => serviceGalleryImages(service), [service]);
+  const [imageIndex, setImageIndex] = useState(0);
+
+  useEffect(() => {
+    setImageIndex(0);
+    if (images.length < 2) return undefined;
+    const timer = window.setInterval(() => {
+      setImageIndex((current) => (current + 1) % images.length);
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [images.length, service.id]);
+
+  const image = images[imageIndex % Math.max(images.length, 1)] || serviceImage(service);
+  return <div className={`v3-service-image-rotator${compact ? ' compact' : ''}`}><img key={image} src={image} alt={compact ? '' : service.name} onError={(event) => { event.currentTarget.src = `${API_BASE_URL}/images/catalog/catalog-hair-2-1.jpg`; }} />{badge && <span className={`v3-popularity-badge ${badge.toLowerCase()}`}>{badge}</span>}</div>;
+}
+
+/** 선택한 시술에 등록된 전체 사진과 예약 이동 버튼을 제공하는 상세 갤러리입니다. */
 function ServiceGallery({ service, onClose, onReserve }) {
   const images = serviceGalleryImages(service);
 

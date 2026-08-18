@@ -8,7 +8,9 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 // 고객 예약 신청, 예약 가능 시간 계산, 고객 이력 조회를 담당하는 서비스입니다.
@@ -21,11 +23,14 @@ public class ReservationService {
 
     private final ReservationMapper salonReservationDao;
     private final MenuService salonServiceService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public ReservationService(ReservationMapper salonReservationDao, MenuService salonServiceService) {
+    public ReservationService(ReservationMapper salonReservationDao, MenuService salonServiceService,
+            ApplicationEventPublisher eventPublisher) {
         // 예약 SQL과 시술 정보 조회를 각각 DAO/서비스에 위임합니다.
         this.salonReservationDao = salonReservationDao;
         this.salonServiceService = salonServiceService;
+        this.eventPublisher = eventPublisher;
     }
 
     public ReservationDto getAvailableSlots(Long serviceId, LocalDate date) {
@@ -73,6 +78,8 @@ public class ReservationService {
         if (salonReservationDao.countHoliday(request.getReservationDateTime().toLocalDate()) > 0) {
             throw new IllegalArgumentException("선택한 날짜는 휴무일입니다.");
         }
+        // 같은 시술의 예약 생성 요청을 직렬화한 뒤 겹침 여부를 다시 확인합니다.
+        salonReservationDao.lockServiceForReservation(request.getServiceId());
         if (salonReservationDao.countOverlappingReservation(request.getServiceId(), request.getReservationDateTime()) > 0) {
             throw new IllegalArgumentException("이미 예약된 시간입니다. 다른 시간을 선택해 주세요.");
         }
@@ -81,8 +88,8 @@ public class ReservationService {
         // 등록되지 않은 고객이면 입력받은 연락처로 고객을 생성한 후 예약과 연결합니다.
         if (customerId == null) {
             salonReservationDao.insertCustomer(
-                    "customer_" + System.currentTimeMillis(),
-                    "$2a$10$Zm3EwK1FLMZm64ojzpp/QuGvl28HcVXwMG86.XLQ0DGgILiOU.L8.",
+                    "guest_" + UUID.randomUUID(),
+                    "{GUEST}" + UUID.randomUUID(),
                     request.getCustomerName(),
                     request.getCustomerEmail(),
                     request.getCustomerPhone()
@@ -100,6 +107,14 @@ public class ReservationService {
                 1,
                 request.getMemo()
         );
+        Long reservationId = salonReservationDao.findCreatedReservationId(
+                request.getServiceId(), request.getReservationDateTime());
+        // 트랜잭션 커밋 뒤 알림을 생성해 실패한 예약이 관리자에게 전달되지 않게 합니다.
+        eventPublisher.publishEvent(new ReservationCreatedEvent(
+                reservationId,
+                request.getCustomerName(),
+                salonServiceService.getServiceName(request.getServiceId())
+        ));
     }
 
     public List<ReservationDto> getCustomerHistory(String customerPhone) {
@@ -107,7 +122,6 @@ public class ReservationService {
         return salonReservationDao.findCustomerHistory(customerPhone)
                 .stream()
                 .filter(history -> List.of("COMPLETED", "CANCELED", "REJECTED").contains(history.getStatus()))
-                .peek(this::normalizeSeedHistoryText)
                 .peek(this::translateHistoryStatus)
                 .toList();
     }
@@ -117,7 +131,6 @@ public class ReservationService {
         return salonReservationDao.findCustomerHistory(customerPhone)
                 .stream()
                 .filter(reservation -> List.of("REQUESTED", "CONFIRMED").contains(reservation.getStatus()))
-                .peek(this::normalizeSeedHistoryText)
                 .peek(reservation -> {
                     if ("REQUESTED".equals(reservation.getStatus())) reservation.setStatus("예약 대기");
                     else if ("CONFIRMED".equals(reservation.getStatus())) reservation.setStatus("예약 승인");
@@ -136,6 +149,10 @@ public class ReservationService {
 
     @Transactional
     public void updateCustomerReservation(Long reservationId, String customerPhone, ReservationDto request) {
+        // 예약 수정도 새 예약과 동일하게 고객이 직접 노쇼 방지 안내에 동의해야 합니다.
+        if (!Boolean.TRUE.equals(request.getNoShowPolicyAgreed())) {
+            throw new IllegalArgumentException("노쇼 방지 안내에 동의해야 예약을 수정할 수 있습니다.");
+        }
         // 기존 시드 데이터의 임의 시각도 화면의 30분 예약 단위로 내림 보정합니다.
         if (request.getReservationDateTime() != null) {
             LocalDateTime requestedTime = request.getReservationDateTime();
@@ -154,6 +171,7 @@ public class ReservationService {
             throw new IllegalArgumentException("예약은 현재 시간보다 최소 30분 이후부터 가능합니다.");
         if (salonReservationDao.countHoliday(request.getReservationDateTime().toLocalDate()) > 0)
             throw new IllegalArgumentException("선택한 날짜는 휴무일입니다.");
+        salonReservationDao.lockServiceForReservation(request.getServiceId());
         if (salonReservationDao.countOverlappingReservationExcept(request.getServiceId(), request.getReservationDateTime(), reservationId) > 0)
             throw new IllegalArgumentException("이미 예약된 시간입니다. 다른 시간을 선택해 주세요.");
         if (salonReservationDao.updateCustomerReservation(reservationId, customerPhone, request.getServiceId(), request.getReservationDateTime(), request.getMemo()) == 0)
@@ -270,43 +288,6 @@ public class ReservationService {
         ReservationDto response = new ReservationDto();
         response.setAvailableSlots(slots);
         return response;
-    }
-
-    private void normalizeSeedHistoryText(ReservationDto history) {
-        // 초기 SQLPlus 샘플 데이터가 깨져 있어도 고객 이력 화면은 정상 한글로 보여줍니다.
-        if (history.getServiceId() == null) {
-            return;
-        }
-
-        switch (history.getServiceId().intValue()) {
-            case 1 -> {
-                history.setServiceName("웨이브 펌");
-                history.setServiceCategory("펌");
-            }
-            case 2 -> {
-                history.setServiceName("시그니처 컷");
-                history.setServiceCategory("컷");
-            }
-            case 3 -> {
-                history.setServiceName("두피 클리닉");
-                history.setServiceCategory("클리닉");
-            }
-            case 4 -> {
-                history.setServiceName("젤 네일 기본");
-                history.setServiceCategory("네일");
-            }
-            case 5 -> {
-                history.setServiceName("꾸미기 화장");
-                history.setServiceCategory("메이크업");
-            }
-            case 6 -> {
-                history.setServiceName("신부 화장");
-                history.setServiceCategory("웨딩");
-            }
-            default -> {
-                // 관리자가 새로 등록한 메뉴는 DB 값을 그대로 사용합니다.
-            }
-        }
     }
 
     private void translateHistoryStatus(ReservationDto history) {
