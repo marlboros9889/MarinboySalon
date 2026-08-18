@@ -57,6 +57,11 @@ public interface ReservationMapper {
             @Param("noShowPolicyAgreed") int noShowPolicyAgreed,
             @Param("memo") String memo
     );
+    // 직렬화된 시술 예약 저장 직후 생성된 예약 ID를 알림과 연결합니다.
+    Long findCreatedReservationId(
+            @Param("serviceId") Long serviceId,
+            @Param("reservationDateTime") LocalDateTime reservationDateTime
+    );
 
     // 고객 연락처 기준으로 이전 시술 이력을 최신순으로 조회합니다.
     List<ReservationDto> findCustomerHistory(@Param("customerPhone") String customerPhone);

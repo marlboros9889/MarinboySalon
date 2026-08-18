@@ -17,6 +17,8 @@ public interface MenuMapper {
 
     // 예약 가능 시간 계산에 사용할 시술 소요 시간을 조회합니다.
     Integer findDurationMinutesById(@Param("serviceId") Long serviceId);
+    // 새 예약 알림 문구에 사용할 시술명을 조회합니다.
+    String findNameById(@Param("serviceId") Long serviceId);
     // 관리자가 입력한 시술 메뉴 기본 정보를 저장합니다.
     int insertService(ServiceDto service);
     // 기존 시술 메뉴의 이름, 분류, 시간, 가격과 설명을 수정합니다.

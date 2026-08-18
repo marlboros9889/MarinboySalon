@@ -46,6 +46,11 @@ public class MenuService {
         return salonServiceDao.findDurationMinutesById(serviceId);
     }
 
+    public String getServiceName(Long serviceId) {
+        // 알림에는 현재 메뉴명을 사용하고 예약 상세 정보는 DB 조인으로 다시 조회합니다.
+        return salonServiceDao.findNameById(serviceId);
+    }
+
     @Transactional
     public Long saveService(Long id, String name, String category, int durationMinutes, int price, String description) {
         if (name == null || name.isBlank() || category == null || category.isBlank() || durationMinutes < 10 || price <= 0) throw new IllegalArgumentException("시술명, 카테고리, 시간, 가격을 확인하세요.");

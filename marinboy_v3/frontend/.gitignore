@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist는 배포용 정적 파일이므로 Git에서 추적합니다.
 dist-ssr
 *.local
 

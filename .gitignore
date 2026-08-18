@@ -2,6 +2,8 @@
 **/target/
 **/node_modules/
 **/dist/
+!marinboy_v3/frontend/dist/
+!marinboy_v3/frontend/dist/**
 
 # IDE·테스트 도구 메타데이터
 **/.metadata/

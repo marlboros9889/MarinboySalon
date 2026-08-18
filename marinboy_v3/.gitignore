@@ -1,7 +1,7 @@
 # 빌드 산출물
 target/
 **/target/
-dist/
+# frontend/dist는 정적 배포본으로 저장소에 포함합니다.
 
 # 프런트엔드 의존성
 node_modules/

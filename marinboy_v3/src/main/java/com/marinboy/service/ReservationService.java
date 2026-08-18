@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 // 고객 예약 신청, 예약 가능 시간 계산, 고객 이력 조회를 담당하는 서비스입니다.
@@ -22,11 +23,14 @@ public class ReservationService {
 
     private final ReservationMapper salonReservationDao;
     private final MenuService salonServiceService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public ReservationService(ReservationMapper salonReservationDao, MenuService salonServiceService) {
+    public ReservationService(ReservationMapper salonReservationDao, MenuService salonServiceService,
+            ApplicationEventPublisher eventPublisher) {
         // 예약 SQL과 시술 정보 조회를 각각 DAO/서비스에 위임합니다.
         this.salonReservationDao = salonReservationDao;
         this.salonServiceService = salonServiceService;
+        this.eventPublisher = eventPublisher;
     }
 
     public ReservationDto getAvailableSlots(Long serviceId, LocalDate date) {
@@ -103,6 +107,14 @@ public class ReservationService {
                 1,
                 request.getMemo()
         );
+        Long reservationId = salonReservationDao.findCreatedReservationId(
+                request.getServiceId(), request.getReservationDateTime());
+        // 트랜잭션 커밋 뒤 알림을 생성해 실패한 예약이 관리자에게 전달되지 않게 합니다.
+        eventPublisher.publishEvent(new ReservationCreatedEvent(
+                reservationId,
+                request.getCustomerName(),
+                salonServiceService.getServiceName(request.getServiceId())
+        ));
     }
 
     public List<ReservationDto> getCustomerHistory(String customerPhone) {

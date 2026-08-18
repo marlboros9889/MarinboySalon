@@ -59,6 +59,11 @@
         FROM MB_SERVICE_ITEM
         WHERE ID = #{serviceId}
     </select>
+    <select id="findNameById" resultType="string">
+        SELECT NAME
+        FROM MB_SERVICE_ITEM
+        WHERE ID = #{serviceId}
+    </select>
     <!-- 메뉴와 이미지를 같은 ID로 연결하기 위해 저장 전에 다음 메뉴 ID를 조회합니다. -->
     <insert id="insertService" useGeneratedKeys="true" keyProperty="id" keyColumn="ID">
         INSERT INTO MB_SERVICE_ITEM (NAME, CATEGORY, DURATION_MINUTES, PRICE, DESCRIPTION)
