@@ -33,8 +33,6 @@ public class MenuService {
                 .collect(Collectors.groupingBy(ServiceDto::getServiceId));
 
         for (ServiceDto service : services) {
-            // SQLPlus 인코딩 문제로 깨진 초기 샘플 데이터는 화면 표시 전에 한글로 보정합니다.
-            normalizeSeedServiceText(service);
             List<ServiceDto> images = imagesByServiceId.getOrDefault(service.getId(), List.of());
             service.setImageUrl(findRepresentativeImage(images));
             service.setAdditionalImageUrls(findDetailImages(images));
@@ -127,46 +125,4 @@ public class MenuService {
                 .toList();
     }
 
-    private void normalizeSeedServiceText(ServiceDto service) {
-        // 로컬 Oracle에 이미 들어간 초기 샘플 데이터가 깨졌을 때도 고객 화면은 정상 한글로 보여줍니다.
-        if (service.getId() == null) {
-            return;
-        }
-
-        switch (service.getId().intValue()) {
-            case 1 -> {
-                service.setName("웨이브 펌");
-                service.setCategory("펌");
-                service.setDescription("1인 미용실에서 진행하는 부드러운 웨이브 펌 시술입니다.");
-            }
-            case 2 -> {
-                service.setName("시그니처 컷");
-                service.setCategory("컷");
-                service.setDescription("상담을 포함한 맞춤형 커트 시술입니다.");
-            }
-            case 3 -> {
-                service.setName("두피 클리닉");
-                service.setCategory("클리닉");
-                service.setDescription("두피 상태를 점검하고 진정 케어를 진행하는 클리닉입니다.");
-            }
-            case 4 -> {
-                service.setName("젤 네일 기본");
-                service.setCategory("네일");
-                service.setDescription("손톱 케어와 기본 젤 컬러를 진행하는 네일 시술입니다.");
-            }
-            case 5 -> {
-                service.setName("꾸미기 화장");
-                service.setCategory("메이크업");
-                service.setDescription("소개팅, 촬영, 중요한 약속 전 자연스럽게 완성하는 메이크업입니다.");
-            }
-            case 6 -> {
-                service.setName("신부 화장");
-                service.setCategory("웨딩");
-                service.setDescription("본식 또는 웨딩 촬영을 위한 신부 헤어와 메이크업 패키지입니다.");
-            }
-            default -> {
-                // 관리자가 새로 등록한 메뉴는 DB 값을 그대로 사용합니다.
-            }
-        }
-    }
 }

@@ -8,10 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ui.Model;
+import java.util.Map;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -67,6 +69,20 @@ public class AuthController {
             // 회원가입은 고객 권한만 생성하며 관리자 권한은 이 API로 만들 수 없습니다.
             authService.signup(request);
             return ResponseEntity.noContent().build();
+        }
+
+        //1. 아이디 중복 확인  GET: /api/auth/check-username?username=...
+        @GetMapping("/api/auth/check-username")
+        @Operation(summary = "회원가입 아이디 중복 확인")
+        ResponseEntity<Map<String, Boolean>> checkUsername(@RequestParam String username) {
+            return ResponseEntity.ok(Map.of("available", authService.isUsernameAvailable(username)));
+        }
+
+        //2. 이메일 중복 확인  GET: /api/auth/check-email?email=...
+        @GetMapping("/api/auth/check-email")
+        @Operation(summary = "회원가입 이메일 중복 확인")
+        ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
+            return ResponseEntity.ok(Map.of("available", authService.isEmailAvailable(email)));
         }
     }
 }

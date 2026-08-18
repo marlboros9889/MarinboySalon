@@ -4,13 +4,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,14 +60,17 @@ public class SecurityConfig {
             HttpSecurity http
     ) throws Exception {
         return http
-                // JSON·파일 업로드 API 호출 시 CSRF 토큰을 요구하지 않습니다.
-                .csrf(AbstractHttpConfigurer::disable)
+                // 세션 쿠키를 사용하는 기존 API는 쿠키와 헤더의 CSRF 토큰이 일치해야 변경할 수 있습니다.
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfTokenRepository())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                .addFilterAfter(csrfCookieFilter(), BasicAuthenticationFilter.class)
                 // React 개발 서버가 로그인 세션 쿠키를 포함해 legacy API를 호출할 수 있도록 허용합니다.
                 .cors(cors -> cors.configurationSource(legacyCorsConfigurationSource()))
                 .addFilterBefore(sessionAuthenticationFilter(), AnonymousAuthenticationFilter.class)
                 // 공개 고객 기능과 관리자 전용 기능을 URL 수준에서도 분리합니다.
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**", "/api/admin/**", "/api/db/**")
+                        .requestMatchers("/admin/**", "/api/admin/**", "/api/db/**", "/api/db-time")
                         .access(adminSessionAuthorization())
                         .anyRequest().permitAll())
                 .exceptionHandling(exceptions -> exceptions
@@ -82,12 +88,33 @@ public class SecurityConfig {
                 .build();
     }
 
+    private CookieCsrfTokenRepository csrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookiePath("/");
+        return repository;
+    }
+
+    private OncePerRequestFilter csrfCookieFilter() {
+        return new OncePerRequestFilter() {
+            @Override
+            protected void doFilterInternal(
+                    jakarta.servlet.http.HttpServletRequest request,
+                    jakarta.servlet.http.HttpServletResponse response,
+                    jakarta.servlet.FilterChain filterChain
+            ) throws java.io.IOException, jakarta.servlet.ServletException {
+                CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+                if (csrfToken != null) csrfToken.getToken();
+                filterChain.doFilter(request, response);
+            }
+        };
+    }
+
     /** React 기본 화면에서 사용하는 /api/** 요청에 credential 포함 CORS 정책을 적용합니다. */
     private CorsConfigurationSource legacyCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(reactAllowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN"));
         configuration.setExposedHeaders(List.of("Location"));
         configuration.setAllowCredentials(true);
 

@@ -1,2 +1,0 @@
-[     854ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8082/login:0
-[     894ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ http://127.0.0.1:8082/favicon.ico:0

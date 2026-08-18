@@ -59,6 +59,14 @@
           AND ROLE = 'CUSTOMER'
     </select>
 
+    <!-- 같은 시술 예약의 겹침 확인과 저장 사이 경쟁 조건을 막습니다. -->
+    <select id="lockServiceForReservation" resultType="long">
+        SELECT ID
+        FROM MB_SERVICE_ITEM
+        WHERE ID = #{serviceId}
+        FOR UPDATE
+    </select>
+
     <!-- 취소된 예약을 제외하고 같은 시간대 예약이 있는지 확인합니다. -->
     <select id="countOverlappingReservation" resultType="int">
         <![CDATA[

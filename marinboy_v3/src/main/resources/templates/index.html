@@ -841,6 +841,7 @@
             box-shadow: 0 18px 42px rgba(54, 70, 47, .09);
         }
     </style>
+    <script src="/js/csrf-fetch.js"></script>
 </head>
 <body>
 <header class="site-header">
@@ -1028,9 +1029,10 @@
                     <label for="memo">요청 메모</label>
                     <textarea id="memo" name="memo" placeholder="원하는 스타일, 주의사항, 상담 메모"></textarea>
                 </div>
-                <label class="check-field" for="noShowPolicyAgreed">
-                    <input id="noShowPolicyAgreed" name="noShowPolicyAgreed" type="checkbox" required>
-                    <span>예약 시간 10분 이상 지각 또는 무단 불참 시 다음 예약이 제한될 수 있다는 안내에 동의합니다.</span>
+                <label id="legacyPolicyCheck" class="check-field salon-check-field" for="noShowPolicyAgreed">
+                    <input id="noShowPolicyAgreed" class="salon-checkbox" name="noShowPolicyAgreed" type="checkbox" required>
+                    <span class="salon-check-copy"><strong>필수 동의</strong><small>10분 이상 지각 또는 무단 불참 시 예약 제한 안내를 확인했습니다.</small></span>
+                    <span id="legacyPolicyState" class="salon-check-state">미동의</span>
                 </label>
                 <button id="submitButton" type="submit">예약 요청 등록</button>
                 <div id="formMessage" class="message"></div>
@@ -1085,6 +1087,7 @@
     const myReservationList = document.getElementById("myReservationList");
     const formMessage = document.getElementById("formMessage");
     const submitButton = document.getElementById("submitButton");
+    const noShowPolicyAgreed = document.getElementById("noShowPolicyAgreed");
     const imageModal = document.getElementById("imageModal");
     const imageModalGallery = document.getElementById("imageModalGallery");
     const imageModalCurrent = document.getElementById("imageModalCurrent");
@@ -1624,6 +1627,10 @@
         await loadMyReservations();
     });
 
+    noShowPolicyAgreed.addEventListener("change", () => {
+        legacyPolicyCheck.classList.toggle("is-agreed", noShowPolicyAgreed.checked);
+        legacyPolicyState.textContent = noShowPolicyAgreed.checked ? "동의 완료" : "미동의";
+    });
     serviceSelect.addEventListener("change", loadAvailableSlots);
     categoryFilter.addEventListener("change", () => { servicePage = 0; renderServices(allServices); });
     servicePrev.addEventListener("click", () => { if (servicePage > 0) { servicePage--; renderServices(allServices); serviceList.scrollIntoView({behavior: "smooth", block: "start"}); } });

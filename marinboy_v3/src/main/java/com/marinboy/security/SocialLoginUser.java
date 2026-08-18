@@ -8,6 +8,7 @@ public record SocialLoginUser(
         String socialId,
         String name,
         String email,
+        String phone,
         String role
 ) {
 
@@ -30,6 +31,7 @@ public record SocialLoginUser(
                 stringValue(attributes.get("sub")),
                 stringValue(attributes.get("name")),
                 stringValue(attributes.get("email")),
+                normalizePhone(attributes.get("phone_number")),
                 SecurityConstants.ROLE_CUSTOMER
         );
     }
@@ -42,6 +44,7 @@ public record SocialLoginUser(
                 stringValue(response.get("id")),
                 stringValue(response.get("name")),
                 stringValue(response.get("email")),
+                normalizePhone(response.get("mobile")),
                 SecurityConstants.ROLE_CUSTOMER
         );
     }
@@ -55,6 +58,7 @@ public record SocialLoginUser(
                 stringValue(attributes.get("id")),
                 stringValue(profile.get("nickname")),
                 stringValue(kakaoAccount.get("email")),
+                normalizePhone(kakaoAccount.get("phone_number")),
                 SecurityConstants.ROLE_CUSTOMER
         );
     }
@@ -66,6 +70,7 @@ public record SocialLoginUser(
                 stringValue(attributes.get("id")),
                 stringValue(attributes.get("name")),
                 stringValue(attributes.get("email")),
+                normalizePhone(attributes.get("phone")),
                 SecurityConstants.ROLE_CUSTOMER
         );
     }
@@ -73,6 +78,18 @@ public record SocialLoginUser(
     // Object 값을 문자열로 안전하게 변환해 null 때문에 화면이나 세션 처리가 깨지지 않게 합니다.
     private static String stringValue(Object value) {
         return value == null ? "" : String.valueOf(value);
+    }
+
+    private static String normalizePhone(Object value) {
+        // +82 10-1234-5678 형식도 국내 예약 화면에서 쓰는 010-1234-5678로 통일합니다.
+        String digits = stringValue(value).replaceAll("\\D", "");
+        if (digits.startsWith("82") && digits.length() == 12) {
+            digits = "0" + digits.substring(2);
+        }
+        if (digits.length() == 11) {
+            return digits.substring(0, 3) + "-" + digits.substring(3, 7) + "-" + digits.substring(7);
+        }
+        return stringValue(value);
     }
 
     // 제공자별 중첩 응답을 Map으로 꺼내며, 구조가 예상과 달라도 빈 Map으로 방어합니다.

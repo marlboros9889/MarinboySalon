@@ -41,6 +41,8 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler {
             loginUser.setName(socialUser.name() == null || socialUser.name().isBlank()
                     ? "카카오 사용자" : socialUser.name());
             loginUser.setEmail(socialUser.email());
+            // 제공자가 연락처 사용을 허용한 경우 예약 화면에서 사용할 번호도 세션에 보관합니다.
+            loginUser.setPhone(socialUser.phone());
             loginUser.setRole(socialUser.role());
             loginUser.setLoginProvider(oauthToken.getAuthorizedClientRegistrationId().toUpperCase());
             request.getSession(true).setAttribute(SecurityConstants.LOGIN_USER, loginUser);
