@@ -14,9 +14,10 @@
 marinboy_v3/
 ├── backend/   # Spring Boot, MyBatis, Oracle, 서버 렌더링 화면
 ├── frontend/  # Next.js SSR, Redux Reducer, Saga, Bootstrap 5
-├── mobile/    # Expo 관리자 앱
 └── docs/      # 요구사항, 기능 흐름, 검증 기록
 ```
+
+`mobile/`은 기존 보관 폴더이며 1차 완료 범위와 이후 현재 작업 범위에서 제외합니다.
 
 ## 확정 기술 구조
 
@@ -35,9 +36,9 @@ marinboy_v3/
 |---|---|---|
 | 인증 | `features/auth` | `AuthController`, `AuthService`, `AuthMapper` |
 | 시술 | `features/home`, `reducers/service`, `sagas/service` | `V3ServiceItemController`, `MenuService`, `MenuMapper` |
-| 예약 | 예약 서버 화면 | `ReservationController`, `ReservationService`, `ReservationMapper` |
-| 알림 | 관리자 서버 화면·mobile | `NotificationController`, `NotificationService`, `NotificationMapper` |
-| 운영 | 관리자 서버 화면 | `AdminController`, `MobileAdminController` |
+| 예약 | `pages/reservation.js`, `pages/my-reservations.js` | `ReservationController`, `ReservationService`, `ReservationMapper` |
+| 알림 | `pages/admin.js` SSE 모달 | `NotificationController`, `NotificationService`, `NotificationMapper` |
+| 운영 | `pages/admin.js` | `AdminController`, `MenuService`, `ReservationService` |
 
 ## 전환 원칙
 

@@ -78,7 +78,6 @@ function SalonHome() {
   const [duplicateChecks, setDuplicateChecks] = useState({ username: 'idle', email: 'idle' });
   const [showSignupPolicy, setShowSignupPolicy] = useState(false);
   const [signupPolicyAgreed, setSignupPolicyAgreed] = useState(false);
-  const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState('');
   const [policyMessage, setPolicyMessage] = useState('');
@@ -110,21 +109,6 @@ function SalonHome() {
   const hairTopFive = monthlyTopFive(services, 'HAIR');
   const nailTopFive = monthlyTopFive(services, 'NAIL');
   const serviceBadges = useMemo(() => popularityBadges(services), [services]);
-  const heroImages = useMemo(
-    () => [...new Set(services.flatMap((service) => serviceGalleryImages(service)))],
-    [services],
-  );
-  const heroImage = heroImages[heroImageIndex % Math.max(heroImages.length, 1)] || serviceImage(null);
-
-  useEffect(() => {
-    // 메인 대표 이미지를 3.5초마다 다음 등록 시술 이미지로 변경합니다.
-    if (heroImages.length < 2) return undefined;
-    const timer = window.setInterval(() => {
-      setHeroImageIndex((current) => (current + 1) % heroImages.length);
-    }, 4500);
-    return () => window.clearInterval(timer);
-  }, [heroImages]);
-
   const checkDuplicate = async (field) => {
     const value = signup[field].trim();
     if (!value) {
