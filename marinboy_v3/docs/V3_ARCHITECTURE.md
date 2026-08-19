@@ -2,11 +2,21 @@
 
 ## 수업 기준
 
-기준 소스: `C:\Program Files\Jang_adam\AI_Full_stack\Track\track008_2\boot1`
+기준 소스: `track007_boot_api/boot1`, `track008_nodeReact/front`, `track008_nodeReact/※2_react.md`
 
 매일 개발 전 최신 수업 파일을 확인하는 규칙은 `docs/COURSE_BASELINE.md`를 따릅니다.
 
-수업에서 다룬 Spring Boot, JPA Entity·Repository, MyBatis Mapper, Validation, JWT, Swagger만 사용합니다.
+수업에서 다룬 Spring Boot·MyBatis와 Next.js·Redux·Saga·SSR 구조를 프로젝트 기능에 맞게 사용합니다.
+
+## 저장소 구조
+
+```text
+marinboy_v3/
+├── backend/   # Spring Boot, MyBatis, Oracle, 서버 렌더링 화면
+├── frontend/  # Next.js SSR, Redux Reducer, Saga, Bootstrap 5
+├── mobile/    # Expo 관리자 앱
+└── docs/      # 요구사항, 기능 흐름, 검증 기록
+```
 
 ## 확정 기술 구조
 
@@ -16,6 +26,18 @@
 - DTO는 요청·응답을 분리하고, MyBatis Mapper와 XML은 복잡한 조회 SQL을 담당합니다.
 - Service는 예약 규칙, 권한, 트랜잭션을 담당합니다.
 - RestController는 DTO만 입출력하며 Swagger로 API 계약을 공개합니다.
+
+프런트엔드는 `pages(SSR) → View → Saga(API) → Reducer → Store → View` 흐름을 사용합니다.
+
+## 기능별 클래스 분류
+
+| 기능 | Frontend | Backend |
+|---|---|---|
+| 인증 | `features/auth` | `AuthController`, `AuthService`, `AuthMapper` |
+| 시술 | `features/home`, `reducers/service`, `sagas/service` | `V3ServiceItemController`, `MenuService`, `MenuMapper` |
+| 예약 | 예약 서버 화면 | `ReservationController`, `ReservationService`, `ReservationMapper` |
+| 알림 | 관리자 서버 화면·mobile | `NotificationController`, `NotificationService`, `NotificationMapper` |
+| 운영 | 관리자 서버 화면 | `AdminController`, `MobileAdminController` |
 
 ## 전환 원칙
 

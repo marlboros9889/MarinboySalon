@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- SalonReservationDao와 연결되어 고객 예약과 시술 이력을 처리하는 mapper입니다. -->
+<mapper namespace="com.marinboy.mapper.ReservationMapper">
+
+    <!-- 예약 요청·목록·이력을 ReservationDto 하나로 매핑합니다. -->
+    <resultMap id="reservationResultMap" type="com.marinboy.dto.ReservationDto">
+        <id property="id" column="ID"/>
+        <result property="serviceId" column="SERVICE_ID"/>
+        <result property="serviceName" column="SERVICE_NAME"/>
+        <result property="serviceCategory" column="SERVICE_CATEGORY"/>
+        <result property="durationMinutes" column="DURATION_MINUTES"/>
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="customerEmail" column="CUSTOMER_EMAIL"/>
+        <result property="customerPhone" column="CUSTOMER_PHONE"/>
+        <result property="reservationDateTime" column="RESERVATION_DATE_TIME"
+                javaType="java.time.LocalDateTime"
+                typeHandler="org.apache.ibatis.type.LocalDateTimeTypeHandler"/>
+        <result property="noShowPolicyAgreed" column="NO_SHOW_POLICY_AGREED"/>
+        <result property="status" column="STATUS"/>
+        <result property="memo" column="MEMO"/>
+    </resultMap>
+
+    <!-- 고객 연락처로 기존 고객 ID를 조회합니다. -->
+    <select id="findCustomerIdByPhone" resultType="long">
+        SELECT MAX(ID)
+        FROM MB_USER
+        WHERE PHONE = #{customerPhone}
+          AND ROLE = 'CUSTOMER'
+    </select>
+
+    <!-- 신규 예약 고객을 CUSTOMER 역할로 저장합니다. -->
+    <insert id="insertCustomer">
+        INSERT INTO MB_USER (
+            USERNAME,
+            PASSWORD,
+            NAME,
+            EMAIL,
+            PHONE,
+            ROLE
+        ) VALUES (
+            #{username},
+            #{password},
+            #{name},
+            #{email},
+            #{phone},
+            'CUSTOMER'
+        )
+    </insert>
+
+    <!-- 신규 저장 후 연락처 기준으로 고객 ID를 다시 조회합니다. -->
+    <select id="findInsertedCustomerId" resultType="long">
+        SELECT MAX(ID)
+        FROM MB_USER
+        WHERE PHONE = #{customerPhone}
+          AND ROLE = 'CUSTOMER'
+    </select>
+
+    <!-- 같은 시술 예약의 겹침 확인과 저장 사이 경쟁 조건을 막습니다. -->
+    <select id="lockServiceForReservation" resultType="long">
+        SELECT ID
+        FROM MB_SERVICE_ITEM
+        WHERE ID = #{serviceId}
+        FOR UPDATE
+    </select>
+
+    <!-- 취소된 예약을 제외하고 같은 시간대 예약이 있는지 확인합니다. -->
+    <select id="countOverlappingReservation" resultType="int">
+        <![CDATA[
+        SELECT COUNT(*)
+        FROM MB_RESERVATION R
+        JOIN MB_SERVICE_ITEM EXISTING_SERVICE ON EXISTING_SERVICE.ID = R.SERVICE_ID
+        JOIN MB_SERVICE_ITEM NEW_SERVICE ON NEW_SERVICE.ID = #{serviceId}
+        WHERE R.STATUS IN ('REQUESTED', 'CONFIRMED')
+          AND R.RESERVATION_DATE_TIME < #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler}
+              + NUMTODSINTERVAL(NEW_SERVICE.DURATION_MINUTES, 'MINUTE')
+          AND R.RESERVATION_DATE_TIME + NUMTODSINTERVAL(EXISTING_SERVICE.DURATION_MINUTES, 'MINUTE')
+              > #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler}
+        ]]>
+    </select>
+
+    <select id="countOverlappingReservationExcept" resultType="int">
+        <![CDATA[
+        SELECT COUNT(*)
+        FROM MB_RESERVATION R
+        JOIN MB_SERVICE_ITEM EXISTING_SERVICE ON EXISTING_SERVICE.ID = R.SERVICE_ID
+        JOIN MB_SERVICE_ITEM NEW_SERVICE ON NEW_SERVICE.ID = #{serviceId}
+        WHERE R.STATUS IN ('REQUESTED', 'CONFIRMED')
+          AND R.ID != #{reservationId}
+          AND R.RESERVATION_DATE_TIME < #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler}
+              + NUMTODSINTERVAL(NEW_SERVICE.DURATION_MINUTES, 'MINUTE')
+          AND R.RESERVATION_DATE_TIME + NUMTODSINTERVAL(EXISTING_SERVICE.DURATION_MINUTES, 'MINUTE')
+              > #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler}
+        ]]>
+    </select>
+
+    <!-- 관리자가 등록한 휴무일인지 확인합니다. -->
+    <select id="countHoliday" resultType="int">
+        SELECT COUNT(*)
+        FROM MB_HOLIDAY
+        WHERE HOLIDAY_DATE = #{reservationDate}
+    </select>
+
+    <select id="findHolidays" resultType="java.time.LocalDate">
+        SELECT HOLIDAY_DATE FROM MB_HOLIDAY ORDER BY HOLIDAY_DATE
+    </select>
+
+    <insert id="saveHoliday">
+        MERGE INTO MB_HOLIDAY H
+        USING (SELECT #{holidayDate} AS HOLIDAY_DATE, #{reason} AS REASON FROM DUAL) V
+        ON (H.HOLIDAY_DATE = V.HOLIDAY_DATE)
+        WHEN MATCHED THEN UPDATE SET H.REASON = V.REASON
+        WHEN NOT MATCHED THEN INSERT (HOLIDAY_DATE, REASON) VALUES (V.HOLIDAY_DATE, V.REASON)
+    </insert>
+
+    <delete id="deleteHoliday">
+        DELETE FROM MB_HOLIDAY WHERE HOLIDAY_DATE = #{holidayDate}
+    </delete>
+
+    <!-- 고객 예약 요청을 REQUESTED 상태로 저장합니다. -->
+    <insert id="insertReservation">
+        INSERT INTO MB_RESERVATION (
+            SERVICE_ID,
+            CUSTOMER_ID,
+            CUSTOMER_NAME,
+            CUSTOMER_EMAIL,
+            CUSTOMER_PHONE,
+            RESERVATION_DATE_TIME,
+            NO_SHOW_POLICY_AGREED,
+            STATUS,
+            MEMO
+        ) VALUES (
+            #{serviceId},
+            #{customerId},
+            #{customerName},
+            #{customerEmail},
+            #{customerPhone},
+            #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler},
+            #{noShowPolicyAgreed},
+            'REQUESTED',
+            #{memo}
+        )
+    </insert>
+
+    <!-- 시술 행 잠금 안에서 방금 저장한 동일 시간 예약의 ID를 안전하게 조회합니다. -->
+    <select id="findCreatedReservationId" resultType="long">
+        SELECT ID
+        FROM MB_RESERVATION
+        WHERE SERVICE_ID = #{serviceId}
+          AND RESERVATION_DATE_TIME = #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler}
+          AND STATUS = 'REQUESTED'
+        ORDER BY ID DESC
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <!-- 고객 연락처 기준으로 이전 시술 이력을 최신순으로 조회합니다. -->
+    <select id="findCustomerHistory" resultType="com.marinboy.dto.ReservationDto">
+        SELECT R.ID AS id, R.SERVICE_ID AS serviceId,
+               S.NAME AS serviceName,
+               S.CATEGORY AS serviceCategory,
+               R.RESERVATION_DATE_TIME AS reservationDateTime,
+               R.STATUS AS status,
+               R.MEMO AS memo
+        FROM MB_RESERVATION R
+        JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID
+        WHERE R.CUSTOMER_PHONE = #{customerPhone}
+        ORDER BY R.RESERVATION_DATE_TIME DESC
+    </select>
+
+    <select id="findCustomerReservation" resultMap="reservationResultMap">
+        SELECT R.ID, R.SERVICE_ID, S.NAME AS SERVICE_NAME, S.CATEGORY AS SERVICE_CATEGORY, S.DURATION_MINUTES,
+               R.CUSTOMER_NAME, R.CUSTOMER_EMAIL, R.CUSTOMER_PHONE, R.RESERVATION_DATE_TIME,
+               R.NO_SHOW_POLICY_AGREED, R.STATUS, R.MEMO
+        FROM MB_RESERVATION R JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID
+        WHERE R.ID = #{reservationId} AND R.CUSTOMER_PHONE = #{customerPhone}
+    </select>
+
+    <update id="updateCustomerReservation">
+        UPDATE MB_RESERVATION
+        SET SERVICE_ID = #{serviceId},
+            RESERVATION_DATE_TIME = #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler},
+            MEMO = #{memo},
+            UPDATED_AT = SYSTIMESTAMP
+        WHERE ID = #{reservationId}
+          AND CUSTOMER_PHONE = #{customerPhone}
+          AND STATUS IN ('REQUESTED', 'CONFIRMED')
+          AND RESERVATION_DATE_TIME > SYSTIMESTAMP
+    </update>
+
+    <update id="cancelCustomerReservation">
+        UPDATE MB_RESERVATION
+        SET STATUS = 'CANCELED', UPDATED_AT = SYSTIMESTAMP
+        WHERE ID = #{reservationId}
+          AND CUSTOMER_PHONE = #{customerPhone}
+          AND STATUS = 'REQUESTED'
+          AND RESERVATION_DATE_TIME > SYSTIMESTAMP
+    </update>
+
+    <!-- 관리자 화면에서 사용할 전체 예약 목록을 최신순으로 조회합니다. -->
+    <select id="findAllReservations" resultMap="reservationResultMap">
+        SELECT R.ID, R.SERVICE_ID, S.NAME AS SERVICE_NAME, S.CATEGORY AS SERVICE_CATEGORY,
+               S.DURATION_MINUTES, R.CUSTOMER_NAME, R.CUSTOMER_EMAIL, R.CUSTOMER_PHONE,
+               R.RESERVATION_DATE_TIME, R.NO_SHOW_POLICY_AGREED, R.STATUS, R.MEMO
+        FROM MB_RESERVATION R
+        JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID
+        ORDER BY R.RESERVATION_DATE_TIME DESC
+    </select>
+
+    <select id="countReservations" resultType="int">SELECT COUNT(*) FROM MB_RESERVATION</select>
+    <!-- 오늘 이후부터 내일까지의 예약만 보여 날짜 혼선을 막습니다. -->
+    <select id="countUpcomingReservations" resultType="int">
+        SELECT COUNT(*) FROM MB_RESERVATION
+        WHERE RESERVATION_DATE_TIME >= TRUNC(SYSDATE)
+          AND RESERVATION_DATE_TIME &lt; TRUNC(SYSDATE) + INTERVAL '2' DAY
+    </select>
+
+    <select id="findReservationsPage" resultMap="reservationResultMap">
+        SELECT R.ID, R.SERVICE_ID, S.NAME AS SERVICE_NAME, S.CATEGORY AS SERVICE_CATEGORY,
+               S.DURATION_MINUTES, R.CUSTOMER_NAME, R.CUSTOMER_EMAIL, R.CUSTOMER_PHONE,
+               R.RESERVATION_DATE_TIME, R.NO_SHOW_POLICY_AGREED, R.STATUS, R.MEMO
+        FROM MB_RESERVATION R
+        JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID
+        ORDER BY R.RESERVATION_DATE_TIME DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <select id="findReservationById" resultMap="reservationResultMap">
+        SELECT R.ID, R.SERVICE_ID, S.NAME AS SERVICE_NAME, S.CATEGORY AS SERVICE_CATEGORY,
+               S.DURATION_MINUTES, R.CUSTOMER_NAME, R.CUSTOMER_EMAIL, R.CUSTOMER_PHONE,
+               R.RESERVATION_DATE_TIME, R.NO_SHOW_POLICY_AGREED, R.STATUS, R.MEMO 
+        FROM MB_RESERVATION R 
+        JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID 
+        WHERE R.ID = #{reservationId}
+    </select>
+
+    <select id="findReminderTargets" resultMap="reservationResultMap">
+        <![CDATA[
+        SELECT R.ID, R.SERVICE_ID, S.NAME AS SERVICE_NAME, S.CATEGORY AS SERVICE_CATEGORY,
+               S.DURATION_MINUTES, R.CUSTOMER_NAME, R.CUSTOMER_EMAIL, R.CUSTOMER_PHONE,
+               R.RESERVATION_DATE_TIME, R.NO_SHOW_POLICY_AGREED, R.STATUS, R.MEMO 
+        FROM MB_RESERVATION R 
+        JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID 
+        WHERE R.STATUS IN ('REQUESTED','CONFIRMED') 
+          AND R.RESERVATION_DATE_TIME >= SYSTIMESTAMP 
+          AND R.RESERVATION_DATE_TIME < SYSTIMESTAMP + INTERVAL '2' DAY 
+        ORDER BY R.RESERVATION_DATE_TIME
+        ]]>
+    </select>
+
+    <update id="updateReservationStatus">
+        UPDATE MB_RESERVATION
+        SET STATUS = #{status},
+            MEMO = CASE
+                WHEN #{rejectionReason,jdbcType=VARCHAR} IS NULL THEN MEMO
+                ELSE '[거절] ' || #{rejectionReason,jdbcType=VARCHAR}
+            END,
+            UPDATED_AT = SYSTIMESTAMP
+        WHERE ID = #{reservationId}
+    </update>
+
+    <select id="countOldTerminalReservations" resultType="int">
+        SELECT COUNT(*) FROM MB_RESERVATION
+        WHERE STATUS IN ('REJECTED','CANCELED','COMPLETED','NO_SHOW')
+          AND RESERVATION_DATE_TIME &lt; ADD_MONTHS(TRUNC(SYSDATE), -24)
+    </select>
+
+    <select id="findUpcomingReservationsPage" resultMap="reservationResultMap">
+        SELECT R.ID, R.SERVICE_ID, S.NAME AS SERVICE_NAME, S.CATEGORY AS SERVICE_CATEGORY,
+               S.DURATION_MINUTES, R.CUSTOMER_NAME, R.CUSTOMER_EMAIL, R.CUSTOMER_PHONE,
+               R.RESERVATION_DATE_TIME, R.NO_SHOW_POLICY_AGREED, R.STATUS, R.MEMO
+        FROM MB_RESERVATION R
+        JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID
+        WHERE R.RESERVATION_DATE_TIME >= TRUNC(SYSDATE)
+          AND R.RESERVATION_DATE_TIME &lt; TRUNC(SYSDATE) + INTERVAL '2' DAY
+        ORDER BY R.RESERVATION_DATE_TIME
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+    <delete id="deleteOldTerminalReservations">
+        DELETE FROM MB_RESERVATION
+        WHERE STATUS IN ('REJECTED','CANCELED','COMPLETED','NO_SHOW')
+          AND RESERVATION_DATE_TIME &lt; ADD_MONTHS(TRUNC(SYSDATE), -24)
+    </delete>
+    <select id="countOldOrphanCustomers" resultType="int">
+        SELECT COUNT(*) FROM MB_USER U
+        WHERE U.ROLE = 'CUSTOMER'
+          AND U.CREATED_AT &lt; ADD_MONTHS(TRUNC(SYSDATE), -24)
+          AND NOT EXISTS (SELECT 1 FROM MB_RESERVATION R WHERE R.CUSTOMER_ID = U.ID)
+    </select>
+    <delete id="deleteOldOrphanCustomers">
+        DELETE FROM MB_USER U
+        WHERE U.ROLE = 'CUSTOMER'
+          AND U.CREATED_AT &lt; ADD_MONTHS(TRUNC(SYSDATE), -24)
+          AND NOT EXISTS (SELECT 1 FROM MB_RESERVATION R WHERE R.CUSTOMER_ID = U.ID)
+    </delete>
+    <select id="countOldDeletedServices" resultType="int">
+        SELECT COUNT(*) FROM MB_SERVICE_ITEM S
+        WHERE S.CATEGORY = 'DELETED'
+          AND S.UPDATED_AT &lt; ADD_MONTHS(TRUNC(SYSDATE), -24)
+          AND NOT EXISTS (SELECT 1 FROM MB_RESERVATION R WHERE R.SERVICE_ID = S.ID)
+    </select>
+    <delete id="deleteOldDeletedServices">
+        DELETE FROM MB_SERVICE_ITEM S
+        WHERE S.CATEGORY = 'DELETED'
+          AND S.UPDATED_AT &lt; ADD_MONTHS(TRUNC(SYSDATE), -24)
+          AND NOT EXISTS (SELECT 1 FROM MB_RESERVATION R WHERE R.SERVICE_ID = S.ID)
+    </delete>
+
+</mapper>

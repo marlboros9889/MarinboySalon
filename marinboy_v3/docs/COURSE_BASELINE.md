@@ -15,10 +15,10 @@
 
 - 백엔드: Spring Boot, JPA Entity·Repository, MyBatis Mapper, Service, RestController, Swagger
 - 보안: 수업에서 다룬 Spring Security, JWT, Redis 범위에서만 적용
-- 프론트엔드: 수업에서 다룬 HTML, CSS, JavaScript, Bootstrap 방식 사용
+- 프론트엔드: track008의 Next.js SSR, React, Redux Reducer, Redux-Saga, Bootstrap 방식 사용
 - 주석: `//1. 기능 설명` 형식의 한글 주석을 사용
 
 ## 금지 기준
 
-- 수업 파일에서 확인하지 못한 라이브러리·패턴은 임의로 추가하지 않습니다.
+- 수업 파일과 프로젝트 요구사항에서 확인하지 못한 라이브러리·패턴은 임의로 추가하지 않습니다.
 - 필요한 기술이 수업 범위를 벗어나면 구현 전 사용자에게 먼저 알립니다.
