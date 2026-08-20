@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.mapper.DeviceTokenMapper">
+    <update id="save">
+        MERGE INTO MB_DEVICE_TOKEN target
+        USING (SELECT #{adminId} AS ADMIN_ID, #{pushToken} AS PUSH_TOKEN,
+                      #{platform} AS PLATFORM FROM DUAL) source
+        ON (target.PUSH_TOKEN = source.PUSH_TOKEN)
+        WHEN MATCHED THEN UPDATE SET
+            target.ADMIN_ID = source.ADMIN_ID,
+            target.PLATFORM = source.PLATFORM,
+            target.UPDATED_AT = SYSTIMESTAMP
+        WHEN NOT MATCHED THEN INSERT (ADMIN_ID, PUSH_TOKEN, PLATFORM)
+            VALUES (source.ADMIN_ID, source.PUSH_TOKEN, source.PLATFORM)
+    </update>
+    <select id="findByAdminId" resultType="string">
+        SELECT PUSH_TOKEN FROM MB_DEVICE_TOKEN
+        WHERE ADMIN_ID = #{adminId}
+        ORDER BY UPDATED_AT DESC
+    </select>
+    <delete id="deleteByToken">
+        DELETE FROM MB_DEVICE_TOKEN WHERE PUSH_TOKEN = #{pushToken}
+    </delete>
+</mapper>

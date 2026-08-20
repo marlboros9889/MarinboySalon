@@ -1,0 +1,19 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<body>
+<header th:fragment="header" class="container py-3 border-bottom">
+  <nav class="d-flex justify-content-between align-items-center">
+    <a class="fw-bold text-decoration-none text-dark" href="/">MARINBOY SALON</a>
+    <div class="d-flex gap-3">
+      <a class="text-decoration-none text-dark" href="/">메인</a>
+      <a class="text-decoration-none text-dark" href="/reservation">예약</a>
+      <a class="text-decoration-none text-dark" href="/my-reservations">나의 예약</a>
+      <a class="text-decoration-none text-dark" href="/treatment-history">시술 이력</a>
+    </div>
+  </nav>
+</header>
+<footer th:fragment="footer" class="container py-4 mt-5 border-top text-center text-muted small">
+  MARINBOY SALON · Spring Boot / MyBatis Project
+</footer>
+</body>
+</html>

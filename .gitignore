@@ -1,1 +1,26 @@
-# 사용자 요청에 따라 현재 프로젝트의 모든 파일을 저장소에 포함합니다.
+# 빌드·프런트엔드 산출물
+**/target/
+**/node_modules/
+**/dist/
+**/.next/
+
+# IDE·테스트 도구 메타데이터
+**/.metadata/
+**/.settings/
+**/.playwright-cli/
+**/.idea/
+**/.vscode/
+**/.project
+**/.classpath
+
+# 로그·로컬 설정
+**/*.log
+**/logs/
+**/application-local.properties
+**/.env
+**/.env.*
+!**/.env.example
+
+# 로컬 생성 파일
+.drive-upload/
+**/uploads/

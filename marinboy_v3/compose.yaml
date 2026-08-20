@@ -1,0 +1,19 @@
+services:
+  redis:
+    # JWT 로그아웃 토큰을 보관하는 로컬 개발용 Redis 컨테이너입니다.
+    image: redis:7.4-alpine
+    container_name: marinboy-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - marinboy-redis-data:/data
+    healthcheck:
+      # Spring Boot 실행 전 Redis 응답 가능 여부를 확인합니다.
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  marinboy-redis-data:
