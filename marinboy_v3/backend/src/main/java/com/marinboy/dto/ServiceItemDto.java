@@ -7,7 +7,7 @@ import java.util.List;
 
 /** 시술 메뉴 기본 정보와 연결된 이미지 정보를 전달하는 DTO입니다. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ServiceDto {
+public class ServiceItemDto {
     // 시술 메뉴의 기본 키입니다.
     private Long id;
     // 이미지 조회 결과가 어느 시술에 속하는지 나타내는 외래 키입니다.

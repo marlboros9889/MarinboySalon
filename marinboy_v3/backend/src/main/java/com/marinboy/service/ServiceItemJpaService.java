@@ -12,16 +12,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** v3 시술 메뉴의 Entity·DTO 변환과 트랜잭션 규칙을 담당합니다. */
 @Service
-public class ServiceItemV3Service {
+public class ServiceItemJpaService {
     private final ServiceItemRepository serviceItemRepository;
 
-    public ServiceItemV3Service(ServiceItemRepository serviceItemRepository) {
+    public ServiceItemJpaService(ServiceItemRepository serviceItemRepository) {
         this.serviceItemRepository = serviceItemRepository;
     }
 
     @Transactional(readOnly = true)
     public List<ServiceItemResponseDto> findAll() {
-        return serviceItemRepository.findAll().stream().map(ServiceItemResponseDto::from).toList();
+        // 고객에게는 논리 삭제된 메뉴를 제외한 활성 메뉴만 반환합니다.
+        return serviceItemRepository.findAll().stream()
+                .filter(this::isActive)
+                .map(ServiceItemResponseDto::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -47,8 +51,16 @@ public class ServiceItemV3Service {
     }
 
     private ServiceItemEntity findEntity(Long id) {
-        return serviceItemRepository.findById(id)
+        ServiceItemEntity entity = serviceItemRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 시술 메뉴입니다."));
+        if (!isActive(entity)) {
+            throw new NoSuchElementException("존재하지 않는 시술 메뉴입니다.");
+        }
+        return entity;
+    }
+
+    private boolean isActive(ServiceItemEntity entity) {
+        return !"DELETED".equals(entity.getCategory());
     }
 
     private void validateBusinessRules(ServiceItemRequestDto request) {

@@ -35,10 +35,10 @@ marinboy_v3/
 | 기능 | Frontend | Backend |
 |---|---|---|
 | 인증 | `features/auth` | `AuthController`, `AuthService`, `AuthMapper` |
-| 시술 | `features/home`, `reducers/service`, `sagas/service` | `V3ServiceItemController`, `MenuService`, `MenuMapper` |
+| 시술 | `features/home`, `reducers/service`, `sagas/service` | `ReservationController`, `ServiceItemService`, `ServiceItemMapper` |
 | 예약 | `pages/reservation.js`, `pages/my-reservations.js` | `ReservationController`, `ReservationService`, `ReservationMapper` |
 | 알림 | `pages/admin.js` SSE 모달 | `NotificationController`, `NotificationService`, `NotificationMapper` |
-| 운영 | `pages/admin.js` | `AdminController`, `MenuService`, `ReservationService` |
+| 운영 | `pages/admin.js` | `AdminController`, `ServiceItemService`, `ReservationService` |
 
 ## 전환 원칙
 

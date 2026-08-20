@@ -3,6 +3,7 @@ package com.marinboy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -14,12 +15,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.marinboy.db.DbSchemaService;
 import com.marinboy.mapper.ReservationMapper;
 import com.marinboy.dto.ReservationDto;
+import com.marinboy.dto.UserDto;
 import com.marinboy.service.DatabaseVerificationService;
 import com.marinboy.service.ReservationService;
-import com.marinboy.service.MenuService;
+import com.marinboy.service.ServiceItemService;
 import com.marinboy.util.MoneyFormatUtil;
 import com.marinboy.util.PhoneMaskingUtil;
 import com.marinboy.security.SocialLoginUser;
+import com.marinboy.security.SecurityConstants;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -46,7 +49,7 @@ class MarinboyApplicationTests {
     private DbSchemaService dbSchemaService;
 
     @Autowired
-    private MenuService salonServiceService;
+    private ServiceItemService serviceItemService;
 
     @Autowired
     private ReservationService salonReservationService;
@@ -86,7 +89,7 @@ class MarinboyApplicationTests {
     @Test
     void mapperAndServiceCanReadSalonData() {
         // SalonServiceService -> SalonServiceDao -> salon-service-mapper.xml 흐름으로 시술 메뉴를 읽는지 검증합니다.
-        assertThat(salonServiceService.getServices())
+        assertThat(serviceItemService.getServices())
                 .extracting("name")
                 .contains("웨이브 펌", "시그니처 컷", "젤 네일 기본", "신부 화장");
 
@@ -241,6 +244,36 @@ class MarinboyApplicationTests {
     void sessionMutationRequiresCsrfToken() throws Exception {
         mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isForbidden());
+    }
+
+    /** 관리자 화면의 multipart PATCH 요청이 실제 시술 메뉴를 수정하는지 검증합니다. */
+    @Test
+    @Transactional
+    void adminCanUpdateServiceItemThroughMultipartRequest() throws Exception {
+        UserDto admin = new UserDto();
+        admin.setId(1L);
+        admin.setRole(SecurityConstants.ROLE_ADMIN);
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(SecurityConstants.LOGIN_USER, admin);
+
+        mockMvc.perform(multipart("/api/admin/services/{id}", 1L)
+                        .with(request -> {
+                            request.setMethod("PATCH");
+                            return request;
+                        })
+                        .with(csrf())
+                        .session(session)
+                        .param("name", "웨이브 펌 수정 검증")
+                        .param("category", "펌")
+                        .param("durationMinutes", "120")
+                        .param("price", "95000")
+                        .param("description", "관리자 수정 연결 검증"))
+                .andExpect(status().isNoContent());
+
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT NAME FROM MB_SERVICE_ITEM WHERE ID = ?",
+                String.class,
+                1L)).isEqualTo("웨이브 펌 수정 검증");
     }
 
     /** React 개발 서버가 세션 쿠키를 포함한 인증 API를 호출할 수 있는지 검증합니다. */

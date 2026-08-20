@@ -22,8 +22,8 @@ flowchart LR
 | 일반 로그인 | 화면 → `AuthController` → `AuthService` → `AuthMapper/auth.xml` → BCrypt 검증 → 세션 | `/api/auth/login` |
 | 소셜 로그인 | 공급자 인증 → Spring OAuth2 콜백 → `SocialLoginSuccessHandler` → 고객 조회/생성 → 세션 | `/oauth2/authorization/{provider}` |
 | v3 JWT | React → `V3AuthController` → `AuthService` → JWT 발급 → 요청 필터 → Redis 로그아웃 차단 | `/api/v3/auth/**` |
-| 시술 조회 | 화면 → `ReservationController` → `MenuService` → `MenuMapper/menu.xml` → DB | `/api/services` |
-| v3 시술 CRUD | React/API → `V3ServiceItemController` → RequestDto → Service → Entity/Repository → ResponseDto | `/api/v3/service-items` |
+| 시술 조회 | 화면 → `ReservationController` → `ServiceItemService` → `ServiceItemMapper/service-item.xml` → DB | `/api/services` |
+| v3 시술 CRUD | React/API → `ServiceItemJpaController` → RequestDto → `ServiceItemJpaService` → Entity/Repository → ResponseDto | `/api/v3/service-items` |
 | 가능 시간 | 시술·날짜 → `ReservationService` → 영업시간/휴무일/기존 예약 겹침 계산 → 시간 슬롯 | `/api/services/{id}/available-slots` |
 | 예약 | 예약 폼 → `ReservationController` → `ReservationService` 검증 → `ReservationMapper/reservation.xml` → DB | `/api/reservations` |
 | 내 예약 | 세션 전화번호 소유권 확인 → 조회/미래 예약 수정·취소 → DB | `/api/customers/my-reservations/**` |

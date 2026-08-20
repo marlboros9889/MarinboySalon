@@ -59,11 +59,20 @@
           AND ROLE = 'CUSTOMER'
     </select>
 
-    <!-- 같은 시술 예약의 겹침 확인과 저장 사이 경쟁 조건을 막습니다. -->
-    <select id="lockServiceForReservation" resultType="long">
+    <!--
+        모든 시술이 원장 한 명의 공통 시간표를 사용하므로, 가장 작은 메뉴 행 하나를 공용 잠금으로 사용합니다.
+        요청 메뉴가 활성 상태일 때만 잠겨 삭제된 메뉴의 직접 예약 요청도 함께 차단합니다.
+    -->
+    <select id="lockReservationSchedule" resultType="long">
         SELECT ID
         FROM MB_SERVICE_ITEM
-        WHERE ID = #{serviceId}
+        WHERE ID = (SELECT MIN(ID) FROM MB_SERVICE_ITEM)
+          AND EXISTS (
+              SELECT 1
+              FROM MB_SERVICE_ITEM
+              WHERE ID = #{serviceId}
+                AND CATEGORY &lt;&gt; 'DELETED'
+          )
         FOR UPDATE
     </select>
 

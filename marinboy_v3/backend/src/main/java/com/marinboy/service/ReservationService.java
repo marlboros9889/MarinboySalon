@@ -22,14 +22,14 @@ public class ReservationService {
     private static final int MAX_BOOKING_DAYS = 7;
 
     private final ReservationMapper salonReservationDao;
-    private final MenuService salonServiceService;
+    private final ServiceItemService serviceItemService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public ReservationService(ReservationMapper salonReservationDao, MenuService salonServiceService,
+    public ReservationService(ReservationMapper salonReservationDao, ServiceItemService serviceItemService,
             ApplicationEventPublisher eventPublisher) {
         // 예약 SQL과 시술 정보 조회를 각각 DAO/서비스에 위임합니다.
         this.salonReservationDao = salonReservationDao;
-        this.salonServiceService = salonServiceService;
+        this.serviceItemService = serviceItemService;
         this.eventPublisher = eventPublisher;
     }
 
@@ -44,7 +44,7 @@ public class ReservationService {
             return availableSlots(List.of());
         }
 
-        Integer durationMinutes = salonServiceService.getDurationMinutes(serviceId);
+        Integer durationMinutes = serviceItemService.getDurationMinutes(serviceId);
         if (durationMinutes == null) {
             return availableSlots(List.of());
         }
@@ -78,8 +78,10 @@ public class ReservationService {
         if (salonReservationDao.countHoliday(request.getReservationDateTime().toLocalDate()) > 0) {
             throw new IllegalArgumentException("선택한 날짜는 휴무일입니다.");
         }
-        // 같은 시술의 예약 생성 요청을 직렬화한 뒤 겹침 여부를 다시 확인합니다.
-        salonReservationDao.lockServiceForReservation(request.getServiceId());
+        // 모든 시술이 한 시간표를 공유하므로 공통 잠금 뒤 겹침 여부를 다시 확인합니다.
+        if (salonReservationDao.lockReservationSchedule(request.getServiceId()) == null) {
+            throw new IllegalArgumentException("선택한 시술 메뉴가 없거나 삭제되었습니다.");
+        }
         if (salonReservationDao.countOverlappingReservation(request.getServiceId(), request.getReservationDateTime()) > 0) {
             throw new IllegalArgumentException("이미 예약된 시간입니다. 다른 시간을 선택해 주세요.");
         }
@@ -113,7 +115,7 @@ public class ReservationService {
         eventPublisher.publishEvent(new ReservationCreatedEvent(
                 reservationId,
                 request.getCustomerName(),
-                salonServiceService.getServiceName(request.getServiceId())
+                serviceItemService.getServiceName(request.getServiceId())
         ));
     }
 
@@ -171,7 +173,10 @@ public class ReservationService {
             throw new IllegalArgumentException("예약은 현재 시간보다 최소 30분 이후부터 가능합니다.");
         if (salonReservationDao.countHoliday(request.getReservationDateTime().toLocalDate()) > 0)
             throw new IllegalArgumentException("선택한 날짜는 휴무일입니다.");
-        salonReservationDao.lockServiceForReservation(request.getServiceId());
+        // 수정도 공통 시간표를 잠가 서로 다른 시술 간 동시 변경 충돌을 막습니다.
+        if (salonReservationDao.lockReservationSchedule(request.getServiceId()) == null) {
+            throw new IllegalArgumentException("선택한 시술 메뉴가 없거나 삭제되었습니다.");
+        }
         if (salonReservationDao.countOverlappingReservationExcept(request.getServiceId(), request.getReservationDateTime(), reservationId) > 0)
             throw new IllegalArgumentException("이미 예약된 시간입니다. 다른 시간을 선택해 주세요.");
         if (salonReservationDao.updateCustomerReservation(reservationId, customerPhone, request.getServiceId(), request.getReservationDateTime(), request.getMemo()) == 0)
@@ -272,7 +277,7 @@ public class ReservationService {
                 || reservationDateTime.isBefore(LocalDateTime.now().plusMinutes(30))) {
             throw new IllegalArgumentException("Reservation time must be at least 30 minutes in the future.");
         }
-        Integer durationMinutes = salonServiceService.getDurationMinutes(serviceId);
+        Integer durationMinutes = serviceItemService.getDurationMinutes(serviceId);
         if (durationMinutes == null) {
             throw new IllegalArgumentException("Selected service does not exist.");
         }

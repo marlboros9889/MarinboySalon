@@ -1,12 +1,47 @@
 import { useEffect, useState } from 'react';
 import { sessionFetch as api } from '../features/shared/api/sessionApi';
 const labels = { REQUESTED: '승인 대기', CONFIRMED: '승인 완료', REJECTED: '거절', CANCELED: '취소', COMPLETED: '시술 완료' };
+
+/** API가 반환한 구체적인 실패 원인을 관리자에게 표시합니다. */
+async function readApiError(response, fallbackMessage) {
+  try {
+    const result = await response.json();
+    return result.message || fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+}
+
 export default function Admin() {
   const [items, setItems] = useState([]); const [services, setServices] = useState([]); const [selected, setSelected] = useState(null); const [notice, setNotice] = useState(null); const [message, setMessage] = useState(''); const [page, setPage] = useState(0); const [total, setTotal] = useState(0); const [user, setUser] = useState(null); const [showProfile, setShowProfile] = useState(false);
   const load = async (targetPage = page) => { const [reservations, menu, me] = await Promise.all([api(`/api/admin/reservations?page=${targetPage}&size=5`), api('/api/admin/services'), api('/api/auth/me')]); if (!reservations.ok || !menu.ok) throw new Error(); const data = await reservations.json(); setItems(data.items); setTotal(data.total); setServices(await menu.json()); setUser(me.status === 200 ? await me.json() : null); };
   useEffect(() => { load(0).catch(() => setMessage('관리자 로그인 후 이용해 주세요.')); const stream = new EventSource('/api/admin/notifications/subscribe'); stream.onmessage = (event) => { const data = JSON.parse(event.data); setNotice(data); load().catch(() => null); }; return () => stream.close(); }, []);
   const changeStatus = async (id, status) => { const response = await api(`/api/admin/reservations/${id}/status?status=${status}`, { method: 'PATCH' }); if (!response.ok) return setMessage('상태를 변경할 수 없습니다.'); load(); };
-  const saveMenu = async (event) => { event.preventDefault(); const form = new FormData(event.currentTarget); const id = selected?.id; const response = await api(id ? `/api/admin/services/${id}` : '/api/admin/services', { method: id ? 'PATCH' : 'POST', body: form }); if (!response.ok) return setMessage('메뉴 저장에 실패했습니다.'); setSelected(null); load(); };
+  const saveMenu = async (event) => {
+    event.preventDefault();
+    setMessage('');
+    const form = new FormData(event.currentTarget);
+    const id = selected?.id;
+
+    try {
+      //1. 시술 메뉴 등록·수정  POST/PATCH: /api/admin/services
+      const response = await api(id ? `/api/admin/services/${id}` : '/api/admin/services', {
+        method: id ? 'PATCH' : 'POST',
+        body: form,
+      });
+      if (!response.ok) {
+        setMessage(await readApiError(response, '메뉴 저장에 실패했습니다.'));
+        return;
+      }
+
+      //2. 저장 완료 뒤 최신 DB 목록을 다시 받아 화면과 서버 상태를 일치시킵니다.
+      await load(page);
+      setSelected(null);
+      setMessage(id ? '시술 메뉴를 수정했습니다.' : '시술 메뉴를 추가했습니다.');
+    } catch {
+      setMessage('서버 연결을 확인한 뒤 다시 저장해 주세요.');
+    }
+  };
   const saveProfile = async (event) => { event.preventDefault(); const response = await api('/api/customers/me', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))) }); if (!response.ok) return setMessage('관리자 정보 수정에 실패했습니다.'); setUser(await response.json()); setShowProfile(false); setMessage('관리자 정보를 수정했습니다.'); };
   const totalPages = Math.max(1, Math.ceil(total / 5));
   const goPage = (nextPage) => { setPage(nextPage); load(nextPage); };

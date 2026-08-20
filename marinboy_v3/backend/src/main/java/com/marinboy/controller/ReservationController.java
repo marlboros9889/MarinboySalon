@@ -1,11 +1,11 @@
 package com.marinboy.controller;
 
 import com.marinboy.dto.ReservationDto;
-import com.marinboy.dto.ServiceDto;
+import com.marinboy.dto.ServiceItemDto;
 import com.marinboy.dto.UserDto;
 import com.marinboy.security.SecurityConstants;
 import com.marinboy.service.ReservationService;
-import com.marinboy.service.MenuService;
+import com.marinboy.service.ServiceItemService;
 import com.marinboy.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -28,23 +28,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @Tag(name = "예약 관리", description = "고객 예약 생성·조회·수정·취소 기능")
 public class ReservationController {
-    private final MenuService serviceService;
+    private final ServiceItemService serviceItemService;
     private final ReservationService reservationService;
     private final AuthService authService;
 
     public ReservationController(
-            MenuService serviceService,
+            ServiceItemService serviceItemService,
             ReservationService reservationService, AuthService authService) {
-        this.serviceService = serviceService;
+        this.serviceItemService = serviceItemService;
         this.reservationService = reservationService;
         this.authService = authService;
     }
 
     @GetMapping("/api/services")
     @Operation(summary = "시술 메뉴 전체 조회")
-    public List<ServiceDto> services() {
+    public List<ServiceItemDto> services() {
         // 예약 화면의 시술 선택 목록을 반환합니다.
-        return serviceService.getServices();
+        return serviceItemService.getServices();
     }
 
     @GetMapping("/api/services/{serviceId}/available-slots")

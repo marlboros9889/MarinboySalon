@@ -2,11 +2,11 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<!-- SalonServiceDao와 연결되어 시술 메뉴와 이미지 정보를 조회하는 mapper입니다. -->
-<mapper namespace="com.marinboy.mapper.MenuMapper">
+<!-- ServiceItemMapper와 연결되어 시술 메뉴와 이미지 정보를 조회하는 mapper입니다. -->
+<mapper namespace="com.marinboy.mapper.ServiceItemMapper">
 
     <!-- 시술 기본 정보를 ServiceDto에 매핑합니다. -->
-    <resultMap id="serviceResultMap" type="com.marinboy.dto.ServiceDto">
+    <resultMap id="serviceResultMap" type="com.marinboy.dto.ServiceItemDto">
         <id property="id" column="ID"/>
         <result property="name" column="NAME"/>
         <result property="category" column="CATEGORY"/>
@@ -18,7 +18,7 @@
     </resultMap>
 
     <!-- 시술 이미지도 같은 ServiceDto에 매핑합니다. -->
-    <resultMap id="serviceImageResultMap" type="com.marinboy.dto.ServiceDto">
+    <resultMap id="serviceImageResultMap" type="com.marinboy.dto.ServiceItemDto">
         <result property="serviceId" column="SERVICE_ID"/>
         <result property="imageUrl" column="IMAGE_URL"/>
         <result property="imageType" column="IMAGE_TYPE"/>
@@ -53,16 +53,28 @@
         ORDER BY SERVICE_ID, IMAGE_TYPE DESC, SORT_ORDER, ID
     </select>
 
+    <!-- 이미지 교체 전 기존 파일 URL을 확보해 DB 커밋 뒤에만 실제 파일을 삭제합니다. -->
+    <select id="findServiceImagesByServiceId" resultMap="serviceImageResultMap">
+        SELECT SERVICE_ID,
+               IMAGE_URL,
+               IMAGE_TYPE
+        FROM MB_SERVICE_IMAGE
+        WHERE SERVICE_ID = #{serviceId}
+        ORDER BY IMAGE_TYPE DESC, SORT_ORDER, ID
+    </select>
+
     <!-- 예약 가능 시간 계산에 필요한 시술 소요 시간을 조회합니다. -->
-    <select id="findDurationMinutesById" resultType="int">
+    <select id="findActiveDurationMinutesById" resultType="int">
         SELECT DURATION_MINUTES
         FROM MB_SERVICE_ITEM
         WHERE ID = #{serviceId}
+          AND CATEGORY &lt;&gt; 'DELETED'
     </select>
-    <select id="findNameById" resultType="string">
+    <select id="findActiveNameById" resultType="string">
         SELECT NAME
         FROM MB_SERVICE_ITEM
         WHERE ID = #{serviceId}
+          AND CATEGORY &lt;&gt; 'DELETED'
     </select>
     <!-- 메뉴와 이미지를 같은 ID로 연결하기 위해 저장 전에 다음 메뉴 ID를 조회합니다. -->
     <insert id="insertService" useGeneratedKeys="true" keyProperty="id" keyColumn="ID">
@@ -70,7 +82,15 @@
         VALUES (#{name}, #{category}, #{durationMinutes}, #{price}, #{description})
     </insert>
     <update id="updateService">
-        UPDATE MB_SERVICE_ITEM SET NAME=#{name}, CATEGORY=#{category}, DURATION_MINUTES=#{durationMinutes}, PRICE=#{price}, DESCRIPTION=#{description}, UPDATED_AT=SYSTIMESTAMP WHERE ID=#{id}
+        UPDATE MB_SERVICE_ITEM
+        SET NAME = #{name},
+            CATEGORY = #{category},
+            DURATION_MINUTES = #{durationMinutes},
+            PRICE = #{price},
+            DESCRIPTION = #{description},
+            UPDATED_AT = SYSTIMESTAMP
+        WHERE ID = #{id}
+          AND CATEGORY &lt;&gt; 'DELETED'
     </update>
     <!-- 대표 이미지는 메뉴별 한 장만 유지합니다. -->
     <delete id="deleteRepresentativeImage">

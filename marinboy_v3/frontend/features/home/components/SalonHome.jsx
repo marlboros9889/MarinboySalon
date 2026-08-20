@@ -182,8 +182,8 @@ function SalonHome() {
 
   const moveToReservation = (serviceId) => {
     // 시술 카드에서는 선택한 메뉴를 예약 화면으로 즉시 전달합니다.
-    if (serviceId) {
-      window.location.href = `/reservation?serviceId=${serviceId}`;
+    if (Number.isInteger(Number(serviceId)) && Number(serviceId) > 0) {
+      window.location.href = `/reservation?serviceId=${encodeURIComponent(serviceId)}`;
       return;
     }
     // 예약 화면으로 이동하기 전에 노쇼·당일 취소 제한 확인 여부를 명확히 받습니다.
@@ -281,7 +281,7 @@ function SalonHome() {
         <div className="container v3-designer-copy"><p className="v3-eyebrow">DIRECTOR PROFILE</p><h2>원장과의 1:1 상담으로<br />완성하는 당신만의 디자인</h2><p>10년 이상의 현장 경험을 바탕으로 얼굴형, 모발 상태, 라이프스타일까지 고려해 가장 자연스러운 변화를 제안합니다.</p><dl><div><dt>CAREER</dt><dd>MARINBOY SALON DIRECTOR</dd></div><div><dt>SPECIALTY</dt><dd>PERSONAL COLOR · HAIR DESIGN · NAIL ART</dd></div></dl><button className="v3-secondary-button" onClick={moveToReservation}>상담 예약하기</button></div>
       </section>
 
-      <section id="visit" className="container v3-visit"><div><p className="v3-eyebrow">VISIT MARINBOY</p><h2>당신의 일상에<br />기분 좋은 변화를.</h2><p>전문 디자이너와 편안하게 상담하고,<br />나만의 아름다움을 발견해 보세요.</p><button className="v3-primary-button" onClick={moveToReservation}>지금 예약하기</button></div><div className="v3-visit-info"><p><b>OPEN</b> 10:00 – 20:00</p><p><b>CONTACT</b> 02.0000.0000</p><p><b>LOCATION</b> 서울특별시 마린보이살롱</p><a className="v3-map-link" href="https://www.google.com/maps/search/?api=1&query=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C+%EB%A7%88%EB%A6%B0%EB%B3%B4%EC%9D%B4%EC%82%B4%EB%A1%B1" target="_blank" rel="noreferrer">지도에서 위치 확인</a></div></section>
+      <section id="visit" className="container v3-visit"><div><p className="v3-eyebrow">VISIT MARINBOY</p><h2>당신의 일상에<br />기분 좋은 변화를.</h2><p>전문 디자이너와 편안하게 상담하고,<br />나만의 아름다움을 발견해 보세요.</p><button className="v3-primary-button" onClick={moveToReservation}>지금 예약하기</button></div><div className="v3-visit-info"><p><b>OPEN</b> 10:00 – 19:00</p><p><b>CONTACT</b> 02.0000.0000</p><p><b>LOCATION</b> 서울특별시 마린보이살롱</p><a className="v3-map-link" href="https://www.google.com/maps/search/?api=1&query=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C+%EB%A7%88%EB%A6%B0%EB%B3%B4%EC%9D%B4%EC%82%B4%EB%A1%B1" target="_blank" rel="noreferrer">지도에서 위치 확인</a></div></section>
 
       <footer className="v3-footer"><div className="container"><strong>MARINBOY SALON</strong><span>© 2026 MARINBOY SALON. ALL RIGHTS RESERVED.</span>{user?.role === 'ADMIN' && <a className="v3-admin-edit-button" href="/admin">메뉴 수정</a>}</div></footer>
       {selectedService && <ServiceGallery service={selectedService} onClose={() => setSelectedService(null)} onReserve={moveToReservation} />}
@@ -335,7 +335,7 @@ function ServiceGallery({ service, onClose, onReserve }) {
       </div>
       <div className="v3-gallery-actions">
         <p>{service.description || '여러 각도의 시술 이미지를 확인하고 예약해 주세요.'}</p>
-        <button className="v3-primary-button" type="button" onClick={() => { onClose(); onReserve(); }}>이 시술 예약하기</button>
+        <button className="v3-primary-button" type="button" onClick={() => { onClose(); onReserve(service.id); }}>이 시술 예약하기</button>
       </div>
     </section>
   </div>;

@@ -3,7 +3,7 @@ package com.marinboy.controller;
 import com.marinboy.dto.UserDto;
 import com.marinboy.security.SecurityConstants;
 import com.marinboy.service.ReservationService;
-import com.marinboy.service.MenuService;
+import com.marinboy.service.ServiceItemService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Map;
@@ -36,9 +36,9 @@ public class AdminController {
     @Tag(name = "관리자", description = "예약·휴무일·시술 메뉴·보관 데이터 관리 기능")
     static class AdminApi {
         private final ReservationService service;
-        private final MenuService salonService;
+        private final ServiceItemService serviceItemService;
         // 예약 관리와 시술 메뉴 관리 서비스를 주입받습니다.
-        AdminApi(ReservationService service, MenuService salonService) { this.service = service; this.salonService = salonService; }
+        AdminApi(ReservationService service, ServiceItemService serviceItemService) { this.service = service; this.serviceItemService = serviceItemService; }
         // 전체 예약을 페이지 단위로 조회하고 총 개수를 함께 반환합니다.
         @GetMapping("/api/admin/reservations") @Operation(summary = "전체 예약 목록 조회") Object reservations(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, HttpSession s) { requireAdmin(s); return Map.of("items", service.getReservationsPage(page, size), "total", service.countReservations(), "page", page, "size", size); }
         // 선택한 예약의 상세 정보를 조회합니다.
@@ -56,13 +56,13 @@ public class AdminController {
         // 선택한 휴무일을 삭제해 다시 예약 가능하게 합니다.
         @DeleteMapping("/api/admin/holidays") @Operation(summary = "휴무일 삭제") ResponseEntity<Void> delete(@RequestParam LocalDate holidayDate, HttpSession s) { requireAdmin(s); service.deleteHoliday(holidayDate); return ResponseEntity.noContent().build(); }
         // 메뉴 관리 화면에 표시할 전체 시술을 조회합니다.
-        @GetMapping("/api/admin/services") @Operation(summary = "관리자 시술 메뉴 목록 조회") Object services(HttpSession s) { requireAdmin(s); return salonService.getServices(); }
+        @GetMapping("/api/admin/services") @Operation(summary = "관리자 시술 메뉴 목록 조회") Object services(HttpSession s) { requireAdmin(s); return serviceItemService.getServices(); }
         // 메뉴 정보와 대표 이미지 파일을 함께 등록합니다.
-        @PostMapping(value="/api/admin/services", consumes="multipart/form-data") @Operation(summary = "시술 메뉴 등록") ResponseEntity<Void> createService(@RequestParam String name, @RequestParam String category, @RequestParam int durationMinutes, @RequestParam int price, @RequestParam(defaultValue="") String description, @RequestParam(required=false) MultipartFile image, @RequestParam(required=false) MultipartFile[] galleryImages, HttpSession s) { requireAdmin(s); salonService.saveService(null, name, category, durationMinutes, price, description, image, galleryImages); return ResponseEntity.noContent().build(); }
+        @PostMapping(value="/api/admin/services", consumes="multipart/form-data") @Operation(summary = "시술 메뉴 등록") ResponseEntity<Void> createService(@RequestParam String name, @RequestParam String category, @RequestParam int durationMinutes, @RequestParam int price, @RequestParam(defaultValue="") String description, @RequestParam(required=false) MultipartFile image, @RequestParam(required=false) MultipartFile[] galleryImages, HttpSession s) { requireAdmin(s); serviceItemService.saveService(null, name, category, durationMinutes, price, description, image, galleryImages); return ResponseEntity.noContent().build(); }
         // 새 이미지가 선택된 경우에만 기존 대표 이미지를 교체합니다.
-        @PatchMapping(value="/api/admin/services/{id}", consumes="multipart/form-data") @Operation(summary = "시술 메뉴 수정") ResponseEntity<Void> updateService(@org.springframework.web.bind.annotation.PathVariable Long id, @RequestParam String name, @RequestParam String category, @RequestParam int durationMinutes, @RequestParam int price, @RequestParam(defaultValue="") String description, @RequestParam(required=false) MultipartFile image, @RequestParam(required=false) MultipartFile[] galleryImages, HttpSession s) { requireAdmin(s); salonService.saveService(id, name, category, durationMinutes, price, description, image, galleryImages); return ResponseEntity.noContent().build(); }
+        @PatchMapping(value="/api/admin/services/{id}", consumes="multipart/form-data") @Operation(summary = "시술 메뉴 수정") ResponseEntity<Void> updateService(@org.springframework.web.bind.annotation.PathVariable Long id, @RequestParam String name, @RequestParam String category, @RequestParam int durationMinutes, @RequestParam int price, @RequestParam(defaultValue="") String description, @RequestParam(required=false) MultipartFile image, @RequestParam(required=false) MultipartFile[] galleryImages, HttpSession s) { requireAdmin(s); serviceItemService.saveService(id, name, category, durationMinutes, price, description, image, galleryImages); return ResponseEntity.noContent().build(); }
         // 예약 이력은 보존하면서 선택한 시술을 메뉴 목록에서 제외합니다.
-        @DeleteMapping("/api/admin/services/{id}") @Operation(summary = "시술 메뉴 삭제") ResponseEntity<Void> deleteService(@org.springframework.web.bind.annotation.PathVariable Long id, HttpSession s) { requireAdmin(s); salonService.deleteService(id); return ResponseEntity.noContent().build(); }
+        @DeleteMapping("/api/admin/services/{id}") @Operation(summary = "시술 메뉴 삭제") ResponseEntity<Void> deleteService(@org.springframework.web.bind.annotation.PathVariable Long id, HttpSession s) { requireAdmin(s); serviceItemService.deleteService(id); return ResponseEntity.noContent().build(); }
         @GetMapping("/api/admin/data-retention") @Operation(summary = "보관 기간 만료 데이터 요약") Object retentionSummary(HttpSession s) { requireAdmin(s); return service.getRetentionSummary(); }
         @DeleteMapping("/api/admin/data-retention") @Operation(summary = "보관 기간 만료 데이터 정리") Object cleanupOldData(@RequestParam String confirmation, HttpSession s) { requireAdmin(s); return service.cleanupOldData(confirmation); }
     }

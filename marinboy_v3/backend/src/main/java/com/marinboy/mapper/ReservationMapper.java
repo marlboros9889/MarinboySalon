@@ -26,8 +26,8 @@ public interface ReservationMapper {
     // 방금 저장한 고객 ID를 연락처 기준으로 다시 조회합니다.
     Long findInsertedCustomerId(@Param("customerPhone") String customerPhone);
 
-    // 같은 시술의 예약 생성·수정 트랜잭션을 서비스 행 잠금으로 직렬화합니다.
-    Long lockServiceForReservation(@Param("serviceId") Long serviceId);
+    // 모든 예약 요청을 공통 일정 잠금으로 직렬화해 다른 시술끼리도 시간 겹침을 막습니다.
+    Long lockReservationSchedule(@Param("serviceId") Long serviceId);
 
     // 같은 시간대의 유효 예약이 있는지 확인해 중복 예약을 막습니다.
     int countOverlappingReservation(

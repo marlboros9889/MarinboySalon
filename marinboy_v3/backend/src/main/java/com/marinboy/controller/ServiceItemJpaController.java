@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.marinboy.dto.v3.ServiceItemRequestDto;
 import com.marinboy.dto.v3.ServiceItemResponseDto;
-import com.marinboy.service.ServiceItemV3Service;
+import com.marinboy.service.ServiceItemJpaService;
 import jakarta.validation.Valid;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
@@ -21,32 +21,32 @@ import org.springframework.web.bind.annotation.RestController;
 @Profile("v3")
 @RestController
 @RequestMapping("/api/v3/service-items")
-public class V3ServiceItemController {
-    private final ServiceItemV3Service serviceItemV3Service;
+public class ServiceItemJpaController {
+    private final ServiceItemJpaService serviceItemJpaService;
 
-    public V3ServiceItemController(ServiceItemV3Service serviceItemV3Service) {
-        this.serviceItemV3Service = serviceItemV3Service;
+    public ServiceItemJpaController(ServiceItemJpaService serviceItemJpaService) {
+        this.serviceItemJpaService = serviceItemJpaService;
     }
 
     @GetMapping
     public ResponseEntity<List<ServiceItemResponseDto>> findAll() {
-        return ResponseEntity.ok(serviceItemV3Service.findAll());
+        return ResponseEntity.ok(serviceItemJpaService.findAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ServiceItemResponseDto> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(serviceItemV3Service.findById(id));
+        return ResponseEntity.ok(serviceItemJpaService.findById(id));
     }
 
     @PostMapping
     public ResponseEntity<ServiceItemResponseDto> create(@Valid @RequestBody ServiceItemRequestDto request) {
-        ServiceItemResponseDto response = serviceItemV3Service.create(request);
+        ServiceItemResponseDto response = serviceItemJpaService.create(request);
         return ResponseEntity.created(URI.create("/api/v3/service-items/" + response.id())).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ServiceItemResponseDto> update(@PathVariable Long id,
             @Valid @RequestBody ServiceItemRequestDto request) {
-        return ResponseEntity.ok(serviceItemV3Service.update(id, request));
+        return ResponseEntity.ok(serviceItemJpaService.update(id, request));
     }
 }
