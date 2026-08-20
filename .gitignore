@@ -3,6 +3,10 @@
 **/node_modules/
 **/dist/
 **/.next/
+**/.expo/
+**/dist-verify/
+**/coverage/
+**/.cache/
 
 # IDE·테스트 도구 메타데이터
 **/.metadata/
@@ -16,6 +20,12 @@
 # 로그·로컬 설정
 **/*.log
 **/logs/
+**/*.err
+**/*.out
+**/*.pid
+**/*.hprof
+**/hs_err_pid*.log
+**/*.tmp
 **/application-local.properties
 **/.env
 **/.env.*
