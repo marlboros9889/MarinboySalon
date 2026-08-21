@@ -22,6 +22,8 @@
     <properties>
         <!-- track007_boot_api와 동일하게 Java 17을 기준으로 컴파일합니다. -->
         <java.version>17</java.version>
+        <!-- 기본 Maven 사용은 target을 유지하고 실행 스크립트에서만 OneDrive 밖 경로로 재정의합니다. -->
+        <marinboy.build.directory>${project.basedir}/target</marinboy.build.directory>
     </properties>
 
     <dependencies>
@@ -97,6 +99,7 @@
     </dependencies>
 
     <build>
+        <directory>${marinboy.build.directory}</directory>
         <plugins>
             <!-- Spring Boot 애플리케이션 실행과 패키징을 담당하는 기본 플러그인입니다. -->
             <plugin>

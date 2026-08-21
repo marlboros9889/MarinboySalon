@@ -65,6 +65,22 @@ public interface ReservationMapper {
 
     // 고객 연락처 기준으로 이전 시술 이력을 최신순으로 조회합니다.
     List<ReservationDto> findCustomerHistory(@Param("customerPhone") String customerPhone);
+    // JWT 고객 ID로 본인 예약만 조회하여 같은 연락처 계정 간 노출을 차단합니다.
+    List<ReservationDto> findCustomerReservationsByCustomerId(@Param("customerId") Long customerId);
+    ReservationDto findCustomerReservationByCustomerId(
+            @Param("reservationId") Long reservationId,
+            @Param("customerId") Long customerId);
+    int updateCustomerReservationByCustomerId(
+            @Param("reservationId") Long reservationId,
+            @Param("customerId") Long customerId,
+            @Param("serviceId") Long serviceId,
+            @Param("reservationDateTime") LocalDateTime reservationDateTime,
+            @Param("memo") String memo);
+    int cancelCustomerReservationByCustomerId(
+            @Param("reservationId") Long reservationId,
+            @Param("customerId") Long customerId);
+
+    // 관리자 연락처 검색과 기존 비회원 예약 호환용 메서드입니다.
     ReservationDto findCustomerReservation(@Param("reservationId") Long reservationId, @Param("customerPhone") String customerPhone);
     int updateCustomerReservation(@Param("reservationId") Long reservationId, @Param("customerPhone") String customerPhone,
             @Param("serviceId") Long serviceId, @Param("reservationDateTime") LocalDateTime reservationDateTime,

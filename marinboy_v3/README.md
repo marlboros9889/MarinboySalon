@@ -15,12 +15,12 @@ Next.js + Spring Boot + MyBatis/JPA + Oracle 기반의 JWT·Redis 버전입니�
 JDK 17 이상, Maven, Node.js, Oracle, Redis가 필요합니다.
 
 ```powershell
-Copy-Item .env.example .env.local
-# ORACLE_*, JWT_SECRET, REDIS_* 실제 값 입력
-.\scripts\run-dev.ps1 -Action Restart -InstallDependencies
+.\scripts\setup-local.ps1 -StartRedis
+# .env.local의 ORACLE_* 실제 값 입력
+.\scripts\run-dev.ps1 -Action Restart -InstallDependencies -StartDependencies
 ```
 
-`JWT_SECRET`은 32바이트 이상의 원문을 Base64로 인코딩한 값이어야 합니다. `.env.local`과 서비스 계정 키는 Git에 올리지 않습니다.
+`setup-local.ps1`가 32바이트 JWT 서명키를 안전하게 자동 생성합니다. `.env.local`과 서비스 계정 키는 Git에 올리지 않습니다.
 
 - 고객 화면: `http://127.0.0.1:3000`
 - 백엔드 API: `http://127.0.0.1:8082/api/services`
@@ -39,7 +39,9 @@ Copy-Item .env.example .env.local
 
 업로드 기본 경로는 실행 폴더와 무관한 `${user.home}/.marinboy/uploads`입니다. `UPLOAD_DIRECTORY`를 지정할 때는 절대경로만 허용합니다.
 
-Google Calendar 연동을 켤 때는 캘린더 ID와 서비스 계정 키의 절대경로를 설정하고 서비스 계정에 일정 변경 권한을 부여합니다. 키 파일은 프로젝트 밖에 보관합니다.
+실행 스크립트의 Maven 산출물은 `${user.home}/.marinboy/build/v3-backend`, 검증 산출물은 `${user.home}/.marinboy/build/verify/v3-backend`에 생성합니다. OneDrive의 `target` 잠금·한글 경로 문제와 실행 중 JAR 잠금이 검증에 영향을 주지 않습니다. IDE나 수동 `mvn` 명령은 기존 `target`을 그대로 사용합니다.
+
+Google Calendar 연동을 켤 때는 캘린더 ID와 서비스 계정 키의 절대경로를 설정하고 서비스 계정에 일정 변경 권한을 부여합니다. 키 파일 권장 위치는 `${user.home}/.marinboy/credentials/google-calendar-service-account.json`이며 프로젝트 밖에 보관합니다.
 
 ## 전체 검증
 

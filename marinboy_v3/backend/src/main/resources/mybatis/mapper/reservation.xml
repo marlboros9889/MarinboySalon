@@ -179,6 +179,49 @@
         ORDER BY R.RESERVATION_DATE_TIME DESC
     </select>
 
+    <!-- JWT에 담긴 고객 ID로만 본인 예약을 조회합니다. -->
+    <select id="findCustomerReservationsByCustomerId" resultType="ReservationDto">
+        SELECT R.ID AS id, R.SERVICE_ID AS serviceId,
+               S.NAME AS serviceName,
+               S.CATEGORY AS serviceCategory,
+               R.RESERVATION_DATE_TIME AS reservationDateTime,
+               R.STATUS AS status,
+               R.MEMO AS memo
+        FROM MB_RESERVATION R
+        JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID
+        WHERE R.CUSTOMER_ID = #{customerId}
+        ORDER BY R.RESERVATION_DATE_TIME DESC
+    </select>
+
+    <select id="findCustomerReservationByCustomerId" resultMap="reservationResultMap">
+        SELECT R.ID, R.SERVICE_ID, S.NAME AS SERVICE_NAME, S.CATEGORY AS SERVICE_CATEGORY, S.DURATION_MINUTES,
+               R.CUSTOMER_NAME, R.CUSTOMER_EMAIL, R.CUSTOMER_PHONE, R.RESERVATION_DATE_TIME,
+               R.NO_SHOW_POLICY_AGREED, R.STATUS, R.MEMO
+        FROM MB_RESERVATION R JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID
+        WHERE R.ID = #{reservationId} AND R.CUSTOMER_ID = #{customerId}
+    </select>
+
+    <update id="updateCustomerReservationByCustomerId">
+        UPDATE MB_RESERVATION
+        SET SERVICE_ID = #{serviceId},
+            RESERVATION_DATE_TIME = #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler},
+            MEMO = #{memo},
+            UPDATED_AT = SYSTIMESTAMP
+        WHERE ID = #{reservationId}
+          AND CUSTOMER_ID = #{customerId}
+          AND STATUS IN ('REQUESTED', 'CONFIRMED')
+          AND RESERVATION_DATE_TIME > SYSTIMESTAMP
+    </update>
+
+    <update id="cancelCustomerReservationByCustomerId">
+        UPDATE MB_RESERVATION
+        SET STATUS = 'CANCELED', UPDATED_AT = SYSTIMESTAMP
+        WHERE ID = #{reservationId}
+          AND CUSTOMER_ID = #{customerId}
+          AND STATUS = 'REQUESTED'
+          AND RESERVATION_DATE_TIME > SYSTIMESTAMP
+    </update>
+
     <select id="findCustomerReservation" resultMap="reservationResultMap">
         SELECT R.ID, R.SERVICE_ID, S.NAME AS SERVICE_NAME, S.CATEGORY AS SERVICE_CATEGORY, S.DURATION_MINUTES,
                R.CUSTOMER_NAME, R.CUSTOMER_EMAIL, R.CUSTOMER_PHONE, R.RESERVATION_DATE_TIME,
