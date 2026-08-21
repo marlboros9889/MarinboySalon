@@ -26,6 +26,12 @@ public class HomeController {
         return "index";
     }
 
+    @GetMapping("/favicon.ico")
+    public String favicon() {
+        // 브라우저의 기본 favicon.ico 요청도 실제 SVG 아이콘으로 연결해 404를 막습니다.
+        return "redirect:/favicon.svg";
+    }
+
     @GetMapping("/reservation")
     public String reservation() {
         return "reservation";

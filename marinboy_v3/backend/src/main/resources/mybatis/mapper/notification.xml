@@ -14,14 +14,14 @@
         <result property="reservationDateTime" column="RESERVATION_DATE_TIME"/>
     </resultMap>
 
-    <select id="findAdmins" resultType="com.marinboy.dto.UserDto">
+    <select id="findAdmins" resultType="UserDto">
         SELECT ID AS id, EMAIL AS email
         FROM MB_USER
         WHERE ROLE = 'ADMIN'
         ORDER BY ID
     </select>
 
-    <insert id="insertNotification" parameterType="com.marinboy.dto.NotificationDto">
+    <insert id="insertNotification" parameterType="NotificationDto">
         INSERT INTO MB_NOTIFICATION (RESERVATION_ID, ADMIN_ID, MESSAGE, IS_READ)
         VALUES (#{reservationId}, #{adminId}, #{message}, 0)
     </insert>

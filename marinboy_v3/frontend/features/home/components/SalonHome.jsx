@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadServicesRequest } from '../../../reducers/service';
-import { getCurrentUser, sessionFetch } from '../../shared/api/sessionApi';
+import { clearAccessToken, getCurrentUser, jwtFetch, saveAccessToken } from '../../shared/api/jwtApi';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+// public 폴더의 배너는 실행 폴더와 무관한 브라우저 절대경로로 사용합니다.
 const SALON_LUXURY_BANNER = '/images/salon-luxury-banner.png';
-const SOCIAL_PROVIDERS = [
-  { name: 'Kakao', key: 'kakao', label: '카카오로 시작하기' },
-  { name: 'Naver', key: 'naver', label: '네이버로 시작하기' },
-  { name: 'Google', key: 'google', label: 'Google로 시작하기' },
-];
 
 /** 서비스 이미지 경로를 안전하게 반환합니다. */
 function serviceImage(item) {
@@ -117,7 +113,7 @@ function SalonHome() {
     }
     const path = field === 'username' ? 'check-username?username=' : 'check-email?email=';
     try {
-      const response = await sessionFetch(`/api/auth/${path}${encodeURIComponent(value)}`);
+      const response = await jwtFetch(`/api/auth/${path}${encodeURIComponent(value)}`);
       const result = response.ok ? await response.json() : { available: false };
       setDuplicateChecks((current) => ({ ...current, [field]: result.available ? 'available' : 'duplicate' }));
     } catch {
@@ -136,16 +132,18 @@ function SalonHome() {
     event.preventDefault();
     setMessage('');
     try {
-      const response = await sessionFetch('/api/auth/login', {
+      const response = await jwtFetch('/api/auth/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         // 서버 AuthService는 이메일이 아닌 username 필드를 로그인 식별자로 사용합니다.
         body: JSON.stringify({ username, password }),
       });
       if (!response.ok) throw new Error();
       const data = await response.json();
-      setUser(data);
+      // 응답 토큰은 이후 모든 보호 API의 Authorization 헤더에 사용합니다.
+      saveAccessToken(data.accessToken);
+      setUser(data.user);
       setPassword('');
-      setMessage(`${data.name || '고객'}님, 반갑습니다.`);
+      setMessage(`${data.user?.name || '고객'}님, 반갑습니다.`);
     } catch {
       setMessage('이메일 또는 비밀번호를 확인해 주세요.');
     }
@@ -159,7 +157,7 @@ function SalonHome() {
       return;
     }
     try {
-      const response = await sessionFetch('/api/auth/signup', {
+      const response = await jwtFetch('/api/auth/signup', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signup),
       });
@@ -175,7 +173,8 @@ function SalonHome() {
   };
 
   const signOut = async () => {
-    await sessionFetch('/api/auth/logout', { method: 'POST' }).catch(() => null);
+    await jwtFetch('/api/auth/logout', { method: 'POST' }).catch(() => null);
+    clearAccessToken();
     setUser(null);
     setMessage('로그아웃되었습니다.');
   };
@@ -200,7 +199,6 @@ function SalonHome() {
     window.location.href = `${API_BASE_URL}/my-reservations`;
   };
   const openGallery = (service) => setSelectedService(service);
-  const socialLogin = (provider) => { window.location.href = `${API_BASE_URL}/oauth2/authorization/${provider}`; };
 
   return (
     <main className="v3-app">
@@ -253,8 +251,8 @@ function SalonHome() {
           {user ? <div className="v3-welcome"><strong>{user.name || '고객'}님</strong><span>예약 내역과 맞춤 서비스를 확인할 수 있어요.</span>{user.role === 'ADMIN' ? <div className="v3-welcome-actions"><a className="v3-secondary-button" href="/admin#reservation-status">예약 현황보기</a><a className="v3-primary-button" href="/admin#service-management">시술 메뉴 수정</a></div> : <div className="v3-welcome-actions"><button className="v3-secondary-button" onClick={moveToMyReservations}>나의 예약 보기</button><button className="v3-inline-button" type="button" onClick={() => setMessage('내 정보 수정은 예약 내역 화면에서 이용할 수 있습니다.')}>내 정보 수정</button></div>}</div>
             : signupMode ? <form className="v3-login-form" onSubmit={signUp}><div className="v3-signup-grid"><DuplicateField label="아이디" value={signup.username} status={duplicateChecks.username} onChange={(value) => changeSignupField('username', value)} onCheck={() => checkDuplicate('username')} /><input value={signup.password} onChange={(e) => changeSignupField('password', e.target.value)} type="password" placeholder="비밀번호" required /><input value={signup.name} onChange={(e) => changeSignupField('name', e.target.value)} placeholder="이름" required /><DuplicateField label="이메일" type="email" value={signup.email} status={duplicateChecks.email} onChange={(value) => changeSignupField('email', value)} onCheck={() => checkDuplicate('email')} /><input value={signup.phone} onChange={(e) => changeSignupField('phone', e.target.value)} placeholder="연락처" required /><button className="v3-primary-button" type="submit">가입하기</button></div><button className="v3-inline-button" type="button" onClick={() => setSignupMode(false)}>로그인으로 돌아가기</button></form>
               : <form className="v3-login-form" onSubmit={signIn}>
-                <div className="v3-input-row"><input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="아이디" required /><input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="비밀번호" required /><button className="v3-primary-button" type="submit">로그인</button></div>
-                <div className="v3-social-row">{SOCIAL_PROVIDERS.map((provider) => <button type="button" className={`v3-social-button ${provider.key}`} onClick={() => socialLogin(provider.key)} key={provider.key}>{provider.label}</button>)}</div><button className="v3-inline-button" type="button" onClick={() => setSignupMode(true)}>처음이신가요? 회원가입</button>
+                <div className="v3-input-row"><input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="아이디" autoComplete="username" required /><input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="비밀번호" autoComplete="current-password" required /><button className="v3-primary-button" type="submit">로그인</button></div>
+                <button className="v3-inline-button" type="button" onClick={() => setSignupMode(true)}>처음이신가요? 회원가입</button>
               </form>}
         </div>
         {message && <p className="v3-message">{message}</p>}
@@ -277,7 +275,7 @@ function SalonHome() {
         </div>
       </section>
 
-      <section id="designer" className="v3-designer" style={{ backgroundImage: `linear-gradient(90deg, rgba(5,5,5,.96), rgba(5,5,5,.46)), url(${SALON_LUXURY_BANNER})` }}>
+      <section id="designer" className="v3-designer">
         <div className="container v3-designer-copy"><p className="v3-eyebrow">DIRECTOR PROFILE</p><h2>원장과의 1:1 상담으로<br />완성하는 당신만의 디자인</h2><p>10년 이상의 현장 경험을 바탕으로 얼굴형, 모발 상태, 라이프스타일까지 고려해 가장 자연스러운 변화를 제안합니다.</p><dl><div><dt>CAREER</dt><dd>MARINBOY SALON DIRECTOR</dd></div><div><dt>SPECIALTY</dt><dd>PERSONAL COLOR · HAIR DESIGN · NAIL ART</dd></div></dl><button className="v3-secondary-button" onClick={moveToReservation}>상담 예약하기</button></div>
       </section>
 

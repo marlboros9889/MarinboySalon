@@ -6,7 +6,6 @@ const nextConfig = {
   async rewrites() {
     return [
       { source: '/api/:path*', destination: `${springBootUrl}/api/:path*` },
-      { source: '/oauth2/:path*', destination: `${springBootUrl}/oauth2/:path*` },
       { source: '/images/:path*', destination: `${springBootUrl}/images/:path*` },
       // 관리자 메뉴에서 저장한 대표·상세 이미지를 Spring의 업로드 폴더에서 제공합니다.
       { source: '/uploads/:path*', destination: `${springBootUrl}/uploads/:path*` },

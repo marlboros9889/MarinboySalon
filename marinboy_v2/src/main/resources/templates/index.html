@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${projectName}">마린 헤어 스튜디오</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -1563,7 +1564,7 @@
         // 소셜 로그인에서 받은 이름과 이메일은 예약 폼에 자동으로 채웁니다.
         const response = await fetch("/api/auth/me");
         if (response.status === 204 || !response.ok) {
-            return;
+            return null;
         }
 
         const user = await response.json();
@@ -1573,7 +1574,7 @@
         document.getElementById("adminPageLink").hidden = user.role !== "ADMIN";
         document.getElementById("reservationLink").hidden = user.role === "ADMIN";
         if (user.role === "ADMIN") {
-            return;
+            return user;
         }
         if (user.displayName) {
             customerNameInput.value = user.displayName;
@@ -1587,6 +1588,7 @@
             customerPhoneInput.readOnly = true;
             loadCustomerHistory();
         }
+        return user;
     }
 
     document.getElementById("reservationForm").addEventListener("submit", async (event) => {
@@ -1649,8 +1651,12 @@
     reservationDateInput.value = nextBookableDate();
     reservationDateInput.max = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString("sv-SE");
     bindMonthlyHairGallery();
-    loadCurrentUser();
-    loadMyReservations();
+    // 세션 사용자가 확인된 경우에만 보호 API를 호출해 비로그인 401 오류를 만들지 않습니다.
+    loadCurrentUser().then(user => {
+        if (user && user.role !== "ADMIN") {
+            loadMyReservations();
+        }
+    });
     loadServices().then(loadAvailableSlots);
 </script>
 </body>

@@ -37,20 +37,19 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!-- 모바일 앱의 Firebase ID 토큰을 서버에서 검증합니다. -->
+        <!-- 서비스 계정으로 원장님의 Google Calendar에 예약 일정을 등록합니다. -->
         <dependency>
-            <groupId>com.google.firebase</groupId>
-            <artifactId>firebase-admin</artifactId>
-            <version>9.10.0</version>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-calendar</artifactId>
+            <version>v3-rev20260708-2.0.0</version>
         </dependency>
 
-        <!-- 포트폴리오 고객 예약 화면의 서버 템플릿 렌더링에 사용합니다. -->
+        <!-- 서비스 계정 JSON 키를 Google API 인증 정보로 변환합니다. -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
+            <version>1.50.0</version>
         </dependency>
-
-        <!-- track007_boot_api 방식처럼 서버 렌더링 HTML 화면을 사용하기 위한 의존성입니다. -->
 
         <!-- DAO 인터페이스와 mapper XML을 연결하기 위한 MyBatis Spring Boot 의존성입니다. -->
         <dependency>
@@ -78,7 +77,7 @@
             <version>2.5.0</version>
         </dependency>
 
-        <!-- 세션 기반 로그인, 권한별 접근 제어, 소셜 로그인 진입점을 담당하는 Spring Security 의존성입니다. -->
+        <!-- JWT 기반 로그인과 URL별 권한 제어를 담당하는 Spring Security 의존성입니다. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -107,13 +106,6 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-client</artifactId>
-        </dependency>
-
-        <!-- Google, Naver, Kakao 같은 OAuth2 소셜 로그인을 연결하기 위한 클라이언트 의존성입니다. -->
 
         <!-- 로컬 Oracle XE 데이터베이스에 연결하기 위한 JDBC 드라이버입니다. -->
         <dependency>
@@ -147,6 +139,19 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 로컬 비밀번호와 서비스 계정 키는 실행 JAR에 절대 포함하지 않습니다. -->
+                <excludes>
+                    <exclude>application-local.properties</exclude>
+                    <exclude>**/*service-account*.json</exclude>
+                    <exclude>**/*.p12</exclude>
+                    <exclude>**/*.pem</exclude>
+                    <exclude>**/*.key</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <!-- Spring Boot 애플리케이션 실행과 패키징을 담당하는 기본 플러그인입니다. -->
             <plugin>

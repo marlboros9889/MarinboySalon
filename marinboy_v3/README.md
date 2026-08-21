@@ -1,70 +1,50 @@
-# Marinboy v3 - 1차 완료본
+# Marinboy v3
+
+Next.js + Spring Boot + MyBatis/JPA + Oracle 기반의 JWT·Redis 버전입니다. `HttpSession`과 Spring OAuth2 세션 로그인을 사용하지 않습니다.
 
 ## 실행 구조
 
 ```text
-frontend (Next.js SSR + Redux/Saga + Bootstrap 5, 3000)
-        ↓ /api 프록시
-backend  (Spring Boot + Service + MyBatis XML + Oracle, 8082)
-        ↓
-Oracle XE
+브라우저 :3000 ── Authorization: Bearer JWT ──> Spring Boot :8082
+                                                     ├─ Oracle
+                                                     └─ Redis(로그아웃 토큰 차단)
 ```
 
-## 수업 내용 적용
+## 최초 환경설정
 
-| 수업 요소 | V3 적용 위치 |
-|---|---|
-| Spring Controller → Service → Mapper | `backend/src/main/java/com/marinboy` |
-| MyBatis Mapper XML | `backend/src/main/resources/mybatis/mapper` |
-| DTO·검증·트랜잭션 | `dto`, `ReservationService`, `AuthService` |
-| Next.js SSR | `frontend/pages/index.js#getServerSideProps` |
-| Redux Reducer·Saga·Store | `frontend/reducers`, `sagas`, `store` |
-| Bootstrap 5 | `frontend/pages/_app.js` |
-
-## 실행 및 검증
-
-1. `backend`에서 `mvn test`, `mvn spring-boot:run`
-2. `frontend`에서 `npm test`, `npm run lint`, `npm run build`, `npm run dev`
-3. 고객 화면: `http://127.0.0.1:3000`, API: `http://127.0.0.1:8082/api/services`
-
-모바일 앱은 1차 범위에서 제외하며, 기존 `mobile/` 폴더는 추가 개발하지 않습니다.
-
-## 폴더 정리 기준
-
-```text
-marinboy_v3/
-├─ backend/       Spring Boot API, MyBatis Mapper, DB 설정, 백엔드 테스트
-├─ frontend/      Next.js 화면, Redux/Saga 상태, 정적 이미지, 프런트 테스트
-├─ mobile/        Expo 관리자 앱 소스와 이미지
-├─ docs/          구조·기능 흐름·검증 문서
-├─ uploads/       서비스 화면에서 사용하는 업로드 이미지
-├─ scripts/       개발 환경 정리와 점검 명령
-├─ compose.yaml   로컬 컨테이너 실행 설정
-└─ README.md      프로젝트 실행·폴더 안내
-```
-
-실제 기능 파일은 `backend`, `frontend`, `mobile` 안에서만 찾고, `target`, `.next`, `node_modules` 같은 재생성 폴더는 소스가 아닙니다.
-
-| 구분 | 보존 대상 | 정리 대상 |
-|---|---|---|
-| 백엔드 | `backend/src`, `backend/pom.xml`, `backend/uploads` | `backend/target`, `backend/.settings` |
-| 프런트엔드 | `frontend/pages`, `features`, `public`, `tests` | `.next`, `dist`, `logs`, `.playwright-cli`, 비어 있는 `src` |
-| 모바일 | `mobile/src`, `assets`, 설정 파일 | `.expo`, `dist-verify` |
-| 공통 | `docs`, `uploads`, `compose.yaml` | `.metadata`, 최상위 `target`, 비어 있는 `src`, `bin` |
-
-`uploads/`에는 서비스 화면에서 사용하는 이미지가 포함되어 있으므로 정리 대상이 아닙니다.
-
-### 재생성 파일 정리
-
-서버를 종료한 뒤 아래 명령으로 삭제 대상을 먼저 확인합니다.
+JDK 17 이상, Maven, Node.js, Oracle, Redis가 필요합니다.
 
 ```powershell
-.\scripts\clean-generated.ps1 -WhatIf
+Copy-Item .env.example .env.local
+# ORACLE_*, JWT_SECRET, REDIS_* 실제 값 입력
+.\scripts\run-dev.ps1 -Action Restart -InstallDependencies
 ```
 
-확인 후 실제로 삭제합니다. `node_modules`까지 지우려면 `-IncludeDependencies`를 추가하고 이후 `npm install`을 실행합니다.
+`JWT_SECRET`은 32바이트 이상의 원문을 Base64로 인코딩한 값이어야 합니다. `.env.local`과 서비스 계정 키는 Git에 올리지 않습니다.
+
+- 고객 화면: `http://127.0.0.1:3000`
+- 백엔드 API: `http://127.0.0.1:8082/api/services`
+- 상태 확인: `.\scripts\run-dev.ps1 -Action Status`
+- 안전 종료: `.\scripts\run-dev.ps1 -Action Stop`
+
+## 인증 원칙
+
+- 로그인 성공 시 `/api/auth/login`이 JWT와 사용자 정보를 반환합니다.
+- 프론트엔드는 보호 API와 SSE 요청에 Bearer 토큰을 보냅니다.
+- 서버는 `SessionCreationPolicy.STATELESS`이며 세션 쿠키를 만들지 않습니다.
+- 로그아웃 시 JWT 식별자를 Redis 블랙리스트에 저장해 재사용을 막습니다.
+- 세션이 필요한 Spring OAuth2 로그인은 v2에만 둡니다.
+
+## 업로드와 외부 연동
+
+업로드 기본 경로는 실행 폴더와 무관한 `${user.home}/.marinboy/uploads`입니다. `UPLOAD_DIRECTORY`를 지정할 때는 절대경로만 허용합니다.
+
+Google Calendar 연동을 켤 때는 캘린더 ID와 서비스 계정 키의 절대경로를 설정하고 서비스 계정에 일정 변경 권한을 부여합니다. 키 파일은 프로젝트 밖에 보관합니다.
+
+## 전체 검증
 
 ```powershell
-.\scripts\clean-generated.ps1
-.\scripts\clean-generated.ps1 -IncludeDependencies
+.\scripts\verify-project.ps1
 ```
+
+백엔드 테스트·JAR 비밀파일 검사·프론트 테스트/린트/production 빌드·HTTP 응답·Git diff를 검사합니다. 모바일은 수업 전 범위이므로 프로젝트에서 제외했습니다. 버전별 보안 분리는 [`docs/VERSION_SECURITY_MATRIX.md`](docs/VERSION_SECURITY_MATRIX.md)를 확인합니다.

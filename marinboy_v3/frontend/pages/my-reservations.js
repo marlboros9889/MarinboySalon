@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { sessionFetch as api } from '../features/shared/api/sessionApi';
+import { jwtFetch as api } from '../features/shared/api/jwtApi';
 
 export default function MyReservations() {
   const [items, setItems] = useState([]); const [user, setUser] = useState(null); const [services, setServices] = useState([]);

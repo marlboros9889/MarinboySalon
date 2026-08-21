@@ -1,34 +1,10 @@
 # Marinboy Salon
 
-Marinboy Salon 프로젝트의 버전별 소스와 실행 자료를 한 저장소에서 관리합니다.
+두 버전은 인증 방식과 실행 포트를 분리한 독립 프로젝트입니다.
 
-| 버전 | 폴더 | 설명 |
-|---|---|---|
-| v2 | [`marinboy_v2/`](marinboy_v2/) | Spring Boot, Thymeleaf, MyBatis 기반 기본 베이스 |
-| v3 | [`marinboy_v3/`](marinboy_v3/) | React 포트폴리오 UI, JWT·Redis·JPA 및 관리자 기능 확장 버전 |
+| 버전 | 화면/서버 | 인증 | Redis | 실행 포트 |
+|---|---|---|---|---|
+| [`marinboy_v2/`](marinboy_v2/) | Thymeleaf + Spring Boot + MyBatis | `HttpSession` + 전용 쿠키 | 사용하지 않음 | 8081 |
+| [`marinboy_v3/`](marinboy_v3/) | Next.js + Spring Boot + MyBatis/JPA | Stateless JWT + Redis 로그아웃 차단 | 필수 | 3000 / 8082 |
 
-## 실행
-
-### v2
-
-```powershell
-cd marinboy_v2
-mvn spring-boot:run
-```
-
-### v3 백엔드
-
-```powershell
-cd marinboy_v3
-mvn spring-boot:run -Dspring-boot.run.profiles=local
-```
-
-### v3 프론트엔드
-
-```powershell
-cd marinboy_v3/frontend
-npm install
-npm run dev
-```
-
-기능 흐름과 최종 점검 결과는 [`marinboy_v3/docs/`](marinboy_v3/docs/)에서 확인할 수 있습니다.
+같은 PC에서 함께 실행해도 v2의 `MARINBOY_V2_SESSION` 쿠키와 v3의 Bearer 토큰이 서로 영향을 주지 않습니다. 각 버전의 설치·실행·검증 방법은 해당 폴더 README를 확인합니다.

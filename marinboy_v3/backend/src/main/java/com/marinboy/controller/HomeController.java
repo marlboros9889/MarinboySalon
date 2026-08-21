@@ -5,7 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * 고객 기본 주소를 React v3 화면으로 연결하고 기존 기능 주소는 보존합니다.
+ * 백엔드 기본 주소를 Next.js v3 고객 화면으로 연결합니다.
  */
 @Controller
 public class HomeController {
@@ -21,23 +21,5 @@ public class HomeController {
     @GetMapping("/")
     public String home() {
         return "redirect:" + reactApplicationUrl;
-    }
-
-    /** GET /reservation 기존 예약 기능 화면을 제공합니다. */
-    @GetMapping("/reservation")
-    public String reservation() {
-        return "reservation";
-    }
-
-    /** GET /my-reservations 기존 예약 조회 기능 화면을 제공합니다. */
-    @GetMapping("/my-reservations")
-    public String myReservations() {
-        return "my-reservations";
-    }
-
-    /** GET /treatment-history 기존 시술 이력 기능 화면을 제공합니다. */
-    @GetMapping("/treatment-history")
-    public String treatmentHistory() {
-        return "treatment-history";
     }
 }

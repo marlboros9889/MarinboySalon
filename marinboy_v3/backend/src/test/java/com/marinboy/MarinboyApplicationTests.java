@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -21,24 +20,23 @@ import com.marinboy.service.ReservationService;
 import com.marinboy.service.ServiceItemService;
 import com.marinboy.util.MoneyFormatUtil;
 import com.marinboy.util.PhoneMaskingUtil;
-import com.marinboy.security.SocialLoginUser;
 import com.marinboy.security.SecurityConstants;
+import com.marinboy.security.jwt.JwtTokenProvider;
+import com.marinboy.security.jwt.RedisTokenBlacklistService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import java.time.LocalDate;
-import java.util.Map;
 
 // MyBatis 재설계 프로젝트의 핵심 연결 상태를 검증하는 테스트입니다.
-@SpringBootTest
+@SpringBootTest(properties = "app.google-calendar.enabled=false")
 @AutoConfigureMockMvc
 class MarinboyApplicationTests {
 
@@ -65,6 +63,13 @@ class MarinboyApplicationTests {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    // JWT 검증 테스트가 외부 Redis 실행 여부에 좌우되지 않도록 폐기 조회만 대체합니다.
+    @MockBean
+    private RedisTokenBlacklistService redisTokenBlacklistService;
 
     @Test
     void oracleConnectionWorksThroughMyBatisMapper() {
@@ -133,21 +138,6 @@ class MarinboyApplicationTests {
     }
 
     @Test
-    void socialLoginMapsProviderPhoneWhenItIsProvided() {
-        // 네이버가 내려준 mobile 값을 소셜 로그인 세션 연락처로 보존하는지 검증합니다.
-        SocialLoginUser user = SocialLoginUser.from("naver", Map.of("response", Map.of(
-                "id", "naver-id", "name", "소셜 고객", "email", "social@example.test",
-                "mobile", "010-1234-5678")));
-
-        assertThat(user.phone()).isEqualTo("010-1234-5678");
-
-        SocialLoginUser kakaoUser = SocialLoginUser.from("kakao", Map.of(
-                "id", 1L,
-                "kakao_account", Map.of("phone_number", "+82 10-9876-5432", "profile", Map.of("nickname", "카카오 고객"))));
-        assertThat(kakaoUser.phone()).isEqualTo("010-9876-5432");
-    }
-
-    @Test
     @Transactional
     void reservationCreateAndUpdateAreConnectedThroughMyBatis() {
         LocalDate date = LocalDate.now().plusDays(1);
@@ -193,10 +183,10 @@ class MarinboyApplicationTests {
                 .isEqualTo("CANCELED");
     }
 
-    /** 회원가입 후 일반 로그인 세션이 고객 조회 API까지 이어지는지 검증합니다. */
+    /** 회원가입 후 JWT 로그인 토큰이 고객 조회 API까지 이어지는지 검증합니다. */
     @Test
     @Transactional
-    void signupLoginAndSessionLookupAreConnected() throws Exception {
+    void signupLoginAndJwtLookupAreConnected() throws Exception {
         String username = "qa_login_" + System.nanoTime();
         String password = "test-password-2026";
         String signupJson = "{\"username\":\"" + username + "\",\"password\":\"" + password
@@ -204,7 +194,6 @@ class MarinboyApplicationTests {
                 + "@example.test\",\"phone\":\"010-7777-7777\"}";
 
         mockMvc.perform(post("/api/auth/signup")
-                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(signupJson))
                 .andExpect(status().isNoContent());
@@ -217,7 +206,6 @@ class MarinboyApplicationTests {
                 .andExpect(jsonPath("$.available").value(false));
 
         mockMvc.perform(post("/api/auth/signup")
-                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"" + username + "_other\",\"password\":\"" + password
                                 + "\",\"name\":\"QA Customer\",\"email\":\"" + username
@@ -225,25 +213,26 @@ class MarinboyApplicationTests {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("이미 가입된 이메일입니다."));
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                        .with(csrf())
+        String loginResponse = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(username))
-                .andReturn();
+                .andExpect(jsonPath("$.user.username").value(username))
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andReturn().getResponse().getContentAsString();
 
-        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
-        mockMvc.perform(get("/api/auth/me").session(session))
+        String accessToken = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(loginResponse).get("accessToken").asText();
+        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value(username));
     }
 
-    /** 세션 API의 상태 변경 요청은 CSRF 토큰이 없으면 거부되는지 검증합니다. */
+    /** 보호 API는 세션 쿠키가 아니라 Bearer 토큰이 없으면 401을 반환하는지 검증합니다. */
     @Test
-    void sessionMutationRequiresCsrfToken() throws Exception {
+    void protectedMutationRequiresBearerToken() throws Exception {
         mockMvc.perform(post("/api/auth/logout"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     /** 관리자 화면의 multipart PATCH 요청이 실제 시술 메뉴를 수정하는지 검증합니다. */
@@ -253,16 +242,16 @@ class MarinboyApplicationTests {
         UserDto admin = new UserDto();
         admin.setId(1L);
         admin.setRole(SecurityConstants.ROLE_ADMIN);
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute(SecurityConstants.LOGIN_USER, admin);
+        admin.setUsername("admin-test");
+        admin.setName("관리자");
+        String accessToken = jwtTokenProvider.createAccessToken(admin);
 
         mockMvc.perform(multipart("/api/admin/services/{id}", 1L)
                         .with(request -> {
                             request.setMethod("PATCH");
                             return request;
                         })
-                        .with(csrf())
-                        .session(session)
+                        .header("Authorization", "Bearer " + accessToken)
                         .param("name", "웨이브 펌 수정 검증")
                         .param("category", "펌")
                         .param("durationMinutes", "120")
@@ -276,9 +265,9 @@ class MarinboyApplicationTests {
                 1L)).isEqualTo("웨이브 펌 수정 검증");
     }
 
-    /** React 개발 서버가 세션 쿠키를 포함한 인증 API를 호출할 수 있는지 검증합니다. */
+    /** React 개발 서버가 Authorization 헤더로 v3 API를 호출할 수 있는지 검증합니다. */
     @Test
-    void reactCorsAllowsCredentialedAuthAndServiceRequests() throws Exception {
+    void reactCorsAllowsBearerAuthAndServiceRequests() throws Exception {
         String reactOrigin = "http://127.0.0.1:3000";
 
         mockMvc.perform(options("/api/auth/login")
@@ -286,12 +275,10 @@ class MarinboyApplicationTests {
                         .header("Access-Control-Request-Method", "POST")
                         .header("Access-Control-Request-Headers", "Content-Type"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Access-Control-Allow-Origin", reactOrigin))
-                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+                .andExpect(header().string("Access-Control-Allow-Origin", reactOrigin));
 
         mockMvc.perform(get("/api/services").header("Origin", reactOrigin))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Access-Control-Allow-Origin", reactOrigin))
-                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+                .andExpect(header().string("Access-Control-Allow-Origin", reactOrigin));
     }
 }

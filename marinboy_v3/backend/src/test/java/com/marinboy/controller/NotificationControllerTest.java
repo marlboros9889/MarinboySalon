@@ -9,12 +9,15 @@ import static org.mockito.Mockito.when;
 import com.marinboy.dto.NotificationDto;
 import com.marinboy.dto.UserDto;
 import com.marinboy.security.SecurityConstants;
+import com.marinboy.service.AuthenticatedUserService;
 import com.marinboy.service.NotificationService;
 import com.marinboy.sse.SseEmitterManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 class NotificationControllerTest {
@@ -26,23 +29,23 @@ class NotificationControllerTest {
     void setUp() {
         notificationService = mock(NotificationService.class);
         emitterManager = mock(SseEmitterManager.class);
-        controller = new NotificationController(notificationService, emitterManager);
+        controller = new NotificationController(notificationService, emitterManager, new AuthenticatedUserService());
     }
 
     @Test
     void adminCanUseNotificationEndpointsWithOwnId() {
-        MockHttpSession session = adminSession(12L);
+        Authentication authentication = authentication(12L, SecurityConstants.ROLE_ADMIN);
         NotificationDto notification = new NotificationDto();
         SseEmitter emitter = new SseEmitter();
         when(notificationService.getUnreadCount(12L)).thenReturn(4);
         when(notificationService.getRecent(12L)).thenReturn(List.of(notification));
         when(emitterManager.subscribe(12L)).thenReturn(emitter);
 
-        assertThat(controller.count(session)).isEqualTo(4);
-        assertThat(controller.list(session)).containsExactly(notification);
-        assertThat(controller.subscribe(session)).isSameAs(emitter);
-        assertThat(controller.read(7L, session).getStatusCode().value()).isEqualTo(204);
-        assertThat(controller.readAll(session).getStatusCode().value()).isEqualTo(204);
+        assertThat(controller.count(authentication)).isEqualTo(4);
+        assertThat(controller.list(authentication)).containsExactly(notification);
+        assertThat(controller.subscribe(authentication)).isSameAs(emitter);
+        assertThat(controller.read(7L, authentication).getStatusCode().value()).isEqualTo(204);
+        assertThat(controller.readAll(authentication).getStatusCode().value()).isEqualTo(204);
 
         verify(notificationService).read(7L, 12L);
         verify(notificationService).readAll(12L);
@@ -50,23 +53,17 @@ class NotificationControllerTest {
 
     @Test
     void customerCannotUseNotificationEndpoints() {
-        MockHttpSession session = new MockHttpSession();
-        UserDto customer = new UserDto();
-        customer.setId(3L);
-        customer.setRole(SecurityConstants.ROLE_CUSTOMER);
-        session.setAttribute(SecurityConstants.LOGIN_USER, customer);
-
-        assertThatThrownBy(() -> controller.count(session))
+        Authentication authentication = authentication(3L, SecurityConstants.ROLE_CUSTOMER);
+        assertThatThrownBy(() -> controller.count(authentication))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("관리자 로그인이 필요합니다.");
     }
 
-    private MockHttpSession adminSession(Long adminId) {
-        MockHttpSession session = new MockHttpSession();
-        UserDto admin = new UserDto();
-        admin.setId(adminId);
-        admin.setRole(SecurityConstants.ROLE_ADMIN);
-        session.setAttribute(SecurityConstants.LOGIN_USER, admin);
-        return session;
+    private Authentication authentication(Long userId, String role) {
+        UserDto user = new UserDto();
+        user.setId(userId);
+        user.setRole(role);
+        return new UsernamePasswordAuthenticationToken(user, null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + role)));
     }
 }

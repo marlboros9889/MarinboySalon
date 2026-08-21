@@ -18,14 +18,12 @@ public class NotificationService {
     private final NotificationMapper mapper;
     private final SseEmitterManager emitterManager;
     private final ObjectProvider<NotificationMailService> mailService;
-    private final MobilePushService mobilePushService;
 
     public NotificationService(NotificationMapper mapper, SseEmitterManager emitterManager,
-            ObjectProvider<NotificationMailService> mailService, MobilePushService mobilePushService) {
+            ObjectProvider<NotificationMailService> mailService) {
         this.mapper = mapper;
         this.emitterManager = emitterManager;
         this.mailService = mailService;
-        this.mobilePushService = mobilePushService;
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -46,7 +44,6 @@ public class NotificationService {
             ));
             NotificationMailService sender = mailService.getIfAvailable();
             if (sender != null) sender.send(admin.getEmail(), message);
-            mobilePushService.sendNewReservation(admin.getId(), message, event.reservationId());
         });
     }
 

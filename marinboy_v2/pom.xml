@@ -14,10 +14,10 @@
 
     <!-- 기존 marinboy 기능을 MyBatis 구조로 복원하는 새 프로젝트 식별자입니다. -->
     <groupId>com.marinboy</groupId>
-    <artifactId>marinboy-mybatis</artifactId>
+    <artifactId>marinboy-v2</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>marinboy-mybatis</name>
-    <description>Marinboy reservation service rebuilt with MyBatis mapper structure</description>
+    <name>marinboy-v2</name>
+    <description>Marinboy v2 session-based reservation service</description>
 
     <properties>
         <!-- track007_boot_api와 동일하게 Java 17을 기준으로 컴파일합니다. -->
