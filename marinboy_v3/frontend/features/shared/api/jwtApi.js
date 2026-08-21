@@ -1,11 +1,24 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 const ACCESS_TOKEN_KEY = 'marinboyAccessToken';
+const PUBLIC_AUTH_PATHS = new Set([
+  '/api/auth/login',
+  '/api/auth/signup',
+  '/api/auth/check-username',
+  '/api/auth/check-email',
+  '/api/auth/social/providers',
+]);
+
+function isPublicAuthPath(path) {
+  const pathWithoutQuery = path.split('?')[0];
+  return PUBLIC_AUTH_PATHS.has(pathWithoutQuery);
+}
 
 /** v3의 모든 보호 요청에 저장된 JWT를 Authorization 헤더로 전달합니다. */
 export async function jwtFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});
   const accessToken = getAccessToken();
-  if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+  // 로그인·회원가입 같은 공개 API는 만료 토큰 때문에 첫 요청이 401로 막히지 않게 JWT를 보내지 않습니다.
+  if (accessToken && !isPublicAuthPath(path)) headers.set('Authorization', `Bearer ${accessToken}`);
   const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
   // 만료되거나 폐기된 토큰은 즉시 지워 다음 화면에서도 로그인 상태로 오인하지 않게 합니다.
   if (accessToken && response.status === 401) clearAccessToken();

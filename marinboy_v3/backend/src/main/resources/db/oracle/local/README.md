@@ -5,3 +5,4 @@
 - `ADMIN_PASSWORD_BCRYPT`에는 평문이 아닌 BCrypt 해시를 환경 변수로 설정합니다.
 - 실행 예: `sql ... @03_seed_sample_data.sql "$env:ADMIN_PASSWORD_BCRYPT"`
 - 운영 배포에서는 이 폴더의 SQL을 실행하지 않고 관리자 계정을 별도 프로비저닝합니다.
+- 서버가 기존 DB의 소셜 컬럼을 자동 마이그레이션하며, 수동 복구가 필요할 때만 `12_create_user_social_account.sql`을 한 번 실행합니다.

@@ -16,6 +16,7 @@ import com.marinboy.mapper.ReservationMapper;
 import com.marinboy.dto.ReservationDto;
 import com.marinboy.dto.UserDto;
 import com.marinboy.service.DatabaseVerificationService;
+import com.marinboy.service.AuthService;
 import com.marinboy.service.ReservationService;
 import com.marinboy.service.ServiceItemService;
 import com.marinboy.util.MoneyFormatUtil;
@@ -56,6 +57,9 @@ class MarinboyApplicationTests {
     private ReservationMapper salonReservationDao;
 
     @Autowired
+    private AuthService authService;
+
+    @Autowired
     private SecurityFilterChain securityFilterChain;
 
     @Autowired
@@ -83,7 +87,7 @@ class MarinboyApplicationTests {
         // db 패키지와 db-schema-mapper.xml을 통해 MB_ 테이블 구조를 읽을 수 있는지 검증합니다.
         assertThat(dbSchemaService.getProjectTables())
                 .extracting("tableName")
-                .contains("MB_USER", "MB_SERVICE_ITEM", "MB_RESERVATION", "MB_HOLIDAY");
+                .contains("MB_USER", "MB_USER_SOCIAL_ACCOUNT", "MB_SERVICE_ITEM", "MB_RESERVATION", "MB_HOLIDAY");
 
         // 컬럼 조회까지 성공하면 DB 구조 확인 API가 실제 Oracle 메타데이터와 연결된 상태입니다.
         assertThat(dbSchemaService.getProjectColumns())
@@ -103,6 +107,31 @@ class MarinboyApplicationTests {
         assertThat(salonReservationService.getCustomerHistory("010-1111-2222"))
                 .extracting("serviceName")
                 .contains("웨이브 펌");
+    }
+
+    /** 동일 고객에게 Google과 Naver 계정을 함께 연결해도 고객과 예약 이력이 분리되지 않습니다. */
+    @Test
+    @Transactional
+    void customerCanConnectMultipleSocialProviders() {
+        String suffix = String.valueOf(System.nanoTime());
+        UserDto customer = new UserDto();
+        customer.setUsername("multi_social_" + suffix);
+        customer.setPassword("Test-password-2026!");
+        customer.setName("다중 소셜 검증 고객");
+        customer.setEmail("multi_" + suffix + "@example.test");
+        customer.setPhone("010-7000-7000");
+        authService.signup(customer);
+
+        UserDto googleUser = authService.findOrCreateSocialUser(
+                "google", "google-" + suffix, customer.getName(), customer.getEmail(), null);
+        UserDto naverUser = authService.findOrCreateSocialUser(
+                "naver", "naver-" + suffix, customer.getName(), customer.getEmail(), null);
+
+        assertThat(googleUser.getId()).isEqualTo(naverUser.getId());
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM MB_USER_SOCIAL_ACCOUNT WHERE USER_ID = ?",
+                Integer.class,
+                googleUser.getId())).isEqualTo(2);
     }
 
     @Test
@@ -242,6 +271,30 @@ class MarinboyApplicationTests {
     void protectedMutationRequiresBearerToken() throws Exception {
         mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    /** 캘린더 표시 설정은 ADMIN 토큰에만 반환하고 고객 토큰은 403으로 차단합니다. */
+    @Test
+    void adminCalendarConfigurationIsProtectedByRole() throws Exception {
+        UserDto customer = new UserDto();
+        customer.setId(2L);
+        customer.setUsername("customer");
+        customer.setName("고객 사용자");
+        customer.setRole(SecurityConstants.ROLE_CUSTOMER);
+        String customerToken = jwtTokenProvider.createAccessToken(customer);
+
+        UserDto admin = new UserDto();
+        admin.setId(1L);
+        admin.setUsername("admin");
+        admin.setName("원장 관리자");
+        admin.setRole(SecurityConstants.ROLE_ADMIN);
+        String adminToken = jwtTokenProvider.createAccessToken(admin);
+
+        mockMvc.perform(get("/api/admin/calendar").header("Authorization", "Bearer " + customerToken))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/calendar").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.configured").value(false));
     }
 
     /** 관리자 화면의 multipart PATCH 요청이 실제 시술 메뉴를 수정하는지 검증합니다. */

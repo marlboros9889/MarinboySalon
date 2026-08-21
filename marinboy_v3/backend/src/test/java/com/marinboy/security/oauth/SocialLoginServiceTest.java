@@ -13,7 +13,7 @@ class SocialLoginServiceTest {
     @Test
     void exposesOnlyConfiguredProvidersAndBuildsKakaoAuthorizationUrl() {
         SocialLoginService service = new SocialLoginService(RestClient.builder(),
-                "http://127.0.0.1:3000/", "kakao-client", "kakao-secret", "", "");
+                "http://127.0.0.1:3000/", "kakao-client", "kakao-secret", "", "", "", "");
 
         URI authorizationUri = service.createAuthorizationUri("kakao", "safe-state");
 
@@ -23,5 +23,21 @@ class SocialLoginServiceTest {
                 .contains("client_id=kakao-client")
                 .contains("state=safe-state")
                 .contains("login/oauth2/code/kakao");
+    }
+
+    @Test
+    void exposesGoogleAndBuildsOpenIdAuthorizationUrl() {
+        SocialLoginService service = new SocialLoginService(RestClient.builder(),
+                "http://127.0.0.1:3000", "", "", "", "", "google-client", "google-secret");
+
+        URI authorizationUri = service.createAuthorizationUri("google", "google-state");
+
+        assertThat(service.providerAvailability()).containsEntry("google", true);
+        assertThat(authorizationUri.toString())
+                .startsWith("https://accounts.google.com/o/oauth2/v2/auth?")
+                .contains("client_id=google-client")
+                .contains("scope=openid%20profile%20email")
+                .contains("state=google-state")
+                .contains("login/oauth2/code/google");
     }
 }

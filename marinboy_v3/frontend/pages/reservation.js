@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
 import { jwtFetch as api } from '../features/shared/api/jwtApi';
+import {
+  canSubmitReservation,
+  editableContactValue,
+  getMaximumBookingDate,
+} from '../features/reservation/reservationRules';
 
 /** 고객이 시술·날짜·시간을 순서대로 선택해 예약하는 화면입니다. */
 export default function Reservation() {
@@ -10,6 +15,8 @@ export default function Reservation() {
   const [message, setMessage] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [date, setDate] = useState('');
+  const [reservationDateTime, setReservationDateTime] = useState('');
+  const [showProfileForm, setShowProfileForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -26,7 +33,8 @@ export default function Reservation() {
         const loginUser = userResponse.status === 200 ? await userResponse.json() : null;
         setUser(loginUser);
         if (loginUser?.profileComplete === false) {
-          setMessage('예약 전에 나의 예약 화면에서 이메일과 연락처를 입력해 주세요.');
+          setShowProfileForm(true);
+          setMessage('예약을 계속하려면 이메일과 연락처를 입력해 주세요.');
         }
       })
       .catch(() => setMessage('시술 메뉴를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'));
@@ -35,6 +43,7 @@ export default function Reservation() {
   //2. 선택한 시술 ID와 날짜를 인자로 전달해 이전 state를 읽는 시간 선택 오류를 막습니다.
   const loadSlots = async (nextServiceId, nextDate) => {
     setSlots([]);
+    setReservationDateTime('');
     if (!nextServiceId || !nextDate) return;
 
     try {
@@ -65,7 +74,30 @@ export default function Reservation() {
     loadSlots(serviceId, nextDate);
   };
 
-  //3. 로그인 고객의 연락처 정보를 사용해 중복 검증을 통과한 예약만 서버에 저장합니다.
+  //3. 소셜 로그인 고객이 예약 화면을 벗어나지 않고 필수 연락처를 완성합니다.
+  const saveProfile = async (event) => {
+    event.preventDefault();
+    setMessage('');
+
+    const profile = Object.fromEntries(new FormData(event.currentTarget));
+    const response = await api('/api/customers/me', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profile),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      setMessage(error.message || '고객 정보를 저장하지 못했습니다. 입력값을 확인해 주세요.');
+      return;
+    }
+
+    const updatedUser = await response.json();
+    setUser(updatedUser);
+    setShowProfileForm(false);
+    setMessage('고객 정보를 저장했습니다. 예약을 계속해 주세요.');
+  };
+
+  //4. 로그인 고객의 연락처 정보를 사용해 중복 검증을 통과한 예약만 서버에 저장합니다.
   const submit = async (event) => {
     event.preventDefault();
     if (!user) {
@@ -74,20 +106,20 @@ export default function Reservation() {
     }
 
     if (user.profileComplete === false) {
-      setMessage('예약 전에 나의 예약 화면에서 이메일과 연락처를 입력해 주세요.');
+      setShowProfileForm(true);
+      setMessage('예약을 계속하려면 이메일과 연락처를 입력해 주세요.');
       return;
     }
     setSubmitting(true);
     setMessage('');
     try {
-      const formData = Object.fromEntries(new FormData(event.currentTarget));
       const response = await api('/api/reservations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceId: Number(serviceId),
-          reservationDateTime: formData.reservationDateTime,
-          memo: formData.memo || '',
+          reservationDateTime,
+          memo: Object.fromEntries(new FormData(event.currentTarget)).memo || '',
           noShowPolicyAgreed: true,
         }),
       });
@@ -110,6 +142,14 @@ export default function Reservation() {
   };
 
   const today = new Date().toLocaleDateString('en-CA');
+  const maximumDate = getMaximumBookingDate(today);
+  const reservationEnabled = canSubmitReservation({
+    user,
+    serviceId,
+    date,
+    reservationDateTime,
+    submitting,
+  });
 
   return (
     <main className="simple-page">
@@ -117,6 +157,28 @@ export default function Reservation() {
       <h1>시술 예약</h1>
       <p>원하는 시술과 날짜, 시간을 선택해 주세요.</p>
       {message && <p role="alert">{message}</p>}
+
+      {showProfileForm && user && (
+        <form className="simple-form" onSubmit={saveProfile}>
+          <h2>예약 연락처 입력</h2>
+          <p>예약 안내에 사용할 정보를 한 번만 입력하면 다음 예약에도 사용됩니다.</p>
+          <input name="name" defaultValue={user.name} placeholder="이름" required />
+          <input
+            name="email"
+            type="email"
+            defaultValue={editableContactValue(user.email, 'email')}
+            placeholder="이메일"
+            required
+          />
+          <input
+            name="phone"
+            defaultValue={editableContactValue(user.phone, 'phone')}
+            placeholder="연락처"
+            required
+          />
+          <button>연락처 저장 후 예약 계속</button>
+        </form>
+      )}
 
       <form className="simple-form" onSubmit={submit}>
         <label>
@@ -132,11 +194,17 @@ export default function Reservation() {
         <label>
           예약 날짜
           {/* 날짜 입력창은 브라우저별로 input 또는 change 이벤트를 발생시키므로 둘 다 처리합니다. */}
-          <input type="date" min={today} value={date} onInput={handleDateChange} onChange={handleDateChange} required />
+          <input type="date" min={today} max={maximumDate} value={date} onInput={handleDateChange} onChange={handleDateChange} required />
         </label>
         <label>
           예약 시간
-          <select name="reservationDateTime" required disabled={!slots.length}>
+          <select
+            name="reservationDateTime"
+            value={reservationDateTime}
+            onChange={(event) => setReservationDateTime(event.target.value)}
+            required
+            disabled={!slots.length}
+          >
             <option value="">시간 선택</option>
             {slots.map((slot) => <option key={slot} value={slot}>{new Date(slot).toLocaleString('ko-KR')}</option>)}
           </select>
@@ -145,9 +213,9 @@ export default function Reservation() {
           요청 사항
           <textarea name="memo" placeholder="원하는 스타일 또는 참고 사항" />
         </label>
-        <button disabled={!user || user.profileComplete === false || !slots.length || submitting}>{submitting ? '예약 처리 중...' : '예약 완료'}</button>
+        <button disabled={!reservationEnabled}>{submitting ? '예약 처리 중...' : '예약 완료'}</button>
         {!user && <small>로그인 후 예약할 수 있습니다.</small>}
-        {user?.profileComplete === false && <a href="/my-reservations?profile=1">고객 정보 입력하기</a>}
+        {user?.profileComplete === false && <small>위 연락처를 저장하면 예약 버튼이 활성화됩니다.</small>}
       </form>
 
       {done && (

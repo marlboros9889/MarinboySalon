@@ -75,7 +75,7 @@ function SalonHome() {
   const [showSignupPolicy, setShowSignupPolicy] = useState(false);
   const [signupPolicyAgreed, setSignupPolicyAgreed] = useState(false);
   const [user, setUser] = useState(null);
-  const [socialProviders, setSocialProviders] = useState({ kakao: false, naver: false });
+  const [socialProviders, setSocialProviders] = useState({ kakao: false, naver: false, google: false });
   const [message, setMessage] = useState('');
   const [policyMessage, setPolicyMessage] = useState('');
   const [heroPolicyAgreed, setHeroPolicyAgreed] = useState(false);
@@ -95,7 +95,7 @@ function SalonHome() {
     jwtFetch('/api/auth/social/providers')
       .then((response) => response.ok ? response.json() : Promise.reject())
       .then(setSocialProviders)
-      .catch(() => setSocialProviders({ kakao: false, naver: false }));
+      .catch(() => setSocialProviders({ kakao: false, naver: false, google: false }));
   }, [dispatch, services.length]);
 
   useEffect(() => {
@@ -152,7 +152,7 @@ function SalonHome() {
       setPassword('');
       setMessage(`${data.user?.name || '고객'}님, 반갑습니다.`);
     } catch {
-      setMessage('이메일 또는 비밀번호를 확인해 주세요.');
+      setMessage('아이디 또는 비밀번호를 확인해 주세요.');
     }
   };
 
@@ -207,7 +207,8 @@ function SalonHome() {
   };
   const startSocialLogin = (provider) => {
     if (!socialProviders[provider]) {
-      setMessage(`${provider === 'kakao' ? '카카오' : '네이버'} 로그인 API 키 설정이 필요합니다.`);
+      const providerName = { kakao: '카카오', naver: '네이버', google: 'Google' }[provider] || provider;
+      setMessage(`${providerName} 로그인 API 키 설정이 필요합니다.`);
       return;
     }
     window.location.href = `/oauth2/authorization/${provider}`;
@@ -272,6 +273,7 @@ function SalonHome() {
                 <div className="v3-social-row" aria-label="소셜 로그인">
                   <button className="v3-social-button kakao" type="button" onClick={() => startSocialLogin('kakao')} aria-disabled={!socialProviders.kakao}>카카오 로그인</button>
                   <button className="v3-social-button naver" type="button" onClick={() => startSocialLogin('naver')} aria-disabled={!socialProviders.naver}>네이버 로그인</button>
+                  <button className="v3-social-button google" type="button" onClick={() => startSocialLogin('google')} aria-disabled={!socialProviders.google}>Google 로그인</button>
                 </div>
               </div>}
         </div>

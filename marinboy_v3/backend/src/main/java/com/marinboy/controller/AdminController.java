@@ -2,6 +2,7 @@ package com.marinboy.controller;
 
 import com.marinboy.service.ReservationService;
 import com.marinboy.service.ServiceItemService;
+import com.marinboy.service.GoogleCalendarDisplayService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
@@ -24,10 +25,20 @@ public class AdminController {
     /** 관리자 화면의 비동기 요청을 처리하며 권한 검사는 중앙 SecurityConfig에 위임합니다. */
         private final ReservationService reservationService;
         private final ServiceItemService serviceItemService;
+        private final GoogleCalendarDisplayService googleCalendarDisplayService;
 
-        public AdminController(ReservationService reservationService, ServiceItemService serviceItemService) {
+        public AdminController(ReservationService reservationService, ServiceItemService serviceItemService,
+                GoogleCalendarDisplayService googleCalendarDisplayService) {
             this.reservationService = reservationService;
             this.serviceItemService = serviceItemService;
+            this.googleCalendarDisplayService = googleCalendarDisplayService;
+        }
+
+        @GetMapping("/api/admin/calendar")
+        @Operation(summary = "관리자 Google Calendar 표시 설정 조회")
+        Object calendar() {
+            // 캘린더 ID는 공개 빌드 변수가 아니라 ADMIN 권한 API를 통과한 화면에만 전달합니다.
+            return googleCalendarDisplayService.getDisplayConfiguration();
         }
 
         @GetMapping("/api/admin/reservations")

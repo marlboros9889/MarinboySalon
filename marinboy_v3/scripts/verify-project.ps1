@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [switch]$SkipRuntime
 )
@@ -75,6 +75,7 @@ $backendBuildRoot = if ($env:MARINBOY_VERIFY_BUILD_DIRECTORY) {
 } else {
     Join-Path $userHome '.marinboy\build\verify\v3-backend'
 }
+$frontendBuildRoot = Join-Path $userHome '.marinboy\build\verify\v3-frontend'
 New-Item -ItemType Directory -Path $backendBuildRoot -Force | Out-Null
 $mavenBuildArgument = '-Dmarinboy.build.directory=' + $backendBuildRoot.Replace('\', '/')
 
@@ -164,7 +165,9 @@ if ($unsafeEntries) {
 # Redux/Saga 테스트, 린트, 프로덕션 빌드를 각각 확인합니다.
 Invoke-CheckedCommand -WorkingDirectory $frontendRoot -Command { npm.cmd test } -FailureMessage '프론트엔드 테스트에 실패했습니다.'
 Invoke-CheckedCommand -WorkingDirectory $frontendRoot -Command { npm.cmd run lint } -FailureMessage '프론트엔드 린트에 실패했습니다.'
-Invoke-CheckedCommand -WorkingDirectory $frontendRoot -Command { npm.cmd run build } -FailureMessage '프론트엔드 빌드에 실패했습니다.'
+$frontendVerifyRoot = & (Join-Path $PSScriptRoot 'prepare-frontend-workspace.ps1') `
+        -SourceRoot $frontendRoot -BuildRoot $frontendBuildRoot
+Invoke-CheckedCommand -WorkingDirectory $frontendVerifyRoot -Command { npm.cmd run build } -FailureMessage '프론트엔드 빌드에 실패했습니다.'
 
 if (-not $SkipRuntime) {
     $backendResponse = Invoke-WebRequest -Uri 'http://127.0.0.1:8082/api/services' -UseBasicParsing
