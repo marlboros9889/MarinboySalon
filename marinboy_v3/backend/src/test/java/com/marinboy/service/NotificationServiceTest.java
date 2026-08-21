@@ -26,7 +26,6 @@ class NotificationServiceTest {
     private NotificationMapper mapper;
     private SseEmitterManager emitterManager;
     private NotificationMailService mailService;
-    private MobilePushService mobilePushService;
     private NotificationService notificationService;
 
     @BeforeEach
@@ -35,10 +34,9 @@ class NotificationServiceTest {
         mapper = mock(NotificationMapper.class);
         emitterManager = mock(SseEmitterManager.class);
         mailService = mock(NotificationMailService.class);
-        mobilePushService = mock(MobilePushService.class);
         ObjectProvider<NotificationMailService> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(mailService);
-        notificationService = new NotificationService(mapper, emitterManager, provider, mobilePushService);
+        notificationService = new NotificationService(mapper, emitterManager, provider);
     }
 
     @Test
@@ -73,8 +71,6 @@ class NotificationServiceTest {
                 "unreadCount", 5)));
         verify(mailService).send("first@marinboy.test", "김고객님이 레이어드 컷 예약을 신청했습니다.");
         verify(mailService).send("second@marinboy.test", "김고객님이 레이어드 컷 예약을 신청했습니다.");
-        verify(mobilePushService).sendNewReservation(1L, "김고객님이 레이어드 컷 예약을 신청했습니다.", 77L);
-        verify(mobilePushService).sendNewReservation(2L, "김고객님이 레이어드 컷 예약을 신청했습니다.", 77L);
     }
 
     @Test

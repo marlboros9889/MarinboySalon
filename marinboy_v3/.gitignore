@@ -40,6 +40,11 @@ application-local.properties
 .env.*
 !.env.example
 .drive-upload/
+service-account-key*.json
+**/*service-account*.json
+config/application-local.properties
+.runtime/
+backend.7z
 
 # 운영 중 생성되는 업로드 파일
 uploads/

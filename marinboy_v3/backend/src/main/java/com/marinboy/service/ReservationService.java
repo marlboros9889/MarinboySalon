@@ -9,13 +9,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 // 고객 예약 신청, 예약 가능 시간 계산, 고객 이력 조회를 담당하는 서비스입니다.
 @Service
 public class ReservationService {
+
+    private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
 
     private static final LocalTime OPEN_TIME = LocalTime.of(10, 0);
     private static final LocalTime CLOSE_TIME = LocalTime.of(19, 0);
@@ -24,13 +31,15 @@ public class ReservationService {
     private final ReservationMapper salonReservationDao;
     private final ServiceItemService serviceItemService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ObjectProvider<GoogleCalendarService> googleCalendarService;
 
     public ReservationService(ReservationMapper salonReservationDao, ServiceItemService serviceItemService,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher, ObjectProvider<GoogleCalendarService> googleCalendarService) {
         // 예약 SQL과 시술 정보 조회를 각각 DAO/서비스에 위임합니다.
         this.salonReservationDao = salonReservationDao;
         this.serviceItemService = serviceItemService;
         this.eventPublisher = eventPublisher;
+        this.googleCalendarService = googleCalendarService;
     }
 
     public ReservationDto getAvailableSlots(Long serviceId, LocalDate date) {
@@ -111,12 +120,39 @@ public class ReservationService {
         );
         Long reservationId = salonReservationDao.findCreatedReservationId(
                 request.getServiceId(), request.getReservationDateTime());
+        String serviceName = serviceItemService.getServiceName(request.getServiceId());
+        Integer durationMinutes = serviceItemService.getDurationMinutes(request.getServiceId());
         // 트랜잭션 커밋 뒤 알림을 생성해 실패한 예약이 관리자에게 전달되지 않게 합니다.
         eventPublisher.publishEvent(new ReservationCreatedEvent(
                 reservationId,
                 request.getCustomerName(),
-                serviceItemService.getServiceName(request.getServiceId())
+                serviceName
         ));
+        // DB 저장이 끝난 예약만 외부 캘린더에도 전달해 취소된 DB 예약이 일정으로 남지 않게 합니다.
+        GoogleCalendarReservationEvent calendarEvent = new GoogleCalendarReservationEvent(
+                request.getCustomerName(),
+                request.getCustomerPhone(),
+                serviceName,
+                request.getReservationDateTime(),
+                durationMinutes == null ? 60 : durationMinutes
+        );
+        registerCalendarEventAfterCommit(calendarEvent);
+    }
+
+    // DB 커밋이 확정된 뒤에만 외부 캘린더를 호출해 DB와 캘린더의 예약 순서를 맞춥니다.
+    private void registerCalendarEventAfterCommit(GoogleCalendarReservationEvent calendarEvent) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                GoogleCalendarService calendarService = googleCalendarService.getIfAvailable();
+                if (calendarService == null) {
+                    log.warn("Google Calendar 서비스가 비활성화되어 예약 일정 등록을 건너뜁니다.");
+                    return;
+                }
+                log.info("DB 예약 커밋 완료: Google Calendar 일정 등록을 요청합니다.");
+                calendarService.createReservationEvent(calendarEvent);
+            }
+        });
     }
 
     public List<ReservationDto> getCustomerHistory(String customerPhone) {

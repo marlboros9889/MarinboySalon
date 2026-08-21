@@ -12,12 +12,12 @@
 
 ```text
 marinboy_v3/
-├── backend/   # Spring Boot, MyBatis, Oracle, 서버 렌더링 화면
+├── backend/   # Spring Boot, MyBatis/JPA, Oracle, JWT, Redis
 ├── frontend/  # Next.js SSR, Redux Reducer, Saga, Bootstrap 5
 └── docs/      # 요구사항, 기능 흐름, 검증 기록
 ```
 
-`mobile/`은 기존 보관 폴더이며 1차 완료 범위와 이후 현재 작업 범위에서 제외합니다.
+모바일 수업은 아직 진행하지 않았으므로 모바일 앱·API·Firebase·푸시 기능은 프로젝트 범위에서 제외합니다.
 
 ## 확정 기술 구조
 
@@ -34,7 +34,7 @@ marinboy_v3/
 
 | 기능 | Frontend | Backend |
 |---|---|---|
-| 인증 | `features/auth` | `AuthController`, `AuthService`, `AuthMapper` |
+| 인증 | `features/auth`, `features/shared/api/jwtApi.js` | `JwtAuthController`, `JwtAuthenticationFilter`, `AuthService` |
 | 시술 | `features/home`, `reducers/service`, `sagas/service` | `ReservationController`, `ServiceItemService`, `ServiceItemMapper` |
 | 예약 | `pages/reservation.js`, `pages/my-reservations.js` | `ReservationController`, `ReservationService`, `ReservationMapper` |
 | 알림 | `pages/admin.js` SSE 모달 | `NotificationController`, `NotificationService`, `NotificationMapper` |
@@ -42,10 +42,11 @@ marinboy_v3/
 
 ## 전환 원칙
 
-- 기존 MyBatis Mapper와 화면 API는 유지합니다.
+- 기존 MyBatis Mapper와 화면 API 계약은 유지합니다.
 - 신규 API는 `/api/v3/**` 경로에 구현합니다.
 - 동일 테이블은 JPA CRUD와 MyBatis 조회 역할이 겹치지 않게 구분합니다.
-- 인증은 수업에서 다룬 Spring Security + JWT + Redis 방식으로 전환합니다.
+- 인증은 Spring Security + JWT + Redis 방식만 사용하고 서버 세션을 만들지 않습니다.
+- Spring OAuth2처럼 세션이 필요한 기능은 v2에만 둡니다.
 
 ## 도메인 전환 순서
 

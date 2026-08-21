@@ -8,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,9 +18,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import com.marinboy.dto.UserDto;
 
 /** Authorization Bearer 토큰의 서명·만료·Redis 폐기 여부를 검증합니다. */
-@Profile("v3")
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
@@ -48,8 +47,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             String role = claims.get("role", String.class);
+            UserDto user = new UserDto();
+            Number userId = claims.get("userId", Number.class);
+            user.setId(userId == null ? null : userId.longValue());
+            user.setUsername(claims.getSubject());
+            user.setName(claims.get("name", String.class));
+            user.setEmail(claims.get("email", String.class));
+            user.setPhone(claims.get("phone", String.class));
+            user.setRole(role);
+            user.setLoginProvider(claims.get("loginProvider", String.class));
             var authentication = new UsernamePasswordAuthenticationToken(
-                    claims.getSubject(),
+                    user,
                     null,
                     List.of(new SimpleGrantedAuthority("ROLE_" + role))
             );

@@ -166,7 +166,7 @@
     </select>
 
     <!-- 고객 연락처 기준으로 이전 시술 이력을 최신순으로 조회합니다. -->
-    <select id="findCustomerHistory" resultType="com.marinboy.dto.ReservationDto">
+    <select id="findCustomerHistory" resultType="ReservationDto">
         SELECT R.ID AS id, R.SERVICE_ID AS serviceId,
                S.NAME AS serviceName,
                S.CATEGORY AS serviceCategory,

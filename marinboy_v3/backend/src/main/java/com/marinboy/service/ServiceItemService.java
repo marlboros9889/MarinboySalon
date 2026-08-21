@@ -1,5 +1,6 @@
 package com.marinboy.service;
 
+import com.marinboy.config.UploadDirectoryProvider;
 import com.marinboy.mapper.ServiceItemMapper;
 import com.marinboy.dto.ServiceItemDto;
 import java.nio.file.Files;
@@ -11,7 +12,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -24,10 +24,10 @@ public class ServiceItemService {
     private final ServiceItemMapper serviceItemMapper;
     private final Path uploadDirectory;
 
-    public ServiceItemService(ServiceItemMapper serviceItemMapper, @Value("${app.upload.directory}") String uploadDirectory) {
-        // 시술 메뉴 조회 SQL과 V3 공용 업로드 경로를 주입받습니다.
+    public ServiceItemService(ServiceItemMapper serviceItemMapper, UploadDirectoryProvider uploadDirectoryProvider) {
+        // 시술 메뉴 조회 SQL과 검증된 공용 업로드 경로를 주입받습니다.
         this.serviceItemMapper = serviceItemMapper;
-        this.uploadDirectory = Path.of(uploadDirectory).toAbsolutePath().normalize();
+        this.uploadDirectory = uploadDirectoryProvider.getUploadDirectory();
     }
 
     public List<ServiceItemDto> getServices() {

@@ -2,12 +2,12 @@ package com.marinboy.controller;
 
 import com.marinboy.dto.NotificationDto;
 import com.marinboy.dto.UserDto;
-import com.marinboy.security.SecurityConstants;
+import com.marinboy.service.AuthenticatedUserService;
 import com.marinboy.service.NotificationService;
 import com.marinboy.sse.SseEmitterManager;
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,49 +22,48 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class NotificationController {
     private final NotificationService notificationService;
     private final SseEmitterManager emitterManager;
+    private final AuthenticatedUserService authenticatedUserService;
 
-    public NotificationController(NotificationService notificationService, SseEmitterManager emitterManager) {
+    public NotificationController(NotificationService notificationService, SseEmitterManager emitterManager,
+            AuthenticatedUserService authenticatedUserService) {
         this.notificationService = notificationService;
         this.emitterManager = emitterManager;
+        this.authenticatedUserService = authenticatedUserService;
     }
 
     //1. 관리자 화면 SSE 연결  GET: /api/admin/notifications/subscribe
     @GetMapping(value = "/subscribe", produces = "text/event-stream")
-    public SseEmitter subscribe(HttpSession session) {
-        return emitterManager.subscribe(requireAdmin(session).getId());
+    public SseEmitter subscribe(Authentication authentication) {
+        return emitterManager.subscribe(requireAdmin(authentication).getId());
     }
 
     //2. 안 읽은 알림 개수 조회  GET: /api/admin/notifications/count
     @GetMapping("/count")
-    public int count(HttpSession session) {
-        return notificationService.getUnreadCount(requireAdmin(session).getId());
+    public int count(Authentication authentication) {
+        return notificationService.getUnreadCount(requireAdmin(authentication).getId());
     }
 
     //3. 최근 알림 20건 조회  GET: /api/admin/notifications
     @GetMapping
-    public List<NotificationDto> list(HttpSession session) {
-        return notificationService.getRecent(requireAdmin(session).getId());
+    public List<NotificationDto> list(Authentication authentication) {
+        return notificationService.getRecent(requireAdmin(authentication).getId());
     }
 
     //4. 선택 알림 읽음 처리  PATCH: /api/admin/notifications/{id}/read
     @PatchMapping("/{id}/read")
-    public ResponseEntity<Void> read(@PathVariable Long id, HttpSession session) {
-        notificationService.read(id, requireAdmin(session).getId());
+    public ResponseEntity<Void> read(@PathVariable Long id, Authentication authentication) {
+        notificationService.read(id, requireAdmin(authentication).getId());
         return ResponseEntity.noContent().build();
     }
 
     //5. 전체 읽음 처리  POST: /api/admin/notifications/read-all
     @PostMapping("/read-all")
-    public ResponseEntity<Void> readAll(HttpSession session) {
-        notificationService.readAll(requireAdmin(session).getId());
+    public ResponseEntity<Void> readAll(Authentication authentication) {
+        notificationService.readAll(requireAdmin(authentication).getId());
         return ResponseEntity.noContent().build();
     }
 
-    private UserDto requireAdmin(HttpSession session) {
-        Object value = session.getAttribute(SecurityConstants.LOGIN_USER);
-        if (!(value instanceof UserDto user) || !SecurityConstants.ROLE_ADMIN.equals(user.getRole())) {
-            throw new IllegalArgumentException("관리자 로그인이 필요합니다.");
-        }
-        return user;
+    private UserDto requireAdmin(Authentication authentication) {
+        return authenticatedUserService.requireAdmin(authentication);
     }
 }

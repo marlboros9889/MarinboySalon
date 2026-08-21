@@ -1,0 +1,59 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const ACCESS_TOKEN_KEY = 'marinboyAccessToken';
+
+/** v3의 모든 보호 요청에 저장된 JWT를 Authorization 헤더로 전달합니다. */
+export async function jwtFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  const accessToken = getAccessToken();
+  if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+  return fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+}
+
+export function getAccessToken() {
+  return typeof window === 'undefined' ? null : window.localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function saveAccessToken(accessToken) {
+  if (typeof window !== 'undefined' && accessToken) window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+}
+
+export function clearAccessToken() {
+  if (typeof window !== 'undefined') window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+}
+
+/** 로그인 사용자 정보는 유효한 Bearer 토큰으로 조회된 경우에만 반환합니다. */
+export async function getCurrentUser() {
+  if (!getAccessToken()) return null;
+  const response = await jwtFetch('/api/auth/me');
+  if (response.status === 401) clearAccessToken();
+  return response.status === 200 ? response.json() : null;
+}
+
+/** EventSource가 헤더를 보낼 수 없어 fetch 스트림으로 관리자 SSE를 구독합니다. */
+export function subscribeToNotifications(onMessage) {
+  const controller = new AbortController();
+  jwtFetch('/api/admin/notifications/subscribe', {
+    headers: { Accept: 'text/event-stream' },
+    signal: controller.signal,
+  }).then(async (response) => {
+    if (!response.ok || !response.body) throw new Error('알림 연결에 실패했습니다.');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (!controller.signal.aborted) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      buffer = buffer.replace(/\r\n/g, '\n');
+      const events = buffer.split('\n\n');
+      buffer = events.pop() || '';
+      events.forEach((event) => {
+        const data = event.split('\n').find((line) => line.startsWith('data:'));
+        if (data) onMessage(JSON.parse(data.slice(5).trim()));
+      });
+    }
+  }).catch((error) => {
+    if (error.name !== 'AbortError') console.log('SSE 연결 오류:', error.message);
+  });
+  return () => controller.abort();
+}

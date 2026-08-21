@@ -30,6 +30,11 @@
 **/.env
 **/.env.*
 !**/.env.example
+**/service-account-key*.json
+**/*service-account*.json
+**/.runtime/
+**/config/application-local.properties
+**/backend.7z
 
 # 로컬 생성 파일
 .drive-upload/

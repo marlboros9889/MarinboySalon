@@ -7,7 +7,6 @@ import com.marinboy.dto.v3.ServiceItemRequestDto;
 import com.marinboy.dto.v3.ServiceItemResponseDto;
 import com.marinboy.service.ServiceItemJpaService;
 import jakarta.validation.Valid;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** React 클라이언트가 사용할 v3 시술 메뉴 REST API입니다. */
-@Profile("v3")
 @RestController
 @RequestMapping("/api/v3/service-items")
 public class ServiceItemJpaController {

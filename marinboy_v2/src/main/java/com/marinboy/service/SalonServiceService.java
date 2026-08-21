@@ -2,9 +2,9 @@ package com.marinboy.service;
 
 import com.marinboy.dao.SalonServiceDao;
 import com.marinboy.dto.ServiceDto;
+import com.marinboy.config.UploadDirectoryProvider;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,10 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class SalonServiceService {
 
     private final SalonServiceDao salonServiceDao;
+    private final UploadDirectoryProvider uploadDirectoryProvider;
 
-    public SalonServiceService(SalonServiceDao salonServiceDao) {
+    public SalonServiceService(SalonServiceDao salonServiceDao, UploadDirectoryProvider uploadDirectoryProvider) {
         // 시술 메뉴 조회 SQL은 DAO와 mapper XML에 위임합니다.
         this.salonServiceDao = salonServiceDao;
+        this.uploadDirectoryProvider = uploadDirectoryProvider;
     }
 
     public List<ServiceDto> getServices() {
@@ -99,7 +101,8 @@ public class SalonServiceService {
             default -> ".jpg";
         };
         try {
-            Path directory = Paths.get("uploads", "services").toAbsolutePath().normalize();
+            // 조회 설정과 같은 기준 폴더를 사용해 프로젝트 이동 뒤에도 이미지가 유지됩니다.
+            Path directory = uploadDirectoryProvider.getServiceDirectory();
             Files.createDirectories(directory);
             String fileName = UUID.randomUUID() + extension;
             image.transferTo(directory.resolve(fileName));
