@@ -27,6 +27,8 @@ class AuthServiceSocialLoginTest {
                 .thenReturn(savedUser());
         when(authMapper.findByEmail("social@example.com")).thenReturn(null);
         when(passwordEncoder.encode(any())).thenReturn("$2a$encoded-social-password");
+        when(authMapper.findByUsername(any())).thenReturn(savedUser());
+        when(authMapper.insertSocialAccount(77L, "KAKAO", "12345")).thenReturn(1);
         AuthService service = new AuthService(authMapper, passwordEncoder);
 
         UserDto result = service.findOrCreateSocialUser(
@@ -62,7 +64,7 @@ class AuthServiceSocialLoginTest {
                 .thenReturn(null)
                 .thenReturn(linked);
         when(authMapper.findByEmail("social@example.com")).thenReturn(existing);
-        when(authMapper.linkSocialAccount(77L, "NAVER", "naver-new-id")).thenReturn(1);
+        when(authMapper.insertSocialAccount(77L, "NAVER", "naver-new-id")).thenReturn(1);
         AuthService service = new AuthService(authMapper, passwordEncoder);
 
         UserDto result = service.findOrCreateSocialUser(
@@ -70,7 +72,27 @@ class AuthServiceSocialLoginTest {
 
         assertThat(result.getId()).isEqualTo(77L);
         assertThat(result.getLoginProvider()).isEqualTo("NAVER");
-        verify(authMapper).linkSocialAccount(77L, "NAVER", "naver-new-id");
+        verify(authMapper).insertSocialAccount(77L, "NAVER", "naver-new-id");
+    }
+
+    @Test
+    void linksGoogleAndNaverProfilesToTheSameCustomer() {
+        UserDto existing = savedUser();
+        UserDto linked = savedUser();
+        linked.setLoginProvider("NAVER");
+        when(authMapper.findBySocialAccount("NAVER", "naver-id"))
+                .thenReturn(null)
+                .thenReturn(linked);
+        when(authMapper.findByEmail("social@example.com")).thenReturn(existing);
+        when(authMapper.findSocialIdByUserAndProvider(77L, "NAVER")).thenReturn(null);
+        when(authMapper.insertSocialAccount(77L, "NAVER", "naver-id")).thenReturn(1);
+        AuthService service = new AuthService(authMapper, passwordEncoder);
+
+        UserDto result = service.findOrCreateSocialUser(
+                "naver", "naver-id", "소셜고객", "social@example.com", null);
+
+        assertThat(result.getId()).isEqualTo(77L);
+        verify(authMapper).insertSocialAccount(77L, "NAVER", "naver-id");
     }
 
     private UserDto savedUser() {

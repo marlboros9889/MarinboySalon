@@ -87,8 +87,13 @@ public class AuthService {
                 : email.trim().toLowerCase(Locale.ROOT);
         UserDto emailUser = authMapper.findByEmail(normalizedEmail);
         if (emailUser != null) {
-            // 동의받은 소셜 프로필 이메일로 기존 예약 계정을 이어 붙여 중복 고객 생성을 막습니다.
-            int linkedCount = authMapper.linkSocialAccount(
+            // 같은 이메일의 고객에게 제공자별 계정을 추가해 예약 이력을 하나로 유지합니다.
+            String linkedSocialId = authMapper.findSocialIdByUserAndProvider(
+                    emailUser.getId(), normalizedProvider);
+            if (linkedSocialId != null) {
+                throw new IllegalArgumentException("이 이메일은 다른 " + normalizedProvider + " 계정과 연결되어 있습니다.");
+            }
+            int linkedCount = authMapper.insertSocialAccount(
                     emailUser.getId(), normalizedProvider, normalizedSocialId);
             if (linkedCount != 1) {
                 throw new IllegalArgumentException("이 이메일은 다른 소셜 계정과 연결되어 있습니다.");
@@ -112,6 +117,11 @@ public class AuthService {
         socialUser.setLoginProvider(normalizedProvider);
         socialUser.setSocialId(normalizedSocialId);
         authMapper.insertSocialCustomer(socialUser);
+        UserDto insertedUser = authMapper.findByUsername(socialUser.getUsername());
+        if (insertedUser == null || insertedUser.getId() == null) {
+            throw new IllegalStateException("소셜 로그인 고객 계정을 저장하지 못했습니다.");
+        }
+        authMapper.insertSocialAccount(insertedUser.getId(), normalizedProvider, normalizedSocialId);
         UserDto savedUser = authMapper.findBySocialAccount(normalizedProvider, normalizedSocialId);
         if (savedUser == null || savedUser.getId() == null) {
             throw new IllegalStateException("소셜 로그인 고객 계정을 저장하지 못했습니다.");

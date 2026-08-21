@@ -79,8 +79,10 @@ function Stop-ProjectPort {
         $isSavedProcess = $savedProcessIds -contains $processId
         $isProjectPath = $commandLine.IndexOf($projectRoot, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
         $isBackendJar = $Port -eq 8082 -and $commandLine.Contains('marinboy-v3-0.0.1-SNAPSHOT.jar')
+        $isFrontendBuild = $Port -eq 3000 -and
+                $commandLine.IndexOf($frontendBuildRoot, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
 
-        if (-not ($isSavedProcess -or $isProjectPath -or $isBackendJar)) {
+        if (-not ($isSavedProcess -or $isProjectPath -or $isBackendJar -or $isFrontendBuild)) {
             throw "포트 $Port 프로세스는 Marinboy 소유임을 확인할 수 없어 종료하지 않았습니다. PID=$processId"
         }
 
@@ -142,6 +144,11 @@ $backendBuildRoot = if ($env:MARINBOY_BUILD_DIRECTORY) {
     [System.IO.Path]::GetFullPath($env:MARINBOY_BUILD_DIRECTORY)
 } else {
     Join-Path $userHome '.marinboy\build\v3-backend'
+}
+$frontendBuildRoot = if ($env:MARINBOY_FRONTEND_BUILD_DIRECTORY) {
+    [System.IO.Path]::GetFullPath($env:MARINBOY_FRONTEND_BUILD_DIRECTORY)
+} else {
+    Join-Path $userHome '.marinboy\build\v3-frontend'
 }
 
 function Wait-ForPortToStop {
@@ -281,8 +288,12 @@ if ($Action -in @('Start', 'Restart')) {
     Wait-ForPort -Port 8082
 
     $frontendArguments = @('run', 'dev')
+    $frontendRuntimeRoot = $frontendRoot
     if ($Production) {
-        Push-Location $frontendRoot
+        # OneDrive가 .next를 잠그지 않도록 사용자 홈의 빌드 전용 복사본에서 production을 실행합니다.
+        $frontendRuntimeRoot = & (Join-Path $PSScriptRoot 'prepare-frontend-workspace.ps1') `
+                -SourceRoot $frontendRoot -BuildRoot $frontendBuildRoot
+        Push-Location $frontendRuntimeRoot
         try {
             & $npmCommand.Source run build
             if ($LASTEXITCODE -ne 0) {
@@ -294,7 +305,7 @@ if ($Action -in @('Start', 'Restart')) {
         $frontendArguments = @('run', 'start')
     }
 
-    $frontendProcess = Start-Process -FilePath $npmCommand.Source -ArgumentList $frontendArguments -WorkingDirectory $frontendRoot -RedirectStandardOutput (Join-Path $runtimeRoot 'frontend.out.log') -RedirectStandardError (Join-Path $runtimeRoot 'frontend.err.log') -WindowStyle Hidden -PassThru
+    $frontendProcess = Start-Process -FilePath $npmCommand.Source -ArgumentList $frontendArguments -WorkingDirectory $frontendRuntimeRoot -RedirectStandardOutput (Join-Path $runtimeRoot 'frontend.out.log') -RedirectStandardError (Join-Path $runtimeRoot 'frontend.err.log') -WindowStyle Hidden -PassThru
     Set-Content -LiteralPath $frontendPidFile -Value $frontendProcess.Id
     Wait-ForPort -Port 3000
 

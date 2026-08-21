@@ -13,6 +13,9 @@ public interface AuthMapper {
     // 소셜 제공자와 제공자 내부 ID의 조합으로 같은 고객 계정을 다시 찾습니다.
     UserDto findBySocialAccount(@Param("provider") String provider, @Param("socialId") String socialId);
 
+    // 같은 사용자가 동일 제공자의 다른 계정을 중복 연결하지 않도록 기존 식별자를 확인합니다.
+    String findSocialIdByUserAndProvider(@Param("userId") Long userId, @Param("provider") String provider);
+
     // 소셜 이메일과 동일한 기존 일반 계정을 찾아 예약 이력을 한 계정으로 유지합니다.
     UserDto findByEmail(@Param("email") String email);
 
@@ -26,8 +29,8 @@ public interface AuthMapper {
     // 소셜 로그인 최초 성공 시 비밀번호 로그인이 불가능한 CUSTOMER 계정을 저장합니다.
     int insertSocialCustomer(UserDto user);
 
-    // 아직 소셜 계정이 연결되지 않은 일반 회원에게 제공자 식별자를 연결합니다.
-    int linkSocialAccount(@Param("id") Long id, @Param("provider") String provider,
+    // 사용자 한 명에게 Google·Naver·Kakao 계정을 각각 연결할 수 있습니다.
+    int insertSocialAccount(@Param("userId") Long userId, @Param("provider") String provider,
             @Param("socialId") String socialId);
 
     int updatePassword(@Param("id") Long id, @Param("password") String password);

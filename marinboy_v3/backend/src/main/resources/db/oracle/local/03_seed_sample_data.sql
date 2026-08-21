@@ -5,14 +5,14 @@ SET DEFINE OFF;
 -- UTF-8로 실행하며 첫 번째 인수에 환경 변수에서 읽은 BCrypt 관리자 비밀번호를 전달합니다.
 DEFINE ADMIN_PASSWORD_BCRYPT = '&1'
 
-INSERT INTO MB_USER (ID, USERNAME, PASSWORD, NAME, EMAIL, PHONE, ROLE, SOCIAL_PROVIDER, SOCIAL_ID)
-VALUES (1, 'admin', '&ADMIN_PASSWORD_BCRYPT', '원장 관리자', 'admin@marinboy.test', '010-0000-0000', 'ADMIN', NULL, NULL);
+INSERT INTO MB_USER (ID, USERNAME, PASSWORD, NAME, EMAIL, PHONE, ROLE)
+VALUES (1, 'admin', '&ADMIN_PASSWORD_BCRYPT', '원장 관리자', 'admin@marinboy.test', '010-0000-0000', 'ADMIN');
 
-INSERT INTO MB_USER (ID, USERNAME, PASSWORD, NAME, EMAIL, PHONE, ROLE, SOCIAL_PROVIDER, SOCIAL_ID)
-VALUES (2, 'customer', '$2a$10$jxWrQHW8tjtnleNpHzx/a.zPLaZl5gbaj2ocxVbsjhkRfQjlPhxju', '고객 사용자', 'customer@marinboy.test', '010-1111-2222', 'CUSTOMER', NULL, NULL);
+INSERT INTO MB_USER (ID, USERNAME, PASSWORD, NAME, EMAIL, PHONE, ROLE)
+VALUES (2, 'customer', '$2a$10$jxWrQHW8tjtnleNpHzx/a.zPLaZl5gbaj2ocxVbsjhkRfQjlPhxju', '고객 사용자', 'customer@marinboy.test', '010-1111-2222', 'CUSTOMER');
 
-INSERT INTO MB_USER (ID, USERNAME, PASSWORD, NAME, EMAIL, PHONE, ROLE, SOCIAL_PROVIDER, SOCIAL_ID)
-VALUES (3, 'seoyeon', '$2a$10$jxWrQHW8tjtnleNpHzx/a.zPLaZl5gbaj2ocxVbsjhkRfQjlPhxju', '김서연', 'seoyeon@example.com', '010-1234-5678', 'CUSTOMER', NULL, NULL);
+INSERT INTO MB_USER (ID, USERNAME, PASSWORD, NAME, EMAIL, PHONE, ROLE)
+VALUES (3, 'seoyeon', '$2a$10$jxWrQHW8tjtnleNpHzx/a.zPLaZl5gbaj2ocxVbsjhkRfQjlPhxju', '김서연', 'seoyeon@example.com', '010-1234-5678', 'CUSTOMER');
 
 -- 고객 화면에 보여줄 헤어/뷰티 시술 메뉴 샘플입니다.
 INSERT INTO MB_SERVICE_ITEM (ID, NAME, CATEGORY, DURATION_MINUTES, PRICE, DESCRIPTION, TOP_RANK)
