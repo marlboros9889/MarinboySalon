@@ -113,8 +113,10 @@
         WHERE HOLIDAY_DATE = #{reservationDate}
     </select>
 
-    <select id="findHolidays" resultType="java.time.LocalDate">
-        SELECT HOLIDAY_DATE FROM MB_HOLIDAY ORDER BY HOLIDAY_DATE
+    <select id="findHolidays" resultType="HolidayResponseDto">
+        SELECT HOLIDAY_DATE AS holidayDate, REASON AS reason
+        FROM MB_HOLIDAY
+        ORDER BY HOLIDAY_DATE
     </select>
 
     <insert id="saveHoliday">
@@ -128,6 +130,41 @@
     <delete id="deleteHoliday">
         DELETE FROM MB_HOLIDAY WHERE HOLIDAY_DATE = #{holidayDate}
     </delete>
+
+    <!-- 고객 예약 계산과 관리자 화면에서 사용할 요일별 영업 규칙을 조회합니다. -->
+    <select id="findBusinessHours" resultType="BusinessHourResponseDto">
+        SELECT ID AS id, DAY_OF_WEEK AS dayOfWeek, IS_OPEN AS open,
+               OPEN_TIME AS openTime, CLOSE_TIME AS closeTime
+        FROM MB_BUSINESS_HOUR
+        ORDER BY DAY_OF_WEEK
+    </select>
+
+    <select id="findBusinessHour" resultType="BusinessHourResponseDto">
+        SELECT ID AS id, DAY_OF_WEEK AS dayOfWeek, IS_OPEN AS open,
+               OPEN_TIME AS openTime, CLOSE_TIME AS closeTime
+        FROM MB_BUSINESS_HOUR
+        WHERE DAY_OF_WEEK = #{dayOfWeek}
+    </select>
+
+    <!-- saveBusinessHour: 관리자가 선택한 요일의 영업 여부와 시간을 한 행으로 갱신합니다. -->
+    <insert id="saveBusinessHour">
+        MERGE INTO MB_BUSINESS_HOUR B
+        USING (
+            SELECT #{dayOfWeek} AS DAY_OF_WEEK,
+                   #{open} AS IS_OPEN,
+                   #{openTime} AS OPEN_TIME,
+                   #{closeTime} AS CLOSE_TIME
+            FROM DUAL
+        ) V
+        ON (B.DAY_OF_WEEK = V.DAY_OF_WEEK)
+        WHEN MATCHED THEN UPDATE SET
+            B.IS_OPEN = V.IS_OPEN,
+            B.OPEN_TIME = V.OPEN_TIME,
+            B.CLOSE_TIME = V.CLOSE_TIME,
+            B.UPDATED_AT = SYSTIMESTAMP
+        WHEN NOT MATCHED THEN INSERT (DAY_OF_WEEK, IS_OPEN, OPEN_TIME, CLOSE_TIME)
+            VALUES (V.DAY_OF_WEEK, V.IS_OPEN, V.OPEN_TIME, V.CLOSE_TIME)
+    </insert>
 
     <!-- 고객 예약 요청을 REQUESTED 상태로 저장합니다. -->
     <insert id="insertReservation">

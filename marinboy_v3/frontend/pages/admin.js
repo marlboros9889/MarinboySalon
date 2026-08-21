@@ -10,6 +10,16 @@ const labels = {
   COMPLETED: '시술 완료',
 };
 
+const dayLabels = {
+  1: '월요일',
+  2: '화요일',
+  3: '수요일',
+  4: '목요일',
+  5: '금요일',
+  6: '토요일',
+  7: '일요일',
+};
+
 /** API가 반환한 구체적인 실패 원인을 관리자에게 표시합니다. */
 async function readApiError(response, fallbackMessage) {
   try {
@@ -32,15 +42,20 @@ export default function Admin() {
   const [accessStatus, setAccessStatus] = useState('checking');
   const [calendarUrl, setCalendarUrl] = useState('');
   const [showProfile, setShowProfile] = useState(false);
+  const [businessHours, setBusinessHours] = useState([]);
+  const [holidays, setHolidays] = useState([]);
 
   //1. ADMIN 확인 뒤에만 예약·메뉴·캘린더 운영 데이터를 요청합니다.
   const load = async (targetPage = page) => {
-    const [reservationsResponse, menuResponse, calendarResponse] = await Promise.all([
+    const [reservationsResponse, menuResponse, calendarResponse, businessHoursResponse, holidaysResponse] = await Promise.all([
       api(`/api/admin/reservations?page=${targetPage}&size=5`),
       api('/api/admin/services'),
       api('/api/admin/calendar'),
+      api('/api/admin/business-hours'),
+      api('/api/admin/holidays'),
     ]);
-    if (!reservationsResponse.ok || !menuResponse.ok || !calendarResponse.ok) {
+    if (!reservationsResponse.ok || !menuResponse.ok || !calendarResponse.ok
+        || !businessHoursResponse.ok || !holidaysResponse.ok) {
       throw new Error('관리자 데이터를 불러오지 못했습니다.');
     }
 
@@ -50,6 +65,8 @@ export default function Admin() {
     setTotal(reservationData.total);
     setServices(await menuResponse.json());
     setCalendarUrl(calendarData.configured ? calendarData.embedUrl : '');
+    setBusinessHours(await businessHoursResponse.json());
+    setHolidays(await holidaysResponse.json());
   };
 
   useEffect(() => {
@@ -141,6 +158,59 @@ export default function Admin() {
     setMessage('관리자 정보를 수정했습니다.');
   };
 
+  const saveBusinessHour = async (event, dayOfWeek) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const response = await api(`/api/admin/business-hours/${dayOfWeek}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        open: form.get('open') === 'on',
+        openTime: form.get('openTime'),
+        closeTime: form.get('closeTime'),
+      }),
+    });
+    if (!response.ok) {
+      setMessage(await readApiError(response, '영업 규칙을 저장하지 못했습니다.'));
+      return;
+    }
+    await load(page);
+    setMessage(`${dayLabels[dayOfWeek]} 영업 규칙을 저장했습니다.`);
+  };
+
+  const saveHoliday = async (event) => {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const response = await api('/api/admin/holidays', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        holidayDate: form.get('holidayDate'),
+        reason: form.get('reason'),
+      }),
+    });
+    if (!response.ok) {
+      setMessage(await readApiError(response, '휴무일을 등록하지 못했습니다.'));
+      return;
+    }
+    formElement.reset();
+    await load(page);
+    setMessage('특정 휴무일을 등록했습니다.');
+  };
+
+  const deleteHoliday = async (holidayDate) => {
+    const response = await api(`/api/admin/holidays?holidayDate=${encodeURIComponent(holidayDate)}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      setMessage(await readApiError(response, '휴무일을 해제하지 못했습니다.'));
+      return;
+    }
+    await load(page);
+    setMessage('특정 휴무일을 해제했습니다.');
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / 5));
   const goPage = async (nextPage) => {
     setPage(nextPage);
@@ -191,6 +261,43 @@ export default function Admin() {
         {calendarUrl
           ? <iframe className="google-calendar-frame" src={calendarUrl} title="Marinboy 예약 캘린더" />
           : <p>Google Calendar 백엔드 설정을 확인해 주세요.</p>}
+      </section>
+
+      <section id="business-hours">
+        <h2>요일별 영업 규칙</h2>
+        <p>요일마다 영업 여부와 예약 가능한 시작·종료 시간을 따로 설정합니다.</p>
+        <div className="business-hour-grid">
+          {businessHours.map((item) => (
+            <form className="business-hour-row" key={item.dayOfWeek} onSubmit={(event) => saveBusinessHour(event, item.dayOfWeek)}>
+              <strong>{dayLabels[item.dayOfWeek]}</strong>
+              <label className="business-open-check">
+                <input name="open" type="checkbox" defaultChecked={item.open} /> 영업일
+              </label>
+              <label>시작 <input name="openTime" type="time" step="1800" defaultValue={item.openTime} required /></label>
+              <label>종료 <input name="closeTime" type="time" step="1800" defaultValue={item.closeTime} required /></label>
+              <button>저장</button>
+            </form>
+          ))}
+        </div>
+      </section>
+
+      <section id="holiday-management">
+        <h2>특정 휴무일 관리</h2>
+        <p>정상 영업일이어도 매장 사정으로 쉬는 날짜를 별도로 지정할 수 있습니다.</p>
+        <form className="simple-form holiday-form" onSubmit={saveHoliday}>
+          <label>휴무 일자 <input name="holidayDate" type="date" required /></label>
+          <label>휴무 사유 <input name="reason" placeholder="예: 매장 정비" required /></label>
+          <button>휴무일 등록</button>
+        </form>
+        <div className="holiday-list">
+          {holidays.map((holiday) => (
+            <article key={holiday.holidayDate}>
+              <span><b>{holiday.holidayDate}</b> · {holiday.reason || '사유 없음'}</span>
+              <button onClick={() => deleteHoliday(holiday.holidayDate)}>휴무 해제</button>
+            </article>
+          ))}
+          {!holidays.length && <p>등록된 특정 휴무일이 없습니다.</p>}
+        </div>
       </section>
 
       <section id="service-management">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadServicesRequest } from '../../../reducers/service';
 import { clearAccessToken, getCurrentUser, jwtFetch, saveAccessToken } from '../../shared/api/jwtApi';
@@ -77,10 +77,8 @@ function SalonHome() {
   const [user, setUser] = useState(null);
   const [socialProviders, setSocialProviders] = useState({ kakao: false, naver: false, google: false });
   const [message, setMessage] = useState('');
-  const [policyMessage, setPolicyMessage] = useState('');
-  const [heroPolicyAgreed, setHeroPolicyAgreed] = useState(false);
+  const [returnTo, setReturnTo] = useState('');
   const [selectedService, setSelectedService] = useState(null);
-  const policyCheckboxRef = useRef(null);
 
   useEffect(() => {
     //2. SSR 시점에 API 연결이 실패했거나 데이터가 없으면 Saga가 클라이언트에서 다시 요청합니다.
@@ -96,6 +94,12 @@ function SalonHome() {
       .then((response) => response.ok ? response.json() : Promise.reject())
       .then(setSocialProviders)
       .catch(() => setSocialProviders({ kakao: false, naver: false, google: false }));
+
+    // 예약 화면에서 로그인하러 돌아온 경우에만 로그인 성공 뒤 원래 예약 주소로 복귀합니다.
+    const requestedPath = new URLSearchParams(window.location.search).get('returnTo');
+    if (requestedPath?.startsWith('/reservation') && !requestedPath.startsWith('//')) {
+      setReturnTo(requestedPath);
+    }
   }, [dispatch, services.length]);
 
   useEffect(() => {
@@ -150,6 +154,10 @@ function SalonHome() {
       saveAccessToken(data.accessToken);
       setUser(data.user);
       setPassword('');
+      if (returnTo) {
+        window.location.href = returnTo;
+        return;
+      }
       setMessage(`${data.user?.name || '고객'}님, 반갑습니다.`);
     } catch {
       setMessage('아이디 또는 비밀번호를 확인해 주세요.');
@@ -187,19 +195,17 @@ function SalonHome() {
   };
 
   const moveToReservation = (serviceId) => {
-    // 시술 카드에서는 선택한 메뉴를 예약 화면으로 즉시 전달합니다.
-    if (Number.isInteger(Number(serviceId)) && Number(serviceId) > 0) {
-      window.location.href = `/reservation?serviceId=${encodeURIComponent(serviceId)}`;
+    const hasServiceId = Number.isInteger(Number(serviceId)) && Number(serviceId) > 0;
+    const reservationPath = hasServiceId
+      ? `/reservation?serviceId=${encodeURIComponent(serviceId)}`
+      : '/reservation';
+
+    // 비로그인 고객은 막힌 예약 화면 대신 로그인으로 안내하고, 성공 뒤 선택 메뉴로 복귀합니다.
+    if (!user) {
+      window.location.href = `/?returnTo=${encodeURIComponent(reservationPath)}#login`;
       return;
     }
-    // 예약 화면으로 이동하기 전에 노쇼·당일 취소 제한 확인 여부를 명확히 받습니다.
-    if (!policyCheckboxRef.current?.checked) {
-      setPolicyMessage('예약 전 노쇼 및 당일 취소 제한 안내를 확인해 주세요.');
-      document.getElementById('policy-agreement')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
-    setPolicyMessage('');
-    window.location.href = '/reservation';
+    window.location.href = reservationPath;
   };
   const moveToMyReservations = () => {
     // 로그인 고객의 예약 신청 화면이 아닌 예약 현황 화면으로 이동합니다.
@@ -240,22 +246,6 @@ function SalonHome() {
           <div className="v3-hero-buttons">
             <button className="v3-primary-button" onClick={moveToReservation}>시술 예약하기</button>
             <a className="v3-secondary-button" href="#services">메뉴 둘러보기</a>
-          </div>
-          <div id="policy-agreement" className="v3-policy-agreement">
-            <label className={`salon-check-field${heroPolicyAgreed ? ' is-agreed' : ''}`}>
-              <input
-                ref={policyCheckboxRef}
-                className="salon-checkbox"
-                type="checkbox"
-                onChange={(event) => {
-                  setHeroPolicyAgreed(event.target.checked);
-                  if (event.target.checked) setPolicyMessage('');
-                }}
-              />
-              <span className="salon-check-copy"><strong>필수 동의</strong><small>노쇼 및 당일 취소 제한 안내를 확인했습니다.</small></span>
-              <span className="salon-check-state">{heroPolicyAgreed ? '동의 완료' : '미동의'}</span>
-            </label>
-            {policyMessage && <p role="alert">{policyMessage}</p>}
           </div>
         </div>
       </section>

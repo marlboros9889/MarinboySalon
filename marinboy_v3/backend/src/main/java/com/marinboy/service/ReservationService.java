@@ -1,6 +1,9 @@
 package com.marinboy.service;
 
 import com.marinboy.mapper.ReservationMapper;
+import com.marinboy.dto.BusinessHourRequestDto;
+import com.marinboy.dto.BusinessHourResponseDto;
+import com.marinboy.dto.HolidayResponseDto;
 import com.marinboy.dto.ReservationDto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,10 +51,17 @@ public class ReservationService {
         if (date.isBefore(LocalDate.now()) || date.isAfter(LocalDate.now().plusDays(MAX_BOOKING_DAYS))) {
             return availableSlots(List.of());
         }
-        // 휴무일이거나 일요일이면 고객에게 예약 가능한 시간을 보여주지 않습니다.
-        if (date.getDayOfWeek().getValue() == 7 || salonReservationDao.countHoliday(date) > 0) {
+        // 관리자가 지정한 특정 휴무일이면 요일 영업 설정과 관계없이 예약을 막습니다.
+        if (salonReservationDao.countHoliday(date) > 0) {
             return availableSlots(List.of());
         }
+
+        BusinessHourResponseDto businessHour = getBusinessHour(date);
+        if (!Boolean.TRUE.equals(businessHour.getOpen())) {
+            return availableSlots(List.of());
+        }
+        LocalTime openTime = LocalTime.parse(businessHour.getOpenTime());
+        LocalTime closeTime = LocalTime.parse(businessHour.getCloseTime());
 
         Integer durationMinutes = serviceItemService.getDurationMinutes(serviceId);
         if (durationMinutes == null) {
@@ -59,9 +69,9 @@ public class ReservationService {
         }
 
         List<LocalDateTime> slots = new ArrayList<>();
-        LocalTime cursor = OPEN_TIME;
-        // 30분 간격으로 영업 종료 전에 시술을 마칠 수 있는 시간만 검사합니다.
-        while (!cursor.plusMinutes(durationMinutes).isAfter(CLOSE_TIME)) {
+        LocalTime cursor = openTime;
+        // 관리자가 설정한 요일별 시간 안에서 30분 간격 예약만 계산합니다.
+        while (!cursor.plusMinutes(durationMinutes).isAfter(closeTime)) {
             LocalDateTime reservationDateTime = LocalDateTime.of(date, cursor);
             if (!reservationDateTime.isBefore(minimumTime)
                     && salonReservationDao.countOverlappingReservation(serviceId, reservationDateTime) == 0) {
@@ -331,7 +341,7 @@ public class ReservationService {
     public ReservationDto getReservation(Long reservationId) { return salonReservationDao.findReservationById(reservationId); }
     public List<ReservationDto> getReminderTargets() { return salonReservationDao.findReminderTargets(); }
 
-    public List<LocalDate> getHolidays() { return salonReservationDao.findHolidays(); }
+    public List<HolidayResponseDto> getHolidays() { return salonReservationDao.findHolidays(); }
 
     @Transactional
     public void saveHoliday(LocalDate holidayDate, String reason) {
@@ -341,6 +351,37 @@ public class ReservationService {
 
     @Transactional
     public void deleteHoliday(LocalDate holidayDate) { salonReservationDao.deleteHoliday(holidayDate); }
+
+    public List<BusinessHourResponseDto> getBusinessHours() {
+        return salonReservationDao.findBusinessHours();
+    }
+
+    @Transactional
+    public void saveBusinessHour(BusinessHourRequestDto request) {
+        if (request == null || request.getDayOfWeek() == null
+                || request.getDayOfWeek() < 1 || request.getDayOfWeek() > 7) {
+            throw new IllegalArgumentException("요일 값은 월요일 1부터 일요일 7 사이여야 합니다.");
+        }
+        if (request.getOpen() == null) {
+            throw new IllegalArgumentException("영업 여부를 선택하세요.");
+        }
+
+        LocalTime openTime = parseBusinessTime(request.getOpenTime(), "영업 시작 시간을 확인하세요.");
+        LocalTime closeTime = parseBusinessTime(request.getCloseTime(), "영업 종료 시간을 확인하세요.");
+        if (openTime.getMinute() % 30 != 0 || closeTime.getMinute() % 30 != 0) {
+            throw new IllegalArgumentException("영업시간은 30분 단위로 설정하세요.");
+        }
+        if (!openTime.isBefore(closeTime)) {
+            throw new IllegalArgumentException("영업 종료 시간은 시작 시간보다 늦어야 합니다.");
+        }
+
+        // 휴무 요일도 마지막 영업시간을 보존해 다시 영업일로 전환할 때 재입력을 줄입니다.
+        salonReservationDao.saveBusinessHour(
+                request.getDayOfWeek(),
+                Boolean.TRUE.equals(request.getOpen()) ? 1 : 0,
+                openTime.toString(),
+                closeTime.toString());
+    }
 
     @Transactional
     public void updateReservationStatus(Long reservationId, String status) {
@@ -407,12 +448,38 @@ public class ReservationService {
         }
         LocalDate date = reservationDateTime.toLocalDate();
         LocalTime time = reservationDateTime.toLocalTime();
+        BusinessHourResponseDto businessHour = getBusinessHour(date);
+        LocalTime openTime = LocalTime.parse(businessHour.getOpenTime());
+        LocalTime closeTime = LocalTime.parse(businessHour.getCloseTime());
         if (date.isAfter(LocalDate.now().plusDays(MAX_BOOKING_DAYS))
-                || date.getDayOfWeek().getValue() == 7
+                || !Boolean.TRUE.equals(businessHour.getOpen())
                 || time.getMinute() % 30 != 0
-                || time.isBefore(OPEN_TIME)
-                || time.plusMinutes(durationMinutes).isAfter(CLOSE_TIME)) {
-            throw new IllegalArgumentException("Reservation time must be within business hours in 30-minute increments.");
+                || time.isBefore(openTime)
+                || time.plusMinutes(durationMinutes).isAfter(closeTime)) {
+            throw new IllegalArgumentException("선택한 시간은 해당 요일의 영업시간 밖입니다.");
+        }
+    }
+
+    private BusinessHourResponseDto getBusinessHour(LocalDate date) {
+        BusinessHourResponseDto businessHour = salonReservationDao.findBusinessHour(date.getDayOfWeek().getValue());
+        if (businessHour != null) {
+            return businessHour;
+        }
+
+        // 마이그레이션 전 DB에서도 예약 화면이 중단되지 않도록 기존 시간을 안전 기본값으로 사용합니다.
+        BusinessHourResponseDto defaultHour = new BusinessHourResponseDto();
+        defaultHour.setDayOfWeek(date.getDayOfWeek().getValue());
+        defaultHour.setOpen(true);
+        defaultHour.setOpenTime(OPEN_TIME.toString());
+        defaultHour.setCloseTime(CLOSE_TIME.toString());
+        return defaultHour;
+    }
+
+    private LocalTime parseBusinessTime(String value, String message) {
+        try {
+            return LocalTime.parse(value);
+        } catch (RuntimeException exception) {
+            throw new IllegalArgumentException(message);
         }
     }
 

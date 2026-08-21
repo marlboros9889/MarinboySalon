@@ -1,6 +1,8 @@
 package com.marinboy.mapper;
 
 import com.marinboy.dto.ReservationDto;
+import com.marinboy.dto.BusinessHourResponseDto;
+import com.marinboy.dto.HolidayResponseDto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,11 +43,19 @@ public interface ReservationMapper {
     // 관리자가 지정한 휴무일인지 확인해 해당 날짜 예약을 막습니다.
     int countHoliday(@Param("reservationDate") LocalDate reservationDate);
     // 관리자 화면에 표시할 전체 휴무일을 조회합니다.
-    List<LocalDate> findHolidays();
+    List<HolidayResponseDto> findHolidays();
     // 날짜가 중복되면 사유를 갱신하고 없으면 새 휴무일로 저장합니다.
     int saveHoliday(@Param("holidayDate") LocalDate holidayDate, @Param("reason") String reason);
     // 선택한 휴무일을 삭제해 다시 예약 가능한 날짜로 변경합니다.
     int deleteHoliday(@Param("holidayDate") LocalDate holidayDate);
+    // 요일별 영업 규칙을 순서대로 조회하고 관리자 변경값을 저장합니다.
+    List<BusinessHourResponseDto> findBusinessHours();
+    BusinessHourResponseDto findBusinessHour(@Param("dayOfWeek") int dayOfWeek);
+    int saveBusinessHour(
+            @Param("dayOfWeek") int dayOfWeek,
+            @Param("open") int open,
+            @Param("openTime") String openTime,
+            @Param("closeTime") String closeTime);
     // 고객이 작성한 예약 요청을 REQUESTED 상태로 저장합니다.
     void insertReservation(
             @Param("serviceId") Long serviceId,

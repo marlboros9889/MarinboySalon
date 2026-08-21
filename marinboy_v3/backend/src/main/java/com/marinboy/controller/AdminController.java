@@ -1,5 +1,6 @@
 package com.marinboy.controller;
 
+import com.marinboy.dto.BusinessHourRequestDto;
 import com.marinboy.service.ReservationService;
 import com.marinboy.service.ServiceItemService;
 import com.marinboy.service.GoogleCalendarDisplayService;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 /** JWT의 ADMIN 권한으로 보호되는 운영 API를 제공합니다. */
@@ -92,6 +94,21 @@ public class AdminController {
         @Operation(summary = "휴무일 삭제")
         ResponseEntity<Void> deleteHoliday(@RequestParam LocalDate holidayDate) {
             reservationService.deleteHoliday(holidayDate);
+            return ResponseEntity.noContent().build();
+        }
+
+        @GetMapping("/api/admin/business-hours")
+        @Operation(summary = "요일별 영업 규칙 조회")
+        Object businessHours() {
+            return reservationService.getBusinessHours();
+        }
+
+        @PutMapping("/api/admin/business-hours/{dayOfWeek}")
+        @Operation(summary = "요일별 영업 규칙 변경")
+        ResponseEntity<Void> saveBusinessHour(
+                @PathVariable int dayOfWeek, @RequestBody BusinessHourRequestDto request) {
+            request.setDayOfWeek(dayOfWeek);
+            reservationService.saveBusinessHour(request);
             return ResponseEntity.noContent().build();
         }
 

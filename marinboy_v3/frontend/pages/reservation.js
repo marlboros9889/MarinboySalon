@@ -3,6 +3,7 @@ import { jwtFetch as api } from '../features/shared/api/jwtApi';
 import {
   canSubmitReservation,
   editableContactValue,
+  formatReservationTime,
   getMaximumBookingDate,
 } from '../features/reservation/reservationRules';
 
@@ -17,6 +18,7 @@ export default function Reservation() {
   const [date, setDate] = useState('');
   const [reservationDateTime, setReservationDateTime] = useState('');
   const [showProfileForm, setShowProfileForm] = useState(false);
+  const [noShowPolicyAgreed, setNoShowPolicyAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -120,7 +122,7 @@ export default function Reservation() {
           serviceId: Number(serviceId),
           reservationDateTime,
           memo: Object.fromEntries(new FormData(event.currentTarget)).memo || '',
-          noShowPolicyAgreed: true,
+          noShowPolicyAgreed,
         }),
       });
 
@@ -148,6 +150,7 @@ export default function Reservation() {
     serviceId,
     date,
     reservationDateTime,
+    noShowPolicyAgreed,
     submitting,
   });
 
@@ -192,9 +195,17 @@ export default function Reservation() {
           </select>
         </label>
         <label>
-          예약 날짜
-          {/* 날짜 입력창은 브라우저별로 input 또는 change 이벤트를 발생시키므로 둘 다 처리합니다. */}
-          <input type="date" min={today} max={maximumDate} value={date} onInput={handleDateChange} onChange={handleDateChange} required />
+          예약 일자
+          {/* 입력 영역을 누르면 브라우저 달력을 직접 열어 일자를 별도로 선택합니다. */}
+          <input
+            type="date"
+            min={today}
+            max={maximumDate}
+            value={date}
+            onClick={(event) => event.currentTarget.showPicker?.()}
+            onChange={handleDateChange}
+            required
+          />
         </label>
         <label>
           예약 시간
@@ -206,15 +217,35 @@ export default function Reservation() {
             disabled={!slots.length}
           >
             <option value="">시간 선택</option>
-            {slots.map((slot) => <option key={slot} value={slot}>{new Date(slot).toLocaleString('ko-KR')}</option>)}
+            {slots.map((slot) => <option key={slot} value={slot}>{formatReservationTime(slot)}</option>)}
           </select>
         </label>
         <label>
           요청 사항
           <textarea name="memo" placeholder="원하는 스타일 또는 참고 사항" />
         </label>
+        <label className={`salon-check-field${noShowPolicyAgreed ? ' is-agreed' : ''}`}>
+          <input
+            className="salon-checkbox"
+            type="checkbox"
+            checked={noShowPolicyAgreed}
+            onChange={(event) => setNoShowPolicyAgreed(event.target.checked)}
+          />
+          <span className="salon-check-copy">
+            <strong>필수 동의</strong>
+            <small>노쇼 및 당일 취소 제한 안내를 확인했습니다.</small>
+          </span>
+          <span className="salon-check-state">{noShowPolicyAgreed ? '동의 완료' : '미동의'}</span>
+        </label>
         <button disabled={!reservationEnabled}>{submitting ? '예약 처리 중...' : '예약 완료'}</button>
-        {!user && <small>로그인 후 예약할 수 있습니다.</small>}
+        {!user && (
+          <small>
+            예약하려면 먼저 로그인해 주세요.{' '}
+            <a href={`/?returnTo=${encodeURIComponent(`/reservation${serviceId ? `?serviceId=${serviceId}` : ''}`)}#login`}>
+              로그인 화면으로 이동
+            </a>
+          </small>
+        )}
         {user?.profileComplete === false && <small>위 연락처를 저장하면 예약 버튼이 활성화됩니다.</small>}
       </form>
 
