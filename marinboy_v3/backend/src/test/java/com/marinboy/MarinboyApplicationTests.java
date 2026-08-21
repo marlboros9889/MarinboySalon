@@ -3,9 +3,11 @@ package com.marinboy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -14,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.marinboy.db.DbSchemaService;
 import com.marinboy.mapper.ReservationMapper;
 import com.marinboy.dto.ReservationDto;
+import com.marinboy.dto.BusinessHourRequestDto;
 import com.marinboy.dto.UserDto;
 import com.marinboy.service.DatabaseVerificationService;
 import com.marinboy.service.AuthService;
@@ -35,6 +38,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import java.time.LocalDate;
+import java.time.DayOfWeek;
+import java.time.temporal.TemporalAdjusters;
 
 // MyBatis 재설계 프로젝트의 핵심 연결 상태를 검증하는 테스트입니다.
 @SpringBootTest(properties = "app.google-calendar.enabled=false")
@@ -87,7 +92,8 @@ class MarinboyApplicationTests {
         // db 패키지와 db-schema-mapper.xml을 통해 MB_ 테이블 구조를 읽을 수 있는지 검증합니다.
         assertThat(dbSchemaService.getProjectTables())
                 .extracting("tableName")
-                .contains("MB_USER", "MB_USER_SOCIAL_ACCOUNT", "MB_SERVICE_ITEM", "MB_RESERVATION", "MB_HOLIDAY");
+                .contains("MB_USER", "MB_USER_SOCIAL_ACCOUNT", "MB_SERVICE_ITEM", "MB_RESERVATION",
+                        "MB_HOLIDAY", "MB_BUSINESS_HOUR");
 
         // 컬럼 조회까지 성공하면 DB 구조 확인 API가 실제 Oracle 메타데이터와 연결된 상태입니다.
         assertThat(dbSchemaService.getProjectColumns())
@@ -219,6 +225,69 @@ class MarinboyApplicationTests {
         salonReservationService.cancelCustomerReservation(created.getId(), customerId);
         assertThat(salonReservationDao.findCustomerReservationByCustomerId(created.getId(), customerId).getStatus())
                 .isEqualTo("CANCELED");
+    }
+
+    /** 일요일 고정 차단 없이 관리자가 요일 영업 여부를 변경할 수 있는지 검증합니다. */
+    @Test
+    @Transactional
+    void adminBusinessRuleControlsSundayReservationSlots() {
+        LocalDate sunday = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY));
+        jdbcTemplate.update("DELETE FROM MB_HOLIDAY WHERE HOLIDAY_DATE = ?", sunday);
+        jdbcTemplate.update("DELETE FROM MB_RESERVATION WHERE TRUNC(RESERVATION_DATE_TIME) = ?", sunday);
+
+        BusinessHourRequestDto openRule = new BusinessHourRequestDto();
+        openRule.setDayOfWeek(7);
+        openRule.setOpen(true);
+        openRule.setOpenTime("10:00");
+        openRule.setCloseTime("19:00");
+        salonReservationService.saveBusinessHour(openRule);
+        assertThat(salonReservationService.getAvailableSlots(2L, sunday).getAvailableSlots()).isNotEmpty();
+
+        BusinessHourRequestDto closedRule = new BusinessHourRequestDto();
+        closedRule.setDayOfWeek(7);
+        closedRule.setOpen(false);
+        closedRule.setOpenTime("10:00");
+        closedRule.setCloseTime("19:00");
+        salonReservationService.saveBusinessHour(closedRule);
+        assertThat(salonReservationService.getAvailableSlots(2L, sunday).getAvailableSlots()).isEmpty();
+    }
+
+    /** ADMIN API가 요일 영업 규칙과 특정 휴무일을 실제 Oracle에 저장·해제하는지 검증합니다. */
+    @Test
+    @Transactional
+    void adminCanManageBusinessHoursAndSpecificHolidays() throws Exception {
+        UserDto admin = new UserDto();
+        admin.setId(1L);
+        admin.setRole(SecurityConstants.ROLE_ADMIN);
+        admin.setUsername("admin-business-test");
+        admin.setName("영업 규칙 관리자");
+        String accessToken = jwtTokenProvider.createAccessToken(admin);
+
+        mockMvc.perform(get("/api/admin/business-hours")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[6].dayOfWeek").value(7));
+
+        mockMvc.perform(put("/api/admin/business-hours/7")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"open\":false,\"openTime\":\"10:00\",\"closeTime\":\"19:00\"}"))
+                .andExpect(status().isNoContent());
+        assertThat(salonReservationDao.findBusinessHour(7).getOpen()).isFalse();
+
+        LocalDate holidayDate = LocalDate.now().plusDays(5);
+        mockMvc.perform(post("/api/admin/holidays")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"holidayDate\":\"" + holidayDate + "\",\"reason\":\"API 검증 휴무\"}"))
+                .andExpect(status().isNoContent());
+        assertThat(salonReservationDao.countHoliday(holidayDate)).isEqualTo(1);
+
+        mockMvc.perform(delete("/api/admin/holidays")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("holidayDate", holidayDate.toString()))
+                .andExpect(status().isNoContent());
+        assertThat(salonReservationDao.countHoliday(holidayDate)).isZero();
     }
 
     /** 회원가입 후 JWT 로그인 토큰이 고객 조회 API까지 이어지는지 검증합니다. */
