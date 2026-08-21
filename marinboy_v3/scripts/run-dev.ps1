@@ -3,6 +3,7 @@ param(
     [ValidateSet('Start', 'Stop', 'Restart', 'Status')]
     [string]$Action = 'Restart',
     [switch]$InstallDependencies,
+    [switch]$StartDependencies,
     [switch]$Production
 )
 
@@ -41,7 +42,9 @@ function Import-EnvironmentFile {
         if ($value.StartsWith('"') -and $value.EndsWith('"')) {
             $value = $value.Substring(1, $value.Length - 2)
         }
-        if ($value.Length -gt 0) {
+        # CI나 다른 PC에서 미리 지정한 환경변수를 .env.local이 덮어쓰지 않게 합니다.
+        $existingValue = [Environment]::GetEnvironmentVariable($key, 'Process')
+        if ($value.Length -gt 0 -and [string]::IsNullOrWhiteSpace($existingValue)) {
             [Environment]::SetEnvironmentVariable($key, $value, 'Process')
         }
     }
@@ -134,6 +137,29 @@ function Test-TcpPort {
 }
 
 Import-EnvironmentFile -FilePath $environmentFile
+$userHome = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+$backendBuildRoot = if ($env:MARINBOY_BUILD_DIRECTORY) {
+    [System.IO.Path]::GetFullPath($env:MARINBOY_BUILD_DIRECTORY)
+} else {
+    Join-Path $userHome '.marinboy\build\v3-backend'
+}
+
+function Wait-ForPortToStop {
+    param(
+        [int]$Port,
+        [int]$TimeoutSeconds = 15
+    )
+
+    # Windows가 종료된 프로세스의 포트를 해제할 때까지 기다려 재시작 충돌을 막습니다.
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline) {
+        if (@(Get-ListeningProcessIds -Port $Port).Count -eq 0) {
+            return
+        }
+        Start-Sleep -Milliseconds 300
+    }
+    throw "포트 $Port 프로세스가 ${TimeoutSeconds}초 안에 종료되지 않았습니다."
+}
 New-Item -ItemType Directory -Path $runtimeRoot -Force | Out-Null
 
 $backendPidFile = Join-Path $runtimeRoot 'backend.pid'
@@ -148,6 +174,8 @@ if ($Action -in @('Stop', 'Restart')) {
     # 우리가 시작한 Marinboy 포트만 종료해 다른 프로젝트 서버를 보호합니다.
     Stop-ProjectPort -Port 3000 -PidFile $frontendPidFile
     Stop-ProjectPort -Port 8082 -PidFile $backendPidFile
+    Wait-ForPortToStop -Port 3000
+    Wait-ForPortToStop -Port 8082
     if ($Action -eq 'Stop') {
         Show-Status
         exit 0
@@ -163,6 +191,8 @@ if ($Action -in @('Start', 'Restart')) {
     $mavenCommand = Get-Command 'mvn.cmd' -ErrorAction Stop
     $npmCommand = Get-Command 'npm.cmd' -ErrorAction Stop
     $javaCommand = Get-Command 'java.exe' -ErrorAction Stop
+    New-Item -ItemType Directory -Path $backendBuildRoot -Force | Out-Null
+    $mavenBuildArgument = '-Dmarinboy.build.directory=' + $backendBuildRoot.Replace('\', '/')
 
     # 외부 설정 파일을 사용할 때만 Spring에 절대 경로를 전달합니다.
     if ($env:MARINBOY_CONFIG_FILE) {
@@ -174,9 +204,10 @@ if ($Action -in @('Start', 'Restart')) {
     }
 
     $hasExternalConfig = [bool]$env:SPRING_CONFIG_ADDITIONAL_LOCATION
-    $hasOracleEnvironment = [bool]$env:ORACLE_URL -and [bool]$env:ORACLE_USERNAME -and [bool]$env:ORACLE_PASSWORD
+    $hasOracleEnvironment = [bool]$env:ORACLE_URL -and [bool]$env:ORACLE_USERNAME -and
+            [bool]$env:ORACLE_PASSWORD -and $env:ORACLE_PASSWORD -ne 'change-me'
     if (-not ($hasExternalConfig -or $hasOracleEnvironment)) {
-        throw 'Oracle 설정이 없습니다. .env.example을 .env.local로 복사해 ORACLE_* 값을 입력하세요.'
+        throw 'Oracle 설정이 없습니다. setup-local.ps1 실행 후 .env.local의 ORACLE_* 실제 값을 입력하세요.'
     }
 
     # v3는 JWT와 Redis가 모두 있어야 인증이 성립합니다.
@@ -194,8 +225,27 @@ if ($Action -in @('Start', 'Restart')) {
 
     $redisHost = if ($env:REDIS_HOST) { $env:REDIS_HOST } else { '127.0.0.1' }
     $redisPort = if ($env:REDIS_PORT) { [int]$env:REDIS_PORT } else { 6379 }
+    if (-not (Test-TcpPort -ComputerName $redisHost -Port $redisPort) -and $StartDependencies) {
+        $localRedis = $redisHost -in @('127.0.0.1', 'localhost') -and $redisPort -eq 6379
+        if (-not $localRedis) {
+            throw '-StartDependencies는 저장소의 127.0.0.1:6379 Redis만 시작할 수 있습니다.'
+        }
+        $dockerCommand = Get-Command 'docker.exe' -ErrorAction SilentlyContinue
+        if ($null -eq $dockerCommand) {
+            throw 'Docker를 찾을 수 없습니다. Docker Desktop을 설치하거나 Redis를 직접 실행하세요.'
+        }
+        # 새 PC에서는 저장소의 compose 파일로 JWT 로그아웃용 Redis를 먼저 준비합니다.
+        & $dockerCommand.Source compose -f (Join-Path $projectRoot 'compose.yaml') up -d redis
+        if ($LASTEXITCODE -ne 0) {
+            throw 'Redis 컨테이너 시작에 실패했습니다.'
+        }
+        $redisDeadline = (Get-Date).AddSeconds(60)
+        while ((Get-Date) -lt $redisDeadline -and -not (Test-TcpPort -ComputerName $redisHost -Port $redisPort)) {
+            Start-Sleep -Milliseconds 500
+        }
+    }
     if (-not (Test-TcpPort -ComputerName $redisHost -Port $redisPort)) {
-        throw "Redis에 연결할 수 없습니다: ${redisHost}:${redisPort}"
+        throw "Redis에 연결할 수 없습니다: ${redisHost}:${redisPort}. 직접 실행하거나 -StartDependencies를 사용하세요."
     }
 
     if ($InstallDependencies -or -not (Test-Path -LiteralPath (Join-Path $frontendRoot 'node_modules'))) {
@@ -213,7 +263,7 @@ if ($Action -in @('Start', 'Restart')) {
     # 한글이 포함된 Windows 경로에서 Maven의 개발용 클래스패스가 깨지는 문제를 피하도록 JAR로 실행합니다.
     Push-Location $backendRoot
     try {
-        & $mavenCommand.Source clean -DskipTests package
+        & $mavenCommand.Source $mavenBuildArgument clean -DskipTests package
         if ($LASTEXITCODE -ne 0) {
             throw '백엔드 JAR 패키징에 실패했습니다.'
         }
@@ -221,12 +271,12 @@ if ($Action -in @('Start', 'Restart')) {
         Pop-Location
     }
 
-    $backendJar = Join-Path $backendRoot 'target\marinboy-v3-0.0.1-SNAPSHOT.jar'
+    $backendJar = Join-Path $backendBuildRoot 'marinboy-v3-0.0.1-SNAPSHOT.jar'
     if (-not (Test-Path -LiteralPath $backendJar)) {
         throw '실행할 백엔드 JAR을 찾지 못했습니다.'
     }
 
-    $backendProcess = Start-Process -FilePath $javaCommand.Source -ArgumentList '-jar', 'target\marinboy-v3-0.0.1-SNAPSHOT.jar' -WorkingDirectory $backendRoot -RedirectStandardOutput (Join-Path $runtimeRoot 'backend.out.log') -RedirectStandardError (Join-Path $runtimeRoot 'backend.err.log') -WindowStyle Hidden -PassThru
+    $backendProcess = Start-Process -FilePath $javaCommand.Source -ArgumentList '-jar', ('"' + $backendJar + '"') -WorkingDirectory $backendRoot -RedirectStandardOutput (Join-Path $runtimeRoot 'backend.out.log') -RedirectStandardError (Join-Path $runtimeRoot 'backend.err.log') -WindowStyle Hidden -PassThru
     Set-Content -LiteralPath $backendPidFile -Value $backendProcess.Id
     Wait-ForPort -Port 8082
 

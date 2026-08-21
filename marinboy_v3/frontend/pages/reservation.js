@@ -10,6 +10,7 @@ export default function Reservation() {
   const [message, setMessage] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [date, setDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const selectedId = new URLSearchParams(window.location.search).get('serviceId');
@@ -22,7 +23,11 @@ export default function Reservation() {
         const serviceItems = await menuResponse.json();
         setServices(serviceItems);
         setServiceId(selectedId || String(serviceItems[0]?.id || ''));
-        setUser(userResponse.status === 200 ? await userResponse.json() : null);
+        const loginUser = userResponse.status === 200 ? await userResponse.json() : null;
+        setUser(loginUser);
+        if (loginUser?.profileComplete === false) {
+          setMessage('예약 전에 나의 예약 화면에서 이메일과 연락처를 입력해 주세요.');
+        }
       })
       .catch(() => setMessage('시술 메뉴를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'));
   }, []);
@@ -68,26 +73,40 @@ export default function Reservation() {
       return;
     }
 
-    const formData = Object.fromEntries(new FormData(event.currentTarget));
-    const response = await api('/api/reservations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        serviceId: Number(serviceId),
-        reservationDateTime: formData.reservationDateTime,
-        memo: formData.memo || '',
-        customerName: user.name,
-        customerEmail: user.email,
-        customerPhone: user.phone,
-        noShowPolicyAgreed: true,
-      }),
-    });
-
-    if (!response.ok) {
-      setMessage('예약에 실패했습니다. 선택한 시간을 다시 확인해 주세요.');
+    if (user.profileComplete === false) {
+      setMessage('예약 전에 나의 예약 화면에서 이메일과 연락처를 입력해 주세요.');
       return;
     }
-    setDone(true);
+    setSubmitting(true);
+    setMessage('');
+    try {
+      const formData = Object.fromEntries(new FormData(event.currentTarget));
+      const response = await api('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceId: Number(serviceId),
+          reservationDateTime: formData.reservationDateTime,
+          memo: formData.memo || '',
+          noShowPolicyAgreed: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        const fallback = response.status === 401
+          ? '로그인이 만료되었습니다. 홈에서 다시 로그인해 주세요.'
+          : '예약에 실패했습니다. 선택한 시간을 다시 확인해 주세요.';
+        setMessage(error.message || fallback);
+        return;
+      }
+      setDone(true);
+    } catch (error) {
+      console.log('예약 저장 오류:', error.message);
+      setMessage('예약 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const today = new Date().toLocaleDateString('en-CA');
@@ -126,8 +145,9 @@ export default function Reservation() {
           요청 사항
           <textarea name="memo" placeholder="원하는 스타일 또는 참고 사항" />
         </label>
-        <button disabled={!user || !slots.length}>예약 완료</button>
+        <button disabled={!user || user.profileComplete === false || !slots.length || submitting}>{submitting ? '예약 처리 중...' : '예약 완료'}</button>
         {!user && <small>로그인 후 예약할 수 있습니다.</small>}
+        {user?.profileComplete === false && <a href="/my-reservations?profile=1">고객 정보 입력하기</a>}
       </form>
 
       {done && (

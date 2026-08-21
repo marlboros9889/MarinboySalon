@@ -61,9 +61,17 @@ public class ReservationController {
 
     @PostMapping("/api/reservations")
     @Operation(summary = "새 예약 생성")
-    public ResponseEntity<Void> createReservation(@RequestBody ReservationDto request) {
-        // 중복 시간과 필수 동의 여부를 검증한 후 예약을 저장합니다.
-        reservationService.createReservation(request);
+    public ResponseEntity<Void> createReservation(
+            @RequestBody ReservationDto request, Authentication authentication) {
+        // JWT 고객 정보로 예약자를 고정하여 다른 고객 연락처로 예약이 연결되지 않게 합니다.
+        UserDto user = authenticatedUserService.requireUser(authentication);
+        if (!user.isProfileComplete()) {
+            throw new IllegalArgumentException("예약 전에 고객 정보에서 이메일과 연락처를 입력해 주세요.");
+        }
+        request.setCustomerName(user.getName());
+        request.setCustomerEmail(user.getEmail());
+        request.setCustomerPhone(user.getPhone());
+        reservationService.createReservation(request, user.getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -82,10 +90,10 @@ public class ReservationController {
     public ResponseEntity<List<ReservationDto>> myReservations(Authentication authentication) {
         // 로그인 고객의 전화번호를 기준으로 진행 중인 예약을 조회합니다.
         UserDto user = authenticatedUserService.requireUser(authentication);
-        if (user.getPhone() == null || user.getPhone().isBlank()) {
+        if (user.getId() == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(reservationService.getCustomerActiveReservations(user.getPhone()));
+        return ResponseEntity.ok(reservationService.getCustomerActiveReservations(user.getId()));
     }
 
     // 수정 화면에서 로그인한 고객의 예약 한 건만 조회해 다른 고객 예약 노출을 차단합니다.
@@ -94,10 +102,10 @@ public class ReservationController {
     public ResponseEntity<ReservationDto> myReservation(
             @PathVariable Long reservationId, Authentication authentication) {
         UserDto user = authenticatedUserService.requireUser(authentication);
-        if (user.getPhone() == null || user.getPhone().isBlank()) {
+        if (user.getId() == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(reservationService.getCustomerReservation(reservationId, user.getPhone()));
+        return ResponseEntity.ok(reservationService.getCustomerReservation(reservationId, user.getId()));
     }
 
     @PutMapping("/api/customers/my-reservations/{reservationId}")
@@ -105,9 +113,9 @@ public class ReservationController {
     public ResponseEntity<Void> updateMyReservation(@PathVariable Long reservationId, @RequestBody ReservationDto request,
             Authentication authentication) {
         UserDto user = authenticatedUserService.requireUser(authentication);
-        if (user.getPhone() == null || user.getPhone().isBlank())
+        if (user.getId() == null)
             return ResponseEntity.status(401).build();
-        reservationService.updateCustomerReservation(reservationId, user.getPhone(), request);
+        reservationService.updateCustomerReservation(reservationId, user.getId(), request);
         return ResponseEntity.noContent().build();
     }
 
@@ -115,10 +123,10 @@ public class ReservationController {
     @Operation(summary = "내 예약 취소")
     public ResponseEntity<Void> cancelMyReservation(@PathVariable Long reservationId, Authentication authentication) {
         UserDto user = authenticatedUserService.requireUser(authentication);
-        if (user.getPhone() == null || user.getPhone().isBlank()) {
+        if (user.getId() == null) {
             return ResponseEntity.status(401).build();
         }
-        reservationService.cancelCustomerReservation(reservationId, user.getPhone());
+        reservationService.cancelCustomerReservation(reservationId, user.getId());
         return ResponseEntity.noContent().build();
     }
 

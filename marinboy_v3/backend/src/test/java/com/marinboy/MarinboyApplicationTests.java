@@ -164,22 +164,31 @@ class MarinboyApplicationTests {
                 String.class,
                 phone)).startsWith("{GUEST}");
 
+        Long customerId = jdbcTemplate.queryForObject(
+                "SELECT ID FROM MB_USER WHERE PHONE = ?",
+                Long.class,
+                phone);
         ReservationDto created = salonReservationDao.findCustomerHistory(phone).get(0);
+        assertThat(salonReservationDao.findCustomerReservationsByCustomerId(customerId))
+                .extracting(ReservationDto::getId)
+                .contains(created.getId());
+        assertThat(salonReservationDao.findCustomerReservationByCustomerId(created.getId(), customerId + 999999L))
+                .isNull();
         request.setReservationDateTime(slots.getAvailableSlots().get(0));
         request.setMemo("수정 연결 검증");
         request.setNoShowPolicyAgreed(false);
-        assertThatThrownBy(() -> salonReservationService.updateCustomerReservation(created.getId(), phone, request))
+        assertThatThrownBy(() -> salonReservationService.updateCustomerReservation(created.getId(), customerId, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("노쇼 방지 안내");
 
         request.setNoShowPolicyAgreed(true);
-        salonReservationService.updateCustomerReservation(created.getId(), phone, request);
+        salonReservationService.updateCustomerReservation(created.getId(), customerId, request);
 
-        assertThat(salonReservationDao.findCustomerReservation(created.getId(), phone).getMemo())
+        assertThat(salonReservationDao.findCustomerReservationByCustomerId(created.getId(), customerId).getMemo())
                 .isEqualTo("수정 연결 검증");
 
-        salonReservationService.cancelCustomerReservation(created.getId(), phone);
-        assertThat(salonReservationDao.findCustomerReservation(created.getId(), phone).getStatus())
+        salonReservationService.cancelCustomerReservation(created.getId(), customerId);
+        assertThat(salonReservationDao.findCustomerReservationByCustomerId(created.getId(), customerId).getStatus())
                 .isEqualTo("CANCELED");
     }
 

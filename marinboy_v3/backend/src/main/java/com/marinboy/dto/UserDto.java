@@ -21,6 +21,14 @@ public class UserDto {
     // 고객과 관리자를 구분하는 권한 값입니다.
     private String role;
     private String loginProvider;
+    private String socialId;
+
+    /** 소셜 계정의 임시 연락처가 실제 고객 정보로 변경되었는지 반환합니다. */
+    public boolean isProfileComplete() {
+        boolean temporaryEmail = email != null && email.endsWith("@social.marinboy.local");
+        boolean temporaryPhone = phone != null && phone.startsWith("SOCIAL_REQUIRED");
+        return !temporaryEmail && !temporaryPhone;
+    }
 
     // MyBatis 매핑과 JSON 변환에 사용하는 getter/setter입니다.
     public Long getId() { return id; }
@@ -48,6 +56,8 @@ public class UserDto {
     public void setRole(String role) { this.role = role; }
     public String getLoginProvider() { return loginProvider; }
     public void setLoginProvider(String loginProvider) { this.loginProvider = loginProvider; }
+    public String getSocialId() { return socialId; }
+    public void setSocialId(String socialId) { this.socialId = socialId; }
 
     private boolean isUsableName(String value) {
         return value != null && !value.isBlank() && !value.matches("\\?+");

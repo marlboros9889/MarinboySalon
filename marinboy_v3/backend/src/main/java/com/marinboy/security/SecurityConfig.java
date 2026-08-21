@@ -53,9 +53,12 @@ public class SecurityConfig {
                         .requestMatchers("/", "/error", "/images/**", "/uploads/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/check-username", "/api/auth/check-email").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/check-username", "/api/auth/check-email",
+                                "/api/auth/social/providers", "/oauth2/authorization/**", "/login/oauth2/code/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/reservations").permitAll()
+                        // 예약 생성은 컨트롤러가 JWT 고객을 사용하므로 비회원 허용 규칙을 두지 않습니다.
+                        .requestMatchers(HttpMethod.POST, "/api/reservations").authenticated()
                         .requestMatchers("/api/admin/**", "/api/db/**", "/api/db-time")
                         .hasRole(SecurityConstants.ROLE_ADMIN)
                         .requestMatchers(HttpMethod.POST, "/api/v3/service-items/**").hasRole(SecurityConstants.ROLE_ADMIN)

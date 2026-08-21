@@ -74,6 +74,12 @@ public class ReservationService {
 
     @Transactional
     public void createReservation(ReservationDto request) {
+        // 비회원 예약 호환 경로는 연락처로 고객을 찾거나 새 고객을 만듭니다.
+        createReservation(request, null);
+    }
+
+    @Transactional
+    public void createReservation(ReservationDto request, Long authenticatedCustomerId) {
         validateReservationDateTime(request.getServiceId(), request.getReservationDateTime());
         // 저장 직전에 다시 검증하여 화면 조회 이후 생긴 중복 예약도 차단합니다.
         if (request.getReservationDateTime() == null
@@ -95,7 +101,10 @@ public class ReservationService {
             throw new IllegalArgumentException("이미 예약된 시간입니다. 다른 시간을 선택해 주세요.");
         }
 
-        Long customerId = salonReservationDao.findCustomerIdByPhone(request.getCustomerPhone());
+        Long customerId = authenticatedCustomerId;
+        if (customerId == null) {
+            customerId = salonReservationDao.findCustomerIdByPhone(request.getCustomerPhone());
+        }
         // 등록되지 않은 고객이면 입력받은 연락처로 고객을 생성한 후 예약과 연결합니다.
         if (customerId == null) {
             salonReservationDao.insertCustomer(
@@ -176,6 +185,18 @@ public class ReservationService {
                 .toList();
     }
 
+    public List<ReservationDto> getCustomerActiveReservations(Long customerId) {
+        // v3 로그인 고객은 변경 가능한 전화번호가 아니라 JWT 사용자 ID로 소유권을 확인합니다.
+        return salonReservationDao.findCustomerReservationsByCustomerId(customerId)
+                .stream()
+                .filter(reservation -> List.of("REQUESTED", "CONFIRMED").contains(reservation.getStatus()))
+                .peek(reservation -> {
+                    if ("REQUESTED".equals(reservation.getStatus())) reservation.setStatus("예약 대기");
+                    else if ("CONFIRMED".equals(reservation.getStatus())) reservation.setStatus("예약 승인");
+                })
+                .toList();
+    }
+
     // 고객이 수정 화면에 표시할 본인 예약 한 건을 조회합니다.
     public ReservationDto getCustomerReservation(Long reservationId, String customerPhone) {
         ReservationDto reservation = salonReservationDao.findCustomerReservation(reservationId, customerPhone);
@@ -183,6 +204,73 @@ public class ReservationService {
             throw new IllegalArgumentException("수정할 수 있는 예약이 없습니다.");
         }
         return reservation;
+    }
+
+    public ReservationDto getCustomerReservation(Long reservationId, Long customerId) {
+        ReservationDto reservation = salonReservationDao.findCustomerReservationByCustomerId(reservationId, customerId);
+        if (reservation == null || !List.of("REQUESTED", "CONFIRMED").contains(reservation.getStatus())) {
+            throw new IllegalArgumentException("수정할 수 있는 예약이 없습니다.");
+        }
+        return reservation;
+    }
+
+    @Transactional
+    public void updateCustomerReservation(Long reservationId, Long customerId, ReservationDto request) {
+        if (!Boolean.TRUE.equals(request.getNoShowPolicyAgreed())) {
+            throw new IllegalArgumentException("노쇼 방지 안내에 동의해야 예약을 수정할 수 있습니다.");
+        }
+        if (request.getReservationDateTime() != null) {
+            LocalDateTime requestedTime = request.getReservationDateTime();
+            request.setReservationDateTime(requestedTime
+                    .withMinute((requestedTime.getMinute() / 30) * 30)
+                    .withSecond(0)
+                    .withNano(0));
+        }
+        validateReservationDateTime(request.getServiceId(), request.getReservationDateTime());
+        ReservationDto current = salonReservationDao.findCustomerReservationByCustomerId(reservationId, customerId);
+        validateOwnedReservationForUpdate(current, request, reservationId);
+        if (salonReservationDao.updateCustomerReservationByCustomerId(
+                reservationId, customerId, request.getServiceId(), request.getReservationDateTime(), request.getMemo()) == 0) {
+            throw new IllegalArgumentException("예약 수정에 실패했습니다.");
+        }
+    }
+
+    @Transactional
+    public void cancelCustomerReservation(Long reservationId, Long customerId) {
+        ReservationDto current = salonReservationDao.findCustomerReservationByCustomerId(reservationId, customerId);
+        if (current == null || !"REQUESTED".equals(current.getStatus())) {
+            throw new IllegalArgumentException("예약 대기 상태인 본인 예약만 취소할 수 있습니다.");
+        }
+        if (!current.getReservationDateTime().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("지난 예약은 취소할 수 없습니다.");
+        }
+        if (salonReservationDao.cancelCustomerReservationByCustomerId(reservationId, customerId) == 0) {
+            throw new IllegalArgumentException("예약 취소 처리 중 상태가 변경되었습니다. 새로고침 후 다시 확인해 주세요.");
+        }
+    }
+
+    private void validateOwnedReservationForUpdate(
+            ReservationDto current, ReservationDto request, Long reservationId) {
+        if (current == null || !List.of("REQUESTED", "CONFIRMED").contains(current.getStatus())) {
+            throw new IllegalArgumentException("수정할 수 있는 예약이 없습니다.");
+        }
+        if (!current.getReservationDateTime().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("지난 예약은 수정할 수 없습니다.");
+        }
+        if (request.getReservationDateTime() == null
+                || request.getReservationDateTime().isBefore(LocalDateTime.now().plusMinutes(30))) {
+            throw new IllegalArgumentException("예약은 현재 시간보다 최소 30분 이후부터 가능합니다.");
+        }
+        if (salonReservationDao.countHoliday(request.getReservationDateTime().toLocalDate()) > 0) {
+            throw new IllegalArgumentException("선택한 날짜는 휴무일입니다.");
+        }
+        if (salonReservationDao.lockReservationSchedule(request.getServiceId()) == null) {
+            throw new IllegalArgumentException("선택한 시술 메뉴가 없거나 삭제되었습니다.");
+        }
+        if (salonReservationDao.countOverlappingReservationExcept(
+                request.getServiceId(), request.getReservationDateTime(), reservationId) > 0) {
+            throw new IllegalArgumentException("이미 예약된 시간입니다. 다른 시간을 선택해 주세요.");
+        }
     }
 
     @Transactional
