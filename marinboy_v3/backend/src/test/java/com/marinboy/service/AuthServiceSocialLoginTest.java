@@ -25,7 +25,7 @@ class AuthServiceSocialLoginTest {
         when(authMapper.findBySocialAccount("KAKAO", "12345"))
                 .thenReturn(null)
                 .thenReturn(savedUser());
-        when(authMapper.countByEmail("social@example.com")).thenReturn(0);
+        when(authMapper.findByEmail("social@example.com")).thenReturn(null);
         when(passwordEncoder.encode(any())).thenReturn("$2a$encoded-social-password");
         AuthService service = new AuthService(authMapper, passwordEncoder);
 
@@ -50,6 +50,27 @@ class AuthServiceSocialLoginTest {
 
         assertThat(result).isSameAs(existing);
         assertThat(result.getPassword()).isNull();
+    }
+
+    @Test
+    void linksNaverProfileToExistingAccountWithTheSameEmail() {
+        UserDto existing = savedUser();
+        existing.setLoginProvider(null);
+        UserDto linked = savedUser();
+        linked.setLoginProvider("NAVER");
+        when(authMapper.findBySocialAccount("NAVER", "naver-new-id"))
+                .thenReturn(null)
+                .thenReturn(linked);
+        when(authMapper.findByEmail("social@example.com")).thenReturn(existing);
+        when(authMapper.linkSocialAccount(77L, "NAVER", "naver-new-id")).thenReturn(1);
+        AuthService service = new AuthService(authMapper, passwordEncoder);
+
+        UserDto result = service.findOrCreateSocialUser(
+                "naver", "naver-new-id", "소셜고객", "social@example.com", "010-1234-5678");
+
+        assertThat(result.getId()).isEqualTo(77L);
+        assertThat(result.getLoginProvider()).isEqualTo("NAVER");
+        verify(authMapper).linkSocialAccount(77L, "NAVER", "naver-new-id");
     }
 
     private UserDto savedUser() {

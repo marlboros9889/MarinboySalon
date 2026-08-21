@@ -85,8 +85,21 @@ public class AuthService {
         String normalizedEmail = isBlank(email)
                 ? "social_" + accountHash + "@social.marinboy.local"
                 : email.trim().toLowerCase(Locale.ROOT);
-        if (!isEmailAvailable(normalizedEmail)) {
-            throw new IllegalArgumentException("같은 이메일의 기존 계정이 있습니다. 일반 로그인 후 고객 정보를 확인해 주세요.");
+        UserDto emailUser = authMapper.findByEmail(normalizedEmail);
+        if (emailUser != null) {
+            // 동의받은 소셜 프로필 이메일로 기존 예약 계정을 이어 붙여 중복 고객 생성을 막습니다.
+            int linkedCount = authMapper.linkSocialAccount(
+                    emailUser.getId(), normalizedProvider, normalizedSocialId);
+            if (linkedCount != 1) {
+                throw new IllegalArgumentException("이 이메일은 다른 소셜 계정과 연결되어 있습니다.");
+            }
+            UserDto linkedUser = authMapper.findBySocialAccount(normalizedProvider, normalizedSocialId);
+            if (linkedUser == null) {
+                throw new IllegalStateException("기존 계정에 소셜 로그인을 연결하지 못했습니다.");
+            }
+            linkedUser.setDisplayName(linkedUser.getName());
+            linkedUser.setPassword(null);
+            return linkedUser;
         }
 
         UserDto socialUser = new UserDto();
