@@ -13,11 +13,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** 카카오·네이버의 인가 코드, 토큰, 사용자 정보 조회를 한 흐름으로 처리합니다. */
+/** 카카오·네이버·Google의 인가 코드, 토큰, 사용자 정보 조회를 한 흐름으로 처리합니다. */
 @Service
 public class SocialLoginService {
     private static final String KAKAO = "KAKAO";
     private static final String NAVER = "NAVER";
+    private static final String GOOGLE = "GOOGLE";
 
     private final RestClient restClient;
     private final String callbackBaseUrl;
@@ -25,23 +26,29 @@ public class SocialLoginService {
     private final String kakaoClientSecret;
     private final String naverClientId;
     private final String naverClientSecret;
+    private final String googleClientId;
+    private final String googleClientSecret;
 
     public SocialLoginService(RestClient.Builder restClientBuilder,
             @Value("${app.social-login.callback-base-url:http://127.0.0.1:3000}") String callbackBaseUrl,
             @Value("${app.social-login.kakao.client-id:}") String kakaoClientId,
             @Value("${app.social-login.kakao.client-secret:}") String kakaoClientSecret,
             @Value("${app.social-login.naver.client-id:}") String naverClientId,
-            @Value("${app.social-login.naver.client-secret:}") String naverClientSecret) {
+            @Value("${app.social-login.naver.client-secret:}") String naverClientSecret,
+            @Value("${app.social-login.google.client-id:}") String googleClientId,
+            @Value("${app.social-login.google.client-secret:}") String googleClientSecret) {
         this.restClient = restClientBuilder.build();
         this.callbackBaseUrl = removeTrailingSlash(callbackBaseUrl);
         this.kakaoClientId = kakaoClientId.trim();
         this.kakaoClientSecret = kakaoClientSecret.trim();
         this.naverClientId = naverClientId.trim();
         this.naverClientSecret = naverClientSecret.trim();
+        this.googleClientId = googleClientId.trim();
+        this.googleClientSecret = googleClientSecret.trim();
     }
 
     public Map<String, Boolean> providerAvailability() {
-        return Map.of("kakao", isEnabled(KAKAO), "naver", isEnabled(NAVER));
+        return Map.of("kakao", isEnabled(KAKAO), "naver", isEnabled(NAVER), "google", isEnabled(GOOGLE));
     }
 
     public URI createAuthorizationUri(String provider, String state) {
@@ -57,6 +64,15 @@ public class SocialLoginService {
                     .queryParam("state", state)
                     .build().encode().toUri();
         }
+        if (GOOGLE.equals(normalizedProvider)) {
+            return UriComponentsBuilder.fromUriString("https://accounts.google.com/o/oauth2/v2/auth")
+                    .queryParam("response_type", "code")
+                    .queryParam("client_id", googleClientId)
+                    .queryParam("redirect_uri", redirectUri)
+                    .queryParam("scope", "openid profile email")
+                    .queryParam("state", state)
+                    .build().encode().toUri();
+        }
         return UriComponentsBuilder.fromUriString("https://nid.naver.com/oauth2.0/authorize")
                 .queryParam("response_type", "code")
                 .queryParam("client_id", naverClientId)
@@ -69,14 +85,14 @@ public class SocialLoginService {
         String normalizedProvider = normalizeProvider(provider);
         requireEnabled(normalizedProvider);
         if (code == null || code.isBlank()) throw new IllegalArgumentException("소셜 로그인 인가 코드가 없습니다.");
-        return KAKAO.equals(normalizedProvider)
-                ? loadKakaoProfile(code)
-                : loadNaverProfile(code, state);
+        if (KAKAO.equals(normalizedProvider)) return loadKakaoProfile(code);
+        if (GOOGLE.equals(normalizedProvider)) return loadGoogleProfile(code);
+        return loadNaverProfile(code, state);
     }
 
     public String normalizeProvider(String provider) {
         String normalized = provider == null ? "" : provider.trim().toUpperCase(Locale.ROOT);
-        if (!KAKAO.equals(normalized) && !NAVER.equals(normalized)) {
+        if (!KAKAO.equals(normalized) && !NAVER.equals(normalized) && !GOOGLE.equals(normalized)) {
             throw new IllegalArgumentException("지원하지 않는 소셜 로그인입니다.");
         }
         return normalized;
@@ -118,6 +134,24 @@ public class SocialLoginService {
         return new SocialProfile(NAVER, socialId, name, email, phone);
     }
 
+    private SocialProfile loadGoogleProfile(String code) {
+        MultiValueMap<String, String> tokenForm = new LinkedMultiValueMap<>();
+        tokenForm.add("grant_type", "authorization_code");
+        tokenForm.add("client_id", googleClientId);
+        tokenForm.add("client_secret", googleClientSecret);
+        tokenForm.add("redirect_uri", callbackUri(GOOGLE));
+        tokenForm.add("code", code);
+
+        JsonNode token = requestToken("https://oauth2.googleapis.com/token", tokenForm);
+        JsonNode profile = requestProfile("https://openidconnect.googleapis.com/v1/userinfo",
+                requiredText(token, "access_token"));
+        String socialId = requiredText(profile, "sub");
+        String name = text(profile, "/name");
+        String email = text(profile, "/email");
+        // Google 기본 프로필은 전화번호를 제공하지 않으므로 로그인 후 고객 정보에서 입력받습니다.
+        return new SocialProfile(GOOGLE, socialId, name, email, null);
+    }
+
     private JsonNode requestToken(String uri, MultiValueMap<String, String> form) {
         JsonNode result = restClient.post().uri(uri)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -136,7 +170,8 @@ public class SocialLoginService {
 
     private boolean isEnabled(String provider) {
         if (KAKAO.equals(provider)) return !kakaoClientId.isBlank();
-        return !naverClientId.isBlank() && !naverClientSecret.isBlank();
+        if (NAVER.equals(provider)) return !naverClientId.isBlank() && !naverClientSecret.isBlank();
+        return !googleClientId.isBlank() && !googleClientSecret.isBlank();
     }
 
     private void requireEnabled(String provider) {

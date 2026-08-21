@@ -33,13 +33,14 @@ JDK 17 이상, Maven, Node.js, Oracle, Redis가 필요합니다.
 - 프론트엔드는 보호 API와 SSE 요청에 Bearer 토큰을 보냅니다.
 - 서버는 `SessionCreationPolicy.STATELESS`이며 세션 쿠키를 만들지 않습니다.
 - 로그아웃 시 JWT 식별자를 Redis 블랙리스트에 저장해 재사용을 막습니다.
-- 카카오·네이버 로그인도 세션을 만들지 않고 Redis에 5분짜리 `state`를 저장한 뒤 자체 JWT를 발급합니다.
+- 카카오·네이버·Google 로그인도 세션을 만들지 않고 Redis에 5분짜리 `state`를 저장한 뒤 자체 JWT를 발급합니다.
 
 소셜 로그인을 켜려면 `.env.local`에 제공자 Client ID/Secret을 입력하고 개발자센터 Callback URL을 아래 값과 정확히 일치시킵니다.
 
 ```text
 http://127.0.0.1:3000/login/oauth2/code/kakao
 http://127.0.0.1:3000/login/oauth2/code/naver
+http://127.0.0.1:3000/login/oauth2/code/google
 ```
 
 소셜 제공자가 이메일·연락처를 주지 않으면 `나의 예약 > 고객 정보 수정`을 완료한 뒤에만 예약할 수 있습니다.
