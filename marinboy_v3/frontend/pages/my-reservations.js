@@ -21,6 +21,10 @@ export default function MyReservations() {
     const loginUser = await meResponse.json();
     const reservationResponse = await api('/api/customers/my-reservations');
     setUser(loginUser);
+    if (loginUser.profileComplete === false || new URLSearchParams(window.location.search).get('profile') === '1') {
+      setShowProfile(true);
+      setMessage('예약 전에 이메일과 연락처를 확인해 주세요.');
+    }
     setItems(reservationResponse.ok ? await reservationResponse.json() : []);
     setMessage(reservationResponse.ok ? '' : '예약 목록을 불러오지 못했습니다.');
   };

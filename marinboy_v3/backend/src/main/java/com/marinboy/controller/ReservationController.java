@@ -65,6 +65,9 @@ public class ReservationController {
             @RequestBody ReservationDto request, Authentication authentication) {
         // JWT 고객 정보로 예약자를 고정하여 다른 고객 연락처로 예약이 연결되지 않게 합니다.
         UserDto user = authenticatedUserService.requireUser(authentication);
+        if (!user.isProfileComplete()) {
+            throw new IllegalArgumentException("예약 전에 고객 정보에서 이메일과 연락처를 입력해 주세요.");
+        }
         request.setCustomerName(user.getName());
         request.setCustomerEmail(user.getEmail());
         request.setCustomerPhone(user.getPhone());

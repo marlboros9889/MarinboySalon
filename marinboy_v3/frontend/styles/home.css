@@ -34,3 +34,6 @@
 .v3-social-button.kakao{border-color:#fee500;color:#191919;background:#fee500}.v3-social-button.naver{border-color:#027a3b;color:#fff;background:#027a3b}
 @media(max-width:900px){.container{width:calc(100% - 40px)}.v3-hero.container{width:100%}.v3-hero-copy{min-height:calc(100vh - 82px)}.v3-menu-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.v3-app{padding-top:72px}.v3-header{height:72px;padding:0 16px}.v3-hero.container{min-height:calc(100vh - 72px)}.v3-hero-visual{height:100%}.v3-hero-copy{min-height:calc(100vh - 72px);padding:64px 18px}.v3-hero h1{font-size:42px}.v3-hero-caption{right:16px;bottom:18px}.v3-menu-grid{grid-template-columns:1fr}.v3-menu-card img{aspect-ratio:4/5}}
+
+/* 기존 화면별 장식 글꼴을 덮어 영문과 숫자까지 전 페이지에서 같은 UI 글꼴로 표시합니다. */
+body,body *{font-family:var(--font-ui)!important;font-variant-numeric:tabular-nums}

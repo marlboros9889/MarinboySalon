@@ -75,6 +75,7 @@ function SalonHome() {
   const [showSignupPolicy, setShowSignupPolicy] = useState(false);
   const [signupPolicyAgreed, setSignupPolicyAgreed] = useState(false);
   const [user, setUser] = useState(null);
+  const [socialProviders, setSocialProviders] = useState({ kakao: false, naver: false });
   const [message, setMessage] = useState('');
   const [policyMessage, setPolicyMessage] = useState('');
   const [heroPolicyAgreed, setHeroPolicyAgreed] = useState(false);
@@ -89,6 +90,12 @@ function SalonHome() {
     getCurrentUser()
       .then((data) => data && setUser(data))
       .catch(() => null);
+
+    // 서버 설정 상태를 확인해 실제 API 키가 준비된 소셜 버튼만 활성화합니다.
+    jwtFetch('/api/auth/social/providers')
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then(setSocialProviders)
+      .catch(() => setSocialProviders({ kakao: false, naver: false }));
   }, [dispatch, services.length]);
 
   useEffect(() => {
@@ -196,7 +203,14 @@ function SalonHome() {
   };
   const moveToMyReservations = () => {
     // 로그인 고객의 예약 신청 화면이 아닌 예약 현황 화면으로 이동합니다.
-    window.location.href = `${API_BASE_URL}/my-reservations`;
+    window.location.href = '/my-reservations';
+  };
+  const startSocialLogin = (provider) => {
+    if (!socialProviders[provider]) {
+      setMessage(`${provider === 'kakao' ? '카카오' : '네이버'} 로그인 API 키 설정이 필요합니다.`);
+      return;
+    }
+    window.location.href = `/oauth2/authorization/${provider}`;
   };
   const openGallery = (service) => setSelectedService(service);
 
@@ -250,10 +264,16 @@ function SalonHome() {
           <div><p className="v3-eyebrow">MEMBERSHIP</p><h2>더 편리한 예약,<br />회원으로 시작하세요.</h2></div>
           {user ? <div className="v3-welcome"><strong>{user.name || '고객'}님</strong><span>예약 내역과 맞춤 서비스를 확인할 수 있어요.</span>{user.role === 'ADMIN' ? <div className="v3-welcome-actions"><a className="v3-secondary-button" href="/admin#reservation-status">예약 현황보기</a><a className="v3-primary-button" href="/admin#service-management">시술 메뉴 수정</a></div> : <div className="v3-welcome-actions"><button className="v3-secondary-button" onClick={moveToMyReservations}>나의 예약 보기</button><button className="v3-inline-button" type="button" onClick={() => setMessage('내 정보 수정은 예약 내역 화면에서 이용할 수 있습니다.')}>내 정보 수정</button></div>}</div>
             : signupMode ? <form className="v3-login-form" onSubmit={signUp}><div className="v3-signup-grid"><DuplicateField label="아이디" value={signup.username} status={duplicateChecks.username} onChange={(value) => changeSignupField('username', value)} onCheck={() => checkDuplicate('username')} /><input value={signup.password} onChange={(e) => changeSignupField('password', e.target.value)} type="password" placeholder="비밀번호" required /><input value={signup.name} onChange={(e) => changeSignupField('name', e.target.value)} placeholder="이름" required /><DuplicateField label="이메일" type="email" value={signup.email} status={duplicateChecks.email} onChange={(value) => changeSignupField('email', value)} onCheck={() => checkDuplicate('email')} /><input value={signup.phone} onChange={(e) => changeSignupField('phone', e.target.value)} placeholder="연락처" required /><button className="v3-primary-button" type="submit">가입하기</button></div><button className="v3-inline-button" type="button" onClick={() => setSignupMode(false)}>로그인으로 돌아가기</button></form>
-              : <form className="v3-login-form" onSubmit={signIn}>
-                <div className="v3-input-row"><input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="아이디" autoComplete="username" required /><input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="비밀번호" autoComplete="current-password" required /><button className="v3-primary-button" type="submit">로그인</button></div>
-                <button className="v3-inline-button" type="button" onClick={() => setSignupMode(true)}>처음이신가요? 회원가입</button>
-              </form>}
+              : <div className="v3-login-form">
+                <form onSubmit={signIn}>
+                  <div className="v3-input-row"><input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="아이디" autoComplete="username" required /><input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="비밀번호" autoComplete="current-password" required /><button className="v3-primary-button" type="submit">로그인</button></div>
+                  <button className="v3-inline-button" type="button" onClick={() => setSignupMode(true)}>처음이신가요? 회원가입</button>
+                </form>
+                <div className="v3-social-row" aria-label="소셜 로그인">
+                  <button className="v3-social-button kakao" type="button" onClick={() => startSocialLogin('kakao')} aria-disabled={!socialProviders.kakao}>카카오 로그인</button>
+                  <button className="v3-social-button naver" type="button" onClick={() => startSocialLogin('naver')} aria-disabled={!socialProviders.naver}>네이버 로그인</button>
+                </div>
+              </div>}
         </div>
         {message && <p className="v3-message">{message}</p>}
       </section>

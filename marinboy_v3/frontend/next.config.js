@@ -9,7 +9,9 @@ const nextConfig = {
       { source: '/images/:path*', destination: `${springBootUrl}/images/:path*` },
       // 관리자 메뉴에서 저장한 대표·상세 이미지를 Spring의 업로드 폴더에서 제공합니다.
       { source: '/uploads/:path*', destination: `${springBootUrl}/uploads/:path*` },
-      { source: '/login', destination: `${springBootUrl}/login` },
+      // 소셜 로그인 시작과 콜백도 3000 주소를 유지한 채 v3 백엔드로 전달합니다.
+      { source: '/oauth2/authorization/:provider', destination: `${springBootUrl}/oauth2/authorization/:provider` },
+      { source: '/login/oauth2/code/:provider', destination: `${springBootUrl}/login/oauth2/code/:provider` },
     ];
   },
 };

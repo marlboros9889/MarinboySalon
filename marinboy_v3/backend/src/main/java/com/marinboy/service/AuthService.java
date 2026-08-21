@@ -6,6 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Locale;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.UUID;
 
 /** 로그인 입력값을 검증하고 사용자 계정을 조회하는 인증 서비스입니다. */
 @Service
@@ -62,6 +67,47 @@ public class AuthService {
         return !isBlank(email) && authMapper.countByEmail(email.trim()) == 0;
     }
 
+    /** 소셜 계정을 조회하거나 최초 로그인 고객 계정을 생성합니다. */
+    @Transactional
+    public UserDto findOrCreateSocialUser(String provider, String socialId, String name, String email, String phone) {
+        if (isBlank(provider) || isBlank(socialId)) {
+            throw new IllegalArgumentException("소셜 로그인 사용자 정보를 확인할 수 없습니다.");
+        }
+        String normalizedProvider = provider.trim().toUpperCase(Locale.ROOT);
+        String normalizedSocialId = socialId.trim();
+        UserDto existingUser = authMapper.findBySocialAccount(normalizedProvider, normalizedSocialId);
+        if (existingUser != null) {
+            existingUser.setPassword(null);
+            return existingUser;
+        }
+
+        String accountHash = shortHash(normalizedProvider + ":" + normalizedSocialId);
+        String normalizedEmail = isBlank(email)
+                ? "social_" + accountHash + "@social.marinboy.local"
+                : email.trim().toLowerCase(Locale.ROOT);
+        if (!isEmailAvailable(normalizedEmail)) {
+            throw new IllegalArgumentException("같은 이메일의 기존 계정이 있습니다. 일반 로그인 후 고객 정보를 확인해 주세요.");
+        }
+
+        UserDto socialUser = new UserDto();
+        socialUser.setUsername(normalizedProvider.toLowerCase(Locale.ROOT) + "_" + accountHash);
+        socialUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+        socialUser.setName(isBlank(name) ? normalizedProvider + " 고객" : name.trim());
+        socialUser.setEmail(normalizedEmail);
+        socialUser.setPhone(isBlank(phone) ? "SOCIAL_REQUIRED" : phone.trim());
+        socialUser.setRole("CUSTOMER");
+        socialUser.setLoginProvider(normalizedProvider);
+        socialUser.setSocialId(normalizedSocialId);
+        authMapper.insertSocialCustomer(socialUser);
+        UserDto savedUser = authMapper.findBySocialAccount(normalizedProvider, normalizedSocialId);
+        if (savedUser == null || savedUser.getId() == null) {
+            throw new IllegalStateException("소셜 로그인 고객 계정을 저장하지 못했습니다.");
+        }
+        savedUser.setDisplayName(savedUser.getName());
+        savedUser.setPassword(null);
+        return savedUser;
+    }
+
     /** 로그인 고객이 연락처 정보를 바꾸면 과거·진행 예약의 안내 정보도 같은 값으로 유지합니다. */
     @Transactional
     public UserDto updateProfile(UserDto current, UserDto request) {
@@ -90,5 +136,15 @@ public class AuthService {
         return storedPassword != null
                 && storedPassword.startsWith("$2")
                 && passwordEncoder.matches(rawPassword, storedPassword);
+    }
+
+    private String shortHash(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash).substring(0, 24);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("소셜 계정 식별자를 만들 수 없습니다.", exception);
+        }
     }
 }

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.marinboy.dto.NotificationDto;
 import com.marinboy.dto.UserDto;
+import com.marinboy.mapper.AuthMapper;
 import com.marinboy.security.SecurityConstants;
 import com.marinboy.service.AuthenticatedUserService;
 import com.marinboy.service.NotificationService;
@@ -23,13 +24,15 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 class NotificationControllerTest {
     private NotificationService notificationService;
     private SseEmitterManager emitterManager;
+    private AuthMapper authMapper;
     private NotificationController controller;
 
     @BeforeEach
     void setUp() {
         notificationService = mock(NotificationService.class);
         emitterManager = mock(SseEmitterManager.class);
-        controller = new NotificationController(notificationService, emitterManager, new AuthenticatedUserService());
+        authMapper = mock(AuthMapper.class);
+        controller = new NotificationController(notificationService, emitterManager, new AuthenticatedUserService(authMapper));
     }
 
     @Test
@@ -62,7 +65,9 @@ class NotificationControllerTest {
     private Authentication authentication(Long userId, String role) {
         UserDto user = new UserDto();
         user.setId(userId);
+        user.setUsername("test-" + userId);
         user.setRole(role);
+        when(authMapper.findByUsername(user.getUsername())).thenReturn(user);
         return new UsernamePasswordAuthenticationToken(user, null,
                 List.of(new SimpleGrantedAuthority("ROLE_" + role)));
     }

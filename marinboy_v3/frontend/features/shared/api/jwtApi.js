@@ -6,7 +6,10 @@ export async function jwtFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});
   const accessToken = getAccessToken();
   if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
-  return fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  // 만료되거나 폐기된 토큰은 즉시 지워 다음 화면에서도 로그인 상태로 오인하지 않게 합니다.
+  if (accessToken && response.status === 401) clearAccessToken();
+  return response;
 }
 
 export function getAccessToken() {
