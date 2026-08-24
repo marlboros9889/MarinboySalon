@@ -73,5 +73,6 @@ Calendar 서비스 계정 JSON은 저장소 밖 `${user.home}/.marinboy-salon/cr
 
 - 보호 API는 `HttpSession` 없이 Bearer JWT만 사용합니다.
 - OAuth `state`와 로그아웃 JWT는 Redis에 만료시간과 함께 저장합니다.
+- 제공자가 검증한 이메일만 기존 일반 계정에 자동 연결합니다.
 - 비밀번호는 BCrypt, SQL 입력값은 MyBatis `#{}` 바인딩을 사용합니다.
 - DB 비밀번호·OAuth Secret·Calendar 키·업로드 파일은 Git과 JAR에 넣지 않습니다.

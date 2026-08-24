@@ -34,6 +34,7 @@ Bearer JWT·OAuth state·logout token → Spring Security·Redis
 - 공통 HTTP/JWT 처리는 API Client 한 곳에 두고, 예약·인증·관리자 API를 도메인 도구로 분리합니다.
 - `HttpSession` 없이 보호 API를 JWT 하나로 통일합니다.
 - 일반·소셜 로그인이 같은 고객과 예약 소유권으로 연결됩니다.
+- 제공자가 검증한 이메일만 기존 고객 계정에 자동 연결합니다.
 - 운영 규칙을 하드코딩하지 않고 관리자 UI와 DB로 이동합니다.
 - Calendar 연동은 예약 트랜잭션 뒤에 실행합니다.
 
@@ -45,6 +46,7 @@ Bearer JWT·OAuth state·logout token → Spring Security·Redis
 - 제품 기능이 아닌 DB 메타데이터·시간 점검 API
 - Calendar와 역할이 겹치는 DB 알림·SSE·메일 계층
 - Swagger 학습 설정, 과거 변환 SQL, 중복 교본·아키텍처 문서
+- 관리자 통합 Controller, 전체 API를 담던 `salonApi`, 화면별 중복 프로필 폼·예약 시간 조회
 
 ## 세 버전에서 유지하는 부품 원칙
 
@@ -57,3 +59,17 @@ V3  + API Client·Domain API / React Component
 버전이 바뀌어도 예약 중복 검사·소유권·상태 전이 같은 업무 규칙은 Service의 한 경로만 사용합니다. 화면 기술이 바뀔 때는 기존 화면을 함께 활성화하지 않고 새 화면으로 교체합니다. 부품은 한 가지 책임, 분명한 입력·출력, 단독 테스트가 있을 때만 추가합니다.
 
 V1·V2·V3는 구조 발전의 참고 근거로만 남기고, GitHub 기본 브랜치의 실행 코드는 독립된 `marinboySalon` 하나만 유지합니다.
+
+## 최종 2차 리팩토링 결과
+
+```text
+ADMIN API       → 예약 / 일정 / 메뉴 Controller
+예약 SQL        → 예약 저장 Mapper / 일정 계산 Mapper
+인증 업무       → 일반 인증 Service / 소셜 계정 Service
+프런트 HTTP     → authApi / serviceApi / reservationApi / adminApi
+반복 화면 흐름  → ProfileForm / useReservationSlots
+파일 처리       → ServiceImageTool
+실행 스크립트   → project-tools.ps1
+```
+
+분리는 파일 수를 늘리는 목적이 아니라 서로 교체 가능한 기능 경계를 만들기 위해 적용했습니다. 도메인 규칙이 없는 단순 한두 줄까지 별도 도구로 만들지 않았고, 사용하지 않는 조회·인자·테스트 의존성은 제거했습니다.

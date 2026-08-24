@@ -1,12 +1,12 @@
 package com.marinboy.controller;
 
+import com.marinboy.dto.AvailableSlotsResponseDto;
 import com.marinboy.dto.ReservationDto;
 import com.marinboy.dto.ServiceItemDto;
 import com.marinboy.dto.UserDto;
 import com.marinboy.service.ReservationService;
 import com.marinboy.service.ReservationScheduleService;
 import com.marinboy.service.ServiceItemService;
-import com.marinboy.service.AuthService;
 import com.marinboy.service.AuthenticatedUserService;
 import java.time.LocalDate;
 import java.util.List;
@@ -28,19 +28,16 @@ public class ReservationController {
     private final ServiceItemService serviceItemService;
     private final ReservationService reservationService;
     private final ReservationScheduleService reservationScheduleService;
-    private final AuthService authService;
     private final AuthenticatedUserService authenticatedUserService;
 
     public ReservationController(
             ServiceItemService serviceItemService,
             ReservationService reservationService,
             ReservationScheduleService reservationScheduleService,
-            AuthService authService,
             AuthenticatedUserService authenticatedUserService) {
         this.serviceItemService = serviceItemService;
         this.reservationService = reservationService;
         this.reservationScheduleService = reservationScheduleService;
-        this.authService = authService;
         this.authenticatedUserService = authenticatedUserService;
     }
 
@@ -51,7 +48,7 @@ public class ReservationController {
     }
 
     @GetMapping("/api/services/{serviceId}/available-slots")
-    public ReservationDto availableSlots(
+    public AvailableSlotsResponseDto availableSlots(
             @PathVariable Long serviceId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         // 영업시간, 휴무일, 시술 시간과 기존 예약을 반영한 시간만 반환합니다.
@@ -75,7 +72,7 @@ public class ReservationController {
 
     @GetMapping("/api/customers/my-reservations")
     public ResponseEntity<List<ReservationDto>> myReservations(Authentication authentication) {
-        // 로그인 고객의 전화번호를 기준으로 진행 중인 예약을 조회합니다.
+        // 로그인 고객 ID를 기준으로 진행 중인 본인 예약만 조회합니다.
         UserDto user = authenticatedUserService.requireUser(authentication);
         if (user.getId() == null) {
             return ResponseEntity.status(401).build();
@@ -83,23 +80,13 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getCustomerActiveReservations(user.getId()));
     }
 
-    // 수정 화면에서 로그인한 고객의 예약 한 건만 조회해 다른 고객 예약 노출을 차단합니다.
-    @GetMapping("/api/customers/my-reservations/{reservationId}")
-    public ResponseEntity<ReservationDto> myReservation(
-            @PathVariable Long reservationId, Authentication authentication) {
-        UserDto user = authenticatedUserService.requireUser(authentication);
-        if (user.getId() == null) {
-            return ResponseEntity.status(401).build();
-        }
-        return ResponseEntity.ok(reservationService.getCustomerReservation(reservationId, user.getId()));
-    }
-
     @PutMapping("/api/customers/my-reservations/{reservationId}")
     public ResponseEntity<Void> updateMyReservation(@PathVariable Long reservationId, @RequestBody ReservationDto request,
             Authentication authentication) {
         UserDto user = authenticatedUserService.requireUser(authentication);
-        if (user.getId() == null)
+        if (user.getId() == null) {
             return ResponseEntity.status(401).build();
+        }
         reservationService.updateCustomerReservation(reservationId, user.getId(), request);
         return ResponseEntity.noContent().build();
     }
@@ -112,13 +99,5 @@ public class ReservationController {
         }
         reservationService.cancelCustomerReservation(reservationId, user.getId());
         return ResponseEntity.noContent().build();
-    }
-
-    // 고객 본인이 이름·이메일·연락처를 수정하며 다음 로그인 토큰부터 변경값을 사용합니다.
-    @PutMapping("/api/customers/me")
-    public ResponseEntity<UserDto> updateMe(@RequestBody UserDto request, Authentication authentication) {
-        UserDto user = authenticatedUserService.requireUser(authentication);
-        UserDto updated = authService.updateProfile(user, request);
-        return ResponseEntity.ok(updated);
     }
 }

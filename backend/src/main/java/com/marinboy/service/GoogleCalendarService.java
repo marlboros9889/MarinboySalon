@@ -60,7 +60,7 @@ public class GoogleCalendarService {
         }
     }
 
-    // ReservationService가 DB 커밋을 확인한 뒤 호출하므로 외부 API 장애가 예약 저장을 되돌리지 않습니다.
+    // Calendar 이벤트 연결 도구가 DB 커밋을 확인한 뒤 호출하므로 외부 장애가 예약 저장을 되돌리지 않습니다.
     @Async
     public void createReservationEvent(GoogleCalendarReservationEvent reservationEvent) {
         try {

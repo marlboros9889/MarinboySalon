@@ -3,6 +3,8 @@ package com.marinboy.controller;
 import com.marinboy.dto.UserDto;
 import com.marinboy.dto.JwtAuthResponseDto;
 import com.marinboy.dto.JwtLoginRequestDto;
+import com.marinboy.dto.SignupRequestDto;
+import com.marinboy.dto.UserResponseDto;
 import com.marinboy.security.jwt.JwtTokenProvider;
 import com.marinboy.security.jwt.RedisTokenBlacklistService;
 import com.marinboy.service.AuthenticatedUserService;
@@ -45,12 +47,12 @@ public class AuthController {
         user.setDisplayName(user.getName());
         user.setLoginProvider("DATABASE");
         String token = jwtTokenProvider.createAccessToken(user);
-        return ResponseEntity.ok(new JwtAuthResponseDto(token, "Bearer", user));
+        return ResponseEntity.ok(new JwtAuthResponseDto(token, "Bearer", UserResponseDto.from(user)));
     }
 
     //2. 고객 회원가입  POST: /api/auth/signup
     @PostMapping("/signup")
-    public ResponseEntity<Void> signup(@RequestBody UserDto request) {
+    public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequestDto request) {
         // 관리자 권한은 회원가입 API에서 만들지 않고 고객 권한만 생성합니다.
         authService.signup(request);
         return ResponseEntity.noContent().build();
@@ -70,8 +72,9 @@ public class AuthController {
 
     //5. 현재 사용자 조회  GET: /api/auth/me
     @GetMapping("/me")
-    public ResponseEntity<UserDto> me(Authentication authentication) {
-        return ResponseEntity.ok(authenticatedUserService.requireUser(authentication));
+    public ResponseEntity<UserResponseDto> me(Authentication authentication) {
+        UserDto user = authenticatedUserService.requireUser(authentication);
+        return ResponseEntity.ok(UserResponseDto.from(user));
     }
 
     //6. 로그아웃  POST: /api/auth/logout

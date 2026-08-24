@@ -14,16 +14,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.marinboy.mapper.ReservationMapper;
+import com.marinboy.mapper.ReservationScheduleMapper;
 import com.marinboy.dto.ReservationDto;
 import com.marinboy.dto.BusinessHourRequestDto;
+import com.marinboy.dto.AvailableSlotsResponseDto;
+import com.marinboy.dto.SignupRequestDto;
 import com.marinboy.dto.UserDto;
 import com.marinboy.service.AuthService;
+import com.marinboy.service.SocialAccountService;
 import com.marinboy.service.ReservationService;
 import com.marinboy.service.ReservationScheduleService;
 import com.marinboy.service.ServiceItemService;
 import com.marinboy.security.SecurityConstants;
 import com.marinboy.security.jwt.JwtTokenProvider;
 import com.marinboy.security.jwt.RedisTokenBlacklistService;
+import com.marinboy.security.oauth.SocialProfile;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -56,7 +61,13 @@ class MarinboyApplicationTests {
     private ReservationMapper salonReservationDao;
 
     @Autowired
+    private ReservationScheduleMapper reservationScheduleMapper;
+
+    @Autowired
     private AuthService authService;
+
+    @Autowired
+    private SocialAccountService socialAccountService;
 
     @Autowired
     private SecurityFilterChain securityFilterChain;
@@ -95,12 +106,12 @@ class MarinboyApplicationTests {
         customer.setName("다중 소셜 검증 고객");
         customer.setEmail("multi_" + suffix + "@example.test");
         customer.setPhone("010-7000-7000");
-        authService.signup(customer);
+        authService.signup(signupRequest(customer));
 
-        UserDto googleUser = authService.findOrCreateSocialUser(
-                "google", "google-" + suffix, customer.getName(), customer.getEmail(), null);
-        UserDto naverUser = authService.findOrCreateSocialUser(
-                "naver", "naver-" + suffix, customer.getName(), customer.getEmail(), null);
+        UserDto googleUser = socialAccountService.findOrCreate(new SocialProfile(
+                "google", "google-" + suffix, customer.getName(), customer.getEmail(), null, true));
+        UserDto naverUser = socialAccountService.findOrCreate(new SocialProfile(
+                "naver", "naver-" + suffix, customer.getName(), customer.getEmail(), null, true));
 
         assertThat(googleUser.getId()).isEqualTo(naverUser.getId());
         assertThat(jdbcTemplate.queryForObject(
@@ -138,12 +149,12 @@ class MarinboyApplicationTests {
     @Transactional
     void reservationCreateAndUpdateAreConnectedThroughMyBatis() {
         LocalDate date = LocalDate.now().plusDays(1);
-        ReservationDto slots = reservationScheduleService.getAvailableSlots(1L, date);
-        while (slots.getAvailableSlots().isEmpty() && date.isBefore(LocalDate.now().plusDays(7))) {
+        AvailableSlotsResponseDto slots = reservationScheduleService.getAvailableSlots(1L, date);
+        while (slots.availableSlots().isEmpty() && date.isBefore(LocalDate.now().plusDays(7))) {
             date = date.plusDays(1);
             slots = reservationScheduleService.getAvailableSlots(1L, date);
         }
-        assertThat(slots.getAvailableSlots()).isNotEmpty();
+        assertThat(slots.availableSlots()).isNotEmpty();
 
         String suffix = String.valueOf(System.nanoTime());
         String phone = "010-9999-" + suffix.substring(Math.max(0, suffix.length() - 4));
@@ -153,7 +164,7 @@ class MarinboyApplicationTests {
         customer.setName("연결 검증 고객");
         customer.setEmail("reservation_" + suffix + "@example.test");
         customer.setPhone(phone);
-        authService.signup(customer);
+        authService.signup(signupRequest(customer));
         Long customerId = jdbcTemplate.queryForObject(
                 "SELECT ID FROM MB_USER WHERE USERNAME = ?", Long.class, customer.getUsername());
 
@@ -162,7 +173,7 @@ class MarinboyApplicationTests {
         request.setCustomerName("연결 검증 고객");
         request.setCustomerEmail("connection-test@marinboy.test");
         request.setCustomerPhone(phone);
-        request.setReservationDateTime(slots.getAvailableSlots().get(0));
+        request.setReservationDateTime(slots.availableSlots().get(0));
         request.setNoShowPolicyAgreed(true);
         request.setMemo("생성 연결 검증");
         salonReservationService.createReservation(request, customerId);
@@ -170,7 +181,7 @@ class MarinboyApplicationTests {
         ReservationDto created = salonReservationDao.findCustomerReservationsByCustomerId(customerId).get(0);
         assertThat(salonReservationDao.findCustomerReservationByCustomerId(created.getId(), customerId + 999999L))
                 .isNull();
-        request.setReservationDateTime(slots.getAvailableSlots().get(0));
+        request.setReservationDateTime(slots.availableSlots().get(0));
         request.setMemo("수정 연결 검증");
         request.setNoShowPolicyAgreed(false);
         assertThatThrownBy(() -> salonReservationService.updateCustomerReservation(created.getId(), customerId, request))
@@ -202,7 +213,7 @@ class MarinboyApplicationTests {
         openRule.setOpenTime("10:00");
         openRule.setCloseTime("19:00");
         reservationScheduleService.saveBusinessHour(openRule);
-        assertThat(reservationScheduleService.getAvailableSlots(2L, sunday).getAvailableSlots()).isNotEmpty();
+        assertThat(reservationScheduleService.getAvailableSlots(2L, sunday).availableSlots()).isNotEmpty();
 
         BusinessHourRequestDto closedRule = new BusinessHourRequestDto();
         closedRule.setDayOfWeek(7);
@@ -210,7 +221,7 @@ class MarinboyApplicationTests {
         closedRule.setOpenTime("10:00");
         closedRule.setCloseTime("19:00");
         reservationScheduleService.saveBusinessHour(closedRule);
-        assertThat(reservationScheduleService.getAvailableSlots(2L, sunday).getAvailableSlots()).isEmpty();
+        assertThat(reservationScheduleService.getAvailableSlots(2L, sunday).availableSlots()).isEmpty();
     }
 
     /** ADMIN API가 요일 영업 규칙과 특정 휴무일을 실제 Oracle에 저장·해제하는지 검증합니다. */
@@ -234,7 +245,7 @@ class MarinboyApplicationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"open\":false,\"openTime\":\"10:00\",\"closeTime\":\"19:00\"}"))
                 .andExpect(status().isNoContent());
-        assertThat(salonReservationDao.findBusinessHour(7).getOpen()).isFalse();
+        assertThat(reservationScheduleMapper.findBusinessHour(7).getOpen()).isFalse();
 
         LocalDate holidayDate = LocalDate.now().plusDays(5);
         mockMvc.perform(post("/api/admin/holidays")
@@ -242,13 +253,13 @@ class MarinboyApplicationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"holidayDate\":\"" + holidayDate + "\",\"reason\":\"API 검증 휴무\"}"))
                 .andExpect(status().isNoContent());
-        assertThat(salonReservationDao.countHoliday(holidayDate)).isEqualTo(1);
+        assertThat(reservationScheduleMapper.countHoliday(holidayDate)).isEqualTo(1);
 
         mockMvc.perform(delete("/api/admin/holidays")
                         .header("Authorization", "Bearer " + accessToken)
                         .param("holidayDate", holidayDate.toString()))
                 .andExpect(status().isNoContent());
-        assertThat(salonReservationDao.countHoliday(holidayDate)).isZero();
+        assertThat(reservationScheduleMapper.countHoliday(holidayDate)).isZero();
     }
 
     /** 회원가입 후 JWT 로그인 토큰이 고객 조회 API까지 이어지는지 검증합니다. */
@@ -372,5 +383,11 @@ class MarinboyApplicationTests {
         mockMvc.perform(get("/api/services").header("Origin", reactOrigin))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", reactOrigin));
+    }
+
+    private SignupRequestDto signupRequest(UserDto user) {
+        // 통합 테스트의 사용자 준비 데이터를 실제 회원가입 요청 형태로 변환합니다.
+        return new SignupRequestDto(
+                user.getUsername(), user.getPassword(), user.getName(), user.getEmail(), user.getPhone());
     }
 }

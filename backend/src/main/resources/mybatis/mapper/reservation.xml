@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<!-- ReservationMapper와 연결되어 고객 예약과 매장 운영 규칙을 처리합니다. -->
+<!-- ReservationMapper와 연결되어 고객 예약 저장·조회·상태 변경을 처리합니다. -->
 <mapper namespace="com.marinboy.mapper.ReservationMapper">
     <resultMap id="reservationResultMap" type="ReservationDto">
         <id property="id" column="ID"/>
@@ -65,74 +65,6 @@
               > #{reservationDateTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler}
         ]]>
     </select>
-
-    <!-- findActiveReservationsForDate: 후보 시간마다 DB를 호출하지 않도록 하루 예약을 한 번에 조회합니다. -->
-    <select id="findActiveReservationsForDate" resultMap="reservationResultMap">
-        SELECT R.RESERVATION_DATE_TIME, S.DURATION_MINUTES
-        FROM MB_RESERVATION R
-        JOIN MB_SERVICE_ITEM S ON S.ID = R.SERVICE_ID
-        WHERE R.STATUS IN ('REQUESTED', 'CONFIRMED')
-          AND R.RESERVATION_DATE_TIME &gt;= #{reservationDate, jdbcType=DATE}
-          AND R.RESERVATION_DATE_TIME &lt; #{reservationDate, jdbcType=DATE} + 1
-        ORDER BY R.RESERVATION_DATE_TIME
-    </select>
-
-    <!-- 관리자가 지정한 휴무일을 조회·저장·해제합니다. -->
-    <select id="countHoliday" resultType="int">
-        SELECT COUNT(*) FROM MB_HOLIDAY WHERE HOLIDAY_DATE = #{reservationDate}
-    </select>
-
-    <select id="findHolidays" resultType="HolidayResponseDto">
-        SELECT HOLIDAY_DATE AS holidayDate, REASON AS reason
-        FROM MB_HOLIDAY
-        ORDER BY HOLIDAY_DATE
-    </select>
-
-    <insert id="saveHoliday">
-        MERGE INTO MB_HOLIDAY H
-        USING (SELECT #{holidayDate} AS HOLIDAY_DATE, #{reason} AS REASON FROM DUAL) V
-        ON (H.HOLIDAY_DATE = V.HOLIDAY_DATE)
-        WHEN MATCHED THEN UPDATE SET H.REASON = V.REASON
-        WHEN NOT MATCHED THEN INSERT (HOLIDAY_DATE, REASON) VALUES (V.HOLIDAY_DATE, V.REASON)
-    </insert>
-
-    <delete id="deleteHoliday">
-        DELETE FROM MB_HOLIDAY WHERE HOLIDAY_DATE = #{holidayDate}
-    </delete>
-
-    <!-- 요일별 영업 규칙을 예약 계산과 관리자 화면이 함께 사용합니다. -->
-    <select id="findBusinessHours" resultType="BusinessHourResponseDto">
-        SELECT ID AS id, DAY_OF_WEEK AS dayOfWeek, IS_OPEN AS open,
-               OPEN_TIME AS openTime, CLOSE_TIME AS closeTime
-        FROM MB_BUSINESS_HOUR
-        ORDER BY DAY_OF_WEEK
-    </select>
-
-    <select id="findBusinessHour" resultType="BusinessHourResponseDto">
-        SELECT ID AS id, DAY_OF_WEEK AS dayOfWeek, IS_OPEN AS open,
-               OPEN_TIME AS openTime, CLOSE_TIME AS closeTime
-        FROM MB_BUSINESS_HOUR
-        WHERE DAY_OF_WEEK = #{dayOfWeek}
-    </select>
-
-    <insert id="saveBusinessHour">
-        MERGE INTO MB_BUSINESS_HOUR B
-        USING (
-            SELECT #{dayOfWeek} AS DAY_OF_WEEK,
-                   #{open} AS IS_OPEN,
-                   #{openTime} AS OPEN_TIME,
-                   #{closeTime} AS CLOSE_TIME
-            FROM DUAL
-        ) V
-        ON (B.DAY_OF_WEEK = V.DAY_OF_WEEK)
-        WHEN MATCHED THEN UPDATE SET
-            B.IS_OPEN = V.IS_OPEN,
-            B.OPEN_TIME = V.OPEN_TIME,
-            B.CLOSE_TIME = V.CLOSE_TIME,
-            B.UPDATED_AT = SYSTIMESTAMP
-        WHEN NOT MATCHED THEN INSERT (DAY_OF_WEEK, IS_OPEN, OPEN_TIME, CLOSE_TIME)
-            VALUES (V.DAY_OF_WEEK, V.IS_OPEN, V.OPEN_TIME, V.CLOSE_TIME)
-    </insert>
 
     <!-- 로그인 고객 ID와 예약 당시 연락처 스냅샷을 함께 저장합니다. -->
     <insert id="insertReservation">

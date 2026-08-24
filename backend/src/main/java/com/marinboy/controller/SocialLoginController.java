@@ -9,8 +9,8 @@ import com.marinboy.dto.UserDto;
 import com.marinboy.security.jwt.JwtTokenProvider;
 import com.marinboy.security.oauth.RedisOAuthStateService;
 import com.marinboy.security.oauth.SocialLoginService;
-import com.marinboy.security.oauth.SocialLoginService.SocialProfile;
-import com.marinboy.service.AuthService;
+import com.marinboy.security.oauth.SocialProfile;
+import com.marinboy.service.SocialAccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,16 +27,16 @@ public class SocialLoginController {
     private static final Logger log = LoggerFactory.getLogger(SocialLoginController.class);
     private final SocialLoginService socialLoginService;
     private final RedisOAuthStateService stateService;
-    private final AuthService authService;
+    private final SocialAccountService socialAccountService;
     private final JwtTokenProvider jwtTokenProvider;
     private final String frontendBaseUrl;
 
     public SocialLoginController(SocialLoginService socialLoginService, RedisOAuthStateService stateService,
-            AuthService authService, JwtTokenProvider jwtTokenProvider,
+            SocialAccountService socialAccountService, JwtTokenProvider jwtTokenProvider,
             @Value("${app.frontend.base-url:http://127.0.0.1:3000}") String frontendBaseUrl) {
         this.socialLoginService = socialLoginService;
         this.stateService = stateService;
-        this.authService = authService;
+        this.socialAccountService = socialAccountService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.frontendBaseUrl = removeTrailingSlash(frontendBaseUrl);
     }
@@ -62,14 +62,15 @@ public class SocialLoginController {
             @RequestParam(required = false) String error) {
         try {
             String normalizedProvider = socialLoginService.normalizeProvider(provider);
-            if (error != null) throw new IllegalArgumentException("소셜 로그인이 취소되었습니다.");
+            if (error != null) {
+                throw new IllegalArgumentException("소셜 로그인이 취소되었습니다.");
+            }
             if (!stateService.consume(state, normalizedProvider)) {
                 throw new IllegalArgumentException("소셜 로그인 요청이 만료되었거나 올바르지 않습니다.");
             }
 
             SocialProfile profile = socialLoginService.loadProfile(normalizedProvider, code, state);
-            UserDto user = authService.findOrCreateSocialUser(profile.provider(), profile.socialId(),
-                    profile.name(), profile.email(), profile.phone());
+            UserDto user = socialAccountService.findOrCreate(profile);
             user.setDisplayName(user.getName());
             String accessToken = jwtTokenProvider.createAccessToken(user);
             // 토큰은 서버 접근 로그에 남는 query가 아니라 브라우저 내부 fragment로 전달합니다.
@@ -86,7 +87,9 @@ public class SocialLoginController {
 
     private String removeTrailingSlash(String value) {
         String result = value == null ? "" : value.trim();
-        while (result.endsWith("/")) result = result.substring(0, result.length() - 1);
+        while (result.endsWith("/")) {
+            result = result.substring(0, result.length() - 1);
+        }
         return result;
     }
 }
