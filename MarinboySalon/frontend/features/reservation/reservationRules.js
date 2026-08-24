@@ -1,5 +1,13 @@
 const MAX_BOOKING_DAYS = 7;
 
+/** 브라우저 지역 설정과 관계없이 날짜 입력란이 요구하는 YYYY-MM-DD 형식으로 변환합니다. */
+export function formatDateInputValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /** 예약 화면과 테스트가 같은 기준으로 버튼 활성화 조건을 판단합니다. */
 export function canSubmitReservation({
   user,
@@ -24,7 +32,7 @@ export function canSubmitReservation({
 export function getMaximumBookingDate(today) {
   const maximumDate = new Date(`${today}T00:00:00`);
   maximumDate.setDate(maximumDate.getDate() + MAX_BOOKING_DAYS);
-  return maximumDate.toLocaleDateString('en-CA');
+  return formatDateInputValue(maximumDate);
 }
 
 /** 날짜는 별도 입력란에 표시하므로 시간 선택 목록에는 시각만 보여 줍니다. */

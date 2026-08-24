@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.marinboy.db.DbSchemaService;
 import com.marinboy.dao.SalonReservationDao;
 import com.marinboy.dto.ReservationDto;
+import com.marinboy.dto.ServiceDto;
 import com.marinboy.service.DatabaseVerificationService;
 import com.marinboy.service.SalonReservationService;
 import com.marinboy.service.SalonServiceService;
@@ -21,6 +22,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.util.List;
 
 // MyBatis 재설계 프로젝트의 핵심 연결 상태를 검증하는 테스트입니다.
 @SpringBootTest
@@ -70,15 +72,22 @@ class MarinboyMybatisApplicationTests {
 
     @Test
     void mapperAndServiceCanReadSalonData() {
-        // SalonServiceService -> SalonServiceDao -> salon-service-mapper.xml 흐름으로 시술 메뉴를 읽는지 검증합니다.
-        assertThat(salonServiceService.getServices())
-                .extracting("name")
-                .contains("웨이브 펌", "시그니처 컷", "젤 네일 기본", "신부 화장");
+        // 관리자 변경 뒤에도 유효한 메뉴 행이 DTO로 매핑되는지를 검증해 특정 샘플명에 묶이지 않게 합니다.
+        List<ServiceDto> services = salonServiceService.getServices();
+        assertThat(services).isNotEmpty();
+        assertThat(services).allSatisfy(service -> {
+            assertThat(service.getId()).isPositive();
+            assertThat(service.getName()).isNotBlank();
+            assertThat(service.getDurationMinutes()).isPositive();
+            assertThat(service.getPrice()).isPositive();
+        });
 
         // SalonReservationService -> SalonReservationDao -> salon-reservation-mapper.xml 흐름으로 고객 이력을 읽는지 검증합니다.
-        assertThat(salonReservationService.getCustomerHistory("010-2222-1111"))
+        List<ReservationDto> customerHistory = salonReservationService.getCustomerHistory("010-2222-1111");
+        assertThat(customerHistory).isNotEmpty();
+        assertThat(customerHistory)
                 .extracting("serviceName")
-                .contains("웨이브 펌");
+                .allSatisfy(serviceName -> assertThat(serviceName).asString().isNotBlank());
     }
 
     @Test

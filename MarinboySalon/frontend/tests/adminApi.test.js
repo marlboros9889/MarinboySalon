@@ -27,3 +27,21 @@ test('예약 목록 도구는 예약 API 한 곳만 호출한다', async () => {
 
   assert.deepEqual(requestedUrls, ['/api/admin/reservations?page=2&size=5']);
 });
+
+// 시술 메뉴 삭제는 ADMIN JWT와 DELETE 메서드를 함께 보내야 서버의 논리 삭제 API에 도달합니다.
+test('시술 메뉴 삭제 도구는 관리자 DELETE API를 호출한다', async () => {
+  prepareBrowserStorage();
+  let requestedUrl = '';
+  let requestedOptions = null;
+  global.fetch = async (url, options) => {
+    requestedUrl = url;
+    requestedOptions = options;
+    return new Response(null, { status: 204 });
+  };
+
+  await adminApi.deleteService(7);
+
+  assert.equal(requestedUrl, '/api/admin/services/7');
+  assert.equal(requestedOptions.method, 'DELETE');
+  assert.equal(requestedOptions.headers.get('Authorization'), 'Bearer admin-token');
+});
