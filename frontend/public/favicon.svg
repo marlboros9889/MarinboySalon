@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <!-- 검정 바탕과 골드 M으로 살롱의 대표 색상을 작은 탭 아이콘에서도 유지합니다. -->
+  <rect width="48" height="48" rx="12" fill="#090909"/>
+  <path d="M10 35V13h5.4L24 26.2 32.6 13H38v22h-5.5V22.1L24 34.7l-8.5-12.6V35z" fill="#d4af37"/>
+</svg>
