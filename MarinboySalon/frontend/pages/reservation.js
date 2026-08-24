@@ -4,6 +4,7 @@ import { reservationApi } from '../features/reservation/reservationApi';
 import { useReservationSlots } from '../features/reservation/useReservationSlots';
 import {
   canSubmitReservation,
+  formatDateInputValue,
   formatReservationTime,
   getMaximumBookingDate,
 } from '../features/reservation/reservationRules';
@@ -103,7 +104,7 @@ export default function Reservation() {
     }
   };
 
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = formatDateInputValue(new Date());
   const maximumDate = getMaximumBookingDate(today);
   const reservationEnabled = canSubmitReservation({
     user,

@@ -18,6 +18,7 @@ import com.marinboy.mapper.ReservationScheduleMapper;
 import com.marinboy.dto.ReservationDto;
 import com.marinboy.dto.BusinessHourRequestDto;
 import com.marinboy.dto.AvailableSlotsResponseDto;
+import com.marinboy.dto.ServiceItemDto;
 import com.marinboy.dto.SignupRequestDto;
 import com.marinboy.dto.UserDto;
 import com.marinboy.service.AuthService;
@@ -42,6 +43,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.time.LocalDate;
 import java.time.DayOfWeek;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 
 // MyBatis 재설계 프로젝트의 핵심 연결 상태를 검증하는 테스트입니다.
 @SpringBootTest(properties = "app.google-calendar.enabled=false")
@@ -87,10 +89,15 @@ class MarinboyApplicationTests {
 
     @Test
     void mapperAndServiceCanReadSalonData() {
-        // Service → Mapper → Oracle 흐름으로 실제 시술 메뉴를 읽는지 검증합니다.
-        assertThat(serviceItemService.getServices())
-                .extracting("name")
-                .contains("웨이브 펌", "시그니처 컷", "글로시 컬러", "맨즈 디자인 컷");
+        // 관리자 변경 뒤에도 유효한 메뉴 행이 DTO로 매핑되는지를 검증해 특정 샘플명에 묶이지 않게 합니다.
+        List<ServiceItemDto> services = serviceItemService.getServices();
+        assertThat(services).isNotEmpty();
+        assertThat(services).allSatisfy(service -> {
+            assertThat(service.getId()).isPositive();
+            assertThat(service.getName()).isNotBlank();
+            assertThat(service.getDurationMinutes()).isPositive();
+            assertThat(service.getPrice()).isPositive();
+        });
         assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM MB_SERVICE_ITEM", Integer.class))
                 .isPositive();
     }
@@ -366,6 +373,38 @@ class MarinboyApplicationTests {
                 "SELECT NAME FROM MB_SERVICE_ITEM WHERE ID = ?",
                 String.class,
                 1L)).isEqualTo("웨이브 펌 수정 검증");
+    }
+
+    /** 관리자 삭제 요청이 예약 이력은 보존하고 활성 메뉴 목록에서만 제외하는지 검증합니다. */
+    @Test
+    @Transactional
+    void adminCanDeleteServiceItemWhilePreservingReservationHistory() throws Exception {
+        UserDto admin = new UserDto();
+        admin.setId(1L);
+        admin.setRole(SecurityConstants.ROLE_ADMIN);
+        admin.setUsername("admin-delete-test");
+        admin.setName("관리자");
+        String accessToken = jwtTokenProvider.createAccessToken(admin);
+        Long reservationCountBefore = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM MB_RESERVATION WHERE SERVICE_ID = ?",
+                Long.class,
+                1L);
+
+        mockMvc.perform(delete("/api/admin/services/{id}", 1L)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNoContent());
+
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT CATEGORY FROM MB_SERVICE_ITEM WHERE ID = ?",
+                String.class,
+                1L)).isEqualTo("DELETED");
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM MB_RESERVATION WHERE SERVICE_ID = ?",
+                Long.class,
+                1L)).isEqualTo(reservationCountBefore);
+        mockMvc.perform(get("/api/services"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == 1)]").isEmpty());
     }
 
     /** Next.js 서버가 Authorization 헤더로 보호 API를 호출할 수 있는지 검증합니다. */

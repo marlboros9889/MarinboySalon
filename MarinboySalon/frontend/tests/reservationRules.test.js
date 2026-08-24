@@ -2,10 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   canSubmitReservation,
+  formatDateInputValue,
   formatReservationTime,
   getMaximumBookingDate,
   includeCurrentReservationSlot,
 } from '../features/reservation/reservationRules.js';
+
+// 날짜 입력값은 PC의 언어 설정이 달라도 HTML date 형식으로 유지해야 달력이 정상 동작합니다.
+test('예약 날짜 입력값은 YYYY-MM-DD 형식이다', () => {
+  const localDate = new Date(2026, 7, 24, 12, 0, 0);
+  assert.equal(formatDateInputValue(localDate), '2026-08-24');
+});
 
 // 예약 제출 조건을 한 곳에서 검증해 화면 버튼과 실제 요청의 판단이 달라지지 않게 합니다.
 test('소셜 고객은 연락처를 입력한 뒤 시간까지 선택해야 예약할 수 있다', () => {
