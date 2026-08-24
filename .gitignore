@@ -1,41 +1,54 @@
-# 빌드·프런트엔드 산출물
+# 빌드 산출물
+target/
 **/target/
-**/node_modules/
-**/dist/
+bin/
+**/bin/
 **/.next/
 **/.expo/
 **/dist-verify/
 **/coverage/
 **/.cache/
+output/
 
-# IDE·테스트 도구 메타데이터
+# 프런트엔드 의존성
+node_modules/
+**/node_modules/
+
+# IDE/도구 메타데이터
+.metadata/
 **/.metadata/
+.settings/
 **/.settings/
+.playwright-cli/
 **/.playwright-cli/
-**/.idea/
-**/.vscode/
-**/.project
-**/.classpath
+.idea/
+.vscode/
+.project
+.classpath
 
-# 로그·로컬 설정
-**/*.log
-**/logs/
-**/*.err
-**/*.out
-**/*.pid
-**/*.hprof
-**/hs_err_pid*.log
-**/*.tmp
+# 실행 로그
+*.log
+logs/
+*.err
+*.out
+*.pid
+*.hprof
+hs_err_pid*.log
+*.tmp
+
+# 로컬 전용 설정과 업로드 임시 파일
+application-local.properties
 **/application-local.properties
-**/.env
-**/.env.*
-!**/.env.example
-**/service-account-key*.json
-**/*service-account*.json
-**/.runtime/
-**/config/application-local.properties
-**/backend.7z
-
-# 로컬 생성 파일
+.env
+.env.*
+!.env.example
 .drive-upload/
+service-account-key*.json
+**/*service-account*.json
+config/application-local.properties
+.runtime/
+backend.7z
+
+# 운영 중 생성되는 업로드 파일
+uploads/
 **/uploads/
