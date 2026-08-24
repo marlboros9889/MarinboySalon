@@ -29,7 +29,7 @@ Spring Boot :8082 → MyBatis → Oracle
 필수 도구: JDK 17+, Maven, Node.js, Oracle, Docker 또는 Redis
 
 ```powershell
-cd C:\Users\tj-bu-703-21\OneDrive\Desktop\프로젝트\marinboySalon
+cd C:\Users\tj-bu-703-21\OneDrive\Desktop\프로젝트\marinboySalon\MarinboySalon
 .\scripts\setup-local.ps1 -StartRedis
 # .env.local의 ORACLE_* 값을 실제 로컬 계정으로 수정
 .\scripts\run-dev.ps1 -Action Restart -InstallDependencies -StartDependencies
