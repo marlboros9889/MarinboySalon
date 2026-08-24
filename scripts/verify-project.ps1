@@ -5,58 +5,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'project-tools.ps1')
 
 $projectRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $backendRoot = Join-Path $projectRoot 'backend'
 $frontendRoot = Join-Path $projectRoot 'frontend'
-
-function Import-EnvironmentFile {
-    param([string]$FilePath)
-
-    if (-not (Test-Path -LiteralPath $FilePath)) {
-        return
-    }
-
-    foreach ($line in Get-Content -LiteralPath $FilePath) {
-        $trimmedLine = $line.Trim()
-        if ($trimmedLine.Length -eq 0 -or $trimmedLine.StartsWith('#')) {
-            continue
-        }
-
-        $separatorIndex = $trimmedLine.IndexOf('=')
-        if ($separatorIndex -lt 1) {
-            throw ".env.local 형식이 잘못되었습니다: $trimmedLine"
-        }
-
-        $key = $trimmedLine.Substring(0, $separatorIndex).Trim()
-        $value = $trimmedLine.Substring($separatorIndex + 1).Trim()
-        if ($value.StartsWith('"') -and $value.EndsWith('"')) {
-            $value = $value.Substring(1, $value.Length - 2)
-        }
-        # CI나 다른 PC에서 미리 지정한 환경변수를 .env.local이 덮어쓰지 않게 합니다.
-        $existingValue = [Environment]::GetEnvironmentVariable($key, 'Process')
-        if ($value.Length -gt 0 -and [string]::IsNullOrWhiteSpace($existingValue)) {
-            [Environment]::SetEnvironmentVariable($key, $value, 'Process')
-        }
-    }
-}
-
-function Test-TcpPort {
-    param([string]$ComputerName, [int]$Port)
-
-    $client = [System.Net.Sockets.TcpClient]::new()
-    try {
-        $connectTask = $client.ConnectAsync($ComputerName, $Port)
-        if (-not $connectTask.Wait(2000)) {
-            return $false
-        }
-        return $client.Connected
-    } catch {
-        return $false
-    } finally {
-        $client.Dispose()
-    }
-}
 
 # 재실행과 검증이 같은 로컬 설정을 사용해야 DB 연결 결과가 달라지지 않습니다.
 Import-EnvironmentFile -FilePath (Join-Path $projectRoot '.env.local')
@@ -106,6 +59,26 @@ $runtimeSourceFiles = Get-ChildItem -LiteralPath (Join-Path $backendRoot 'src\ma
 $mobileMatches = $runtimeSourceFiles | Select-String -Pattern $mobilePatterns
 if ($mobileMatches) {
     throw "모바일 제외 범위의 코드 또는 DB 항목이 남아 있습니다: $($mobileMatches[0].Path)"
+}
+
+# 제거한 통합 파일이 되살아나거나 공용 스크립트 함수가 다시 복제되면 검증 단계에서 막습니다.
+$removedFiles = @(
+    (Join-Path $backendRoot 'src\main\java\com\marinboy\controller\AdminController.java'),
+    (Join-Path $frontendRoot 'features\shared\api\salonApi.js'),
+    (Join-Path $frontendRoot 'features\home\components\HomeTools.jsx')
+)
+foreach ($removedFile in $removedFiles) {
+    if (Test-Path -LiteralPath $removedFile) {
+        throw "책임이 큰 이전 통합 파일이 다시 추가되었습니다: $removedFile"
+    }
+}
+
+$scriptFiles = Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1' -File
+foreach ($functionName in 'Import-EnvironmentFile', 'Test-TcpPort') {
+    $definitions = $scriptFiles | Select-String -Pattern "^function\s+$functionName\b"
+    if (@($definitions).Count -ne 1) {
+        throw "$functionName 함수는 project-tools.ps1 한 곳에만 있어야 합니다."
+    }
 }
 
 if (-not $env:JWT_SECRET -or $env:JWT_SECRET -eq 'replace-with-base64-encoded-32-byte-secret') {

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- 사용자 인증에 필요한 계정 조회 SQL을 AuthDao와 연결합니다. -->
 <mapper namespace="com.marinboy.mapper.AuthMapper">
-    <!-- 일치하는 계정의 비밀번호를 제외한 세션 사용자 정보를 반환합니다. -->
+    <!-- 일치하는 계정의 비밀번호를 제외한 JWT 사용자 정보를 반환합니다. -->
     <select id="findByUsername" resultType="UserDto">
         SELECT U.ID AS id, U.USERNAME AS username, U.PASSWORD AS password, U.NAME AS name,
                U.EMAIL AS email, U.PHONE AS phone, U.ROLE AS role,

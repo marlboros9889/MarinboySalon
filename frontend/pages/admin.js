@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { isAdminUser } from '../features/admin/adminRules';
-import { adminApi, authApi } from '../features/shared/api/salonApi';
+import { adminApi } from '../features/admin/adminApi';
+import { authApi } from '../features/auth/authApi';
+import { ProfileForm } from '../features/auth/components/ProfileForm';
 
 const labels = {
   REQUESTED: '승인 대기',
@@ -34,8 +36,8 @@ export default function Admin() {
   const [businessHours, setBusinessHours] = useState([]);
   const [holidays, setHolidays] = useState([]);
 
-  //1. ADMIN 확인 뒤에만 예약·메뉴·캘린더 운영 데이터를 요청합니다.
-  const load = async (targetPage = page) => {
+  //1. 첫 진입에는 대시보드 전체를 읽고 이후 변경은 영향받은 영역만 갱신합니다.
+  const loadDashboard = async (targetPage = page) => {
     const { reservationData, services: menuItems, calendar, businessHours: hours, holidays: holidayItems } =
       await adminApi.dashboard(targetPage);
     setItems(reservationData.items);
@@ -44,6 +46,24 @@ export default function Admin() {
     setCalendarUrl(calendar.configured ? calendar.embedUrl : '');
     setBusinessHours(hours);
     setHolidays(holidayItems);
+  };
+
+  const loadReservations = async (targetPage = page) => {
+    const reservationData = await adminApi.reservations(targetPage);
+    setItems(reservationData.items);
+    setTotal(reservationData.total);
+  };
+
+  const loadServices = async () => {
+    setServices(await adminApi.services());
+  };
+
+  const loadBusinessHours = async () => {
+    setBusinessHours(await adminApi.businessHours());
+  };
+
+  const loadHolidays = async () => {
+    setHolidays(await adminApi.holidays());
   };
 
   useEffect(() => {
@@ -60,7 +80,7 @@ export default function Admin() {
 
       setUser(loginUser);
       setAccessStatus('allowed');
-      await load(0);
+      await loadDashboard(0);
     };
 
     startAdminScreen().catch(() => {
@@ -77,7 +97,7 @@ export default function Admin() {
   const changeStatus = async (id, status) => {
     try {
       await adminApi.changeReservationStatus(id, status);
-      await load(page);
+      await loadReservations(page);
     } catch (error) {
       setMessage(error.message);
     }
@@ -92,7 +112,7 @@ export default function Admin() {
     try {
       //2. 시술 메뉴 등록·수정  POST/PATCH: /api/admin/services
       await adminApi.saveService(id, form);
-      await load(page);
+      await loadServices();
       setSelected(null);
       setMessage(id ? '시술 메뉴를 수정했습니다.' : '시술 메뉴를 추가했습니다.');
     } catch (error) {
@@ -100,15 +120,14 @@ export default function Admin() {
     }
   };
 
-  const saveProfile = async (event) => {
-    event.preventDefault();
+  const deleteMenu = async (item) => {
+    if (!window.confirm(`${item.name} 메뉴를 삭제하시겠습니까?`)) return;
     try {
-      const updatedUser = await authApi.updateProfile(Object.fromEntries(new FormData(event.currentTarget)));
-      setUser(updatedUser);
-      setShowProfile(false);
-      setMessage('관리자 정보를 수정했습니다.');
+      await adminApi.deleteService(item.id);
+      await loadServices();
+      setMessage('시술 메뉴를 삭제했습니다.');
     } catch (error) {
-      setMessage(error.message || '관리자 정보 수정에 실패했습니다.');
+      setMessage(error.message);
     }
   };
 
@@ -121,7 +140,7 @@ export default function Admin() {
         openTime: form.get('openTime'),
         closeTime: form.get('closeTime'),
       });
-      await load(page);
+      await loadBusinessHours();
       setMessage(`${dayLabels[dayOfWeek]} 영업 규칙을 저장했습니다.`);
     } catch (error) {
       setMessage(error.message);
@@ -138,7 +157,7 @@ export default function Admin() {
         reason: form.get('reason'),
       });
       formElement.reset();
-      await load(page);
+      await loadHolidays();
       setMessage('특정 휴무일을 등록했습니다.');
     } catch (error) {
       setMessage(error.message);
@@ -148,7 +167,7 @@ export default function Admin() {
   const deleteHoliday = async (holidayDate) => {
     try {
       await adminApi.deleteHoliday(holidayDate);
-      await load(page);
+      await loadHolidays();
       setMessage('특정 휴무일을 해제했습니다.');
     } catch (error) {
       setMessage(error.message);
@@ -158,7 +177,7 @@ export default function Admin() {
   const totalPages = Math.max(1, Math.ceil(total / 5));
   const goPage = async (nextPage) => {
     setPage(nextPage);
-    await load(nextPage);
+    await loadReservations(nextPage);
   };
 
   if (accessStatus !== 'allowed') {
@@ -256,22 +275,23 @@ export default function Admin() {
               <b>{item.name}</b>
               <span>{Number(item.price).toLocaleString()}원</span>
               <button onClick={() => setSelected(item)}>수정</button>
+              <button onClick={() => deleteMenu(item)}>삭제</button>
             </article>
           ))}
         </div>
       </section>
 
       {showProfile && user && (
-        <div className="dialog-backdrop">
-          <form className="simple-form dialog" onSubmit={saveProfile}>
-            <button type="button" className="close" onClick={() => setShowProfile(false)}>×</button>
-            <h2>관리자 정보 수정</h2>
-            <input name="name" defaultValue={user.name} placeholder="이름" required />
-            <input name="email" type="email" defaultValue={user.email} placeholder="이메일" required />
-            <input name="phone" defaultValue={user.phone} placeholder="연락처" required />
-            <button>정보 저장</button>
-          </form>
-        </div>
+        <ProfileForm
+          user={user}
+          title="관리자 정보 수정"
+          successMessage="관리자 정보를 수정했습니다."
+          failureMessage="관리자 정보 수정에 실패했습니다."
+          dialog
+          onSaved={(updatedUser) => { setUser(updatedUser); setShowProfile(false); }}
+          onCancel={() => setShowProfile(false)}
+          onMessage={setMessage}
+        />
       )}
 
       {selected && (

@@ -9,6 +9,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'project-tools.ps1')
 
 # 어느 폴더에서 실행해도 스크립트 위치를 기준으로 프로젝트 경로를 찾습니다.
 $projectRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
@@ -17,38 +18,6 @@ $frontendRoot = Join-Path $projectRoot 'frontend'
 $runtimeRoot = Join-Path $projectRoot '.runtime'
 $environmentFile = Join-Path $projectRoot '.env.local'
 $localPropertiesFile = Join-Path $projectRoot 'config\application-local.properties'
-
-function Import-EnvironmentFile {
-    param([string]$FilePath)
-
-    if (-not (Test-Path -LiteralPath $FilePath)) {
-        return
-    }
-
-    # 단순 KEY=VALUE 형식만 읽고 실제 값은 화면이나 로그에 출력하지 않습니다.
-    foreach ($line in Get-Content -LiteralPath $FilePath) {
-        $trimmedLine = $line.Trim()
-        if ($trimmedLine.Length -eq 0 -or $trimmedLine.StartsWith('#')) {
-            continue
-        }
-
-        $separatorIndex = $trimmedLine.IndexOf('=')
-        if ($separatorIndex -lt 1) {
-            throw ".env.local 형식이 잘못되었습니다: $trimmedLine"
-        }
-
-        $key = $trimmedLine.Substring(0, $separatorIndex).Trim()
-        $value = $trimmedLine.Substring($separatorIndex + 1).Trim()
-        if ($value.StartsWith('"') -and $value.EndsWith('"')) {
-            $value = $value.Substring(1, $value.Length - 2)
-        }
-        # CI나 다른 PC에서 미리 지정한 환경변수를 .env.local이 덮어쓰지 않게 합니다.
-        $existingValue = [Environment]::GetEnvironmentVariable($key, 'Process')
-        if ($value.Length -gt 0 -and [string]::IsNullOrWhiteSpace($existingValue)) {
-            [Environment]::SetEnvironmentVariable($key, $value, 'Process')
-        }
-    }
-}
 
 function Get-ListeningProcessIds {
     param([int]$Port)
@@ -118,23 +87,6 @@ function Show-Status {
         } else {
             Write-Host "포트 $port : 실행 중 (PID $($owners -join ', '))"
         }
-    }
-}
-
-function Test-TcpPort {
-    param([string]$ComputerName, [int]$Port)
-
-    $client = [System.Net.Sockets.TcpClient]::new()
-    try {
-        $connectTask = $client.ConnectAsync($ComputerName, $Port)
-        if (-not $connectTask.Wait(2000)) {
-            return $false
-        }
-        return $client.Connected
-    } catch {
-        return $false
-    } finally {
-        $client.Dispose()
     }
 }
 

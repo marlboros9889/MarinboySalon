@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { authApi, reservationApi } from '../features/shared/api/salonApi';
+import { ProfileForm } from '../features/auth/components/ProfileForm';
+import { reservationApi } from '../features/reservation/reservationApi';
+import { useReservationSlots } from '../features/reservation/useReservationSlots';
 import {
   canSubmitReservation,
-  editableContactValue,
   formatReservationTime,
   getMaximumBookingDate,
 } from '../features/reservation/reservationRules';
@@ -11,7 +12,7 @@ import {
 export default function Reservation() {
   const [services, setServices] = useState([]);
   const [user, setUser] = useState(null);
-  const [slots, setSlots] = useState([]);
+  const { slots, clearSlots, loadSlots: loadAvailableSlots } = useReservationSlots();
   const [done, setDone] = useState(false);
   const [message, setMessage] = useState('');
   const [serviceId, setServiceId] = useState('');
@@ -40,14 +41,13 @@ export default function Reservation() {
 
   //2. 선택한 시술 ID와 날짜를 인자로 전달해 이전 state를 읽는 시간 선택 오류를 막습니다.
   const loadSlots = async (nextServiceId, nextDate) => {
-    setSlots([]);
+    clearSlots();
     setReservationDateTime('');
     if (!nextServiceId || !nextDate) return;
 
     try {
-      const result = await reservationApi.availableSlots(nextServiceId, nextDate);
-      setSlots(result.availableSlots || []);
-      if (!result.availableSlots?.length) {
+      const availableSlots = await loadAvailableSlots(nextServiceId, nextDate);
+      if (!availableSlots.length) {
         setMessage('선택한 날짜에는 예약 가능한 시간이 없습니다. 다른 날짜를 선택해 주세요.');
       } else {
         setMessage('');
@@ -69,23 +69,7 @@ export default function Reservation() {
     loadSlots(serviceId, nextDate);
   };
 
-  //3. 소셜 로그인 고객이 예약 화면을 벗어나지 않고 필수 연락처를 완성합니다.
-  const saveProfile = async (event) => {
-    event.preventDefault();
-    setMessage('');
-
-    const profile = Object.fromEntries(new FormData(event.currentTarget));
-    try {
-      const updatedUser = await authApi.updateProfile(profile);
-      setUser(updatedUser);
-      setShowProfileForm(false);
-      setMessage('고객 정보를 저장했습니다. 예약을 계속해 주세요.');
-    } catch (error) {
-      setMessage(error.message || '고객 정보를 저장하지 못했습니다. 입력값을 확인해 주세요.');
-    }
-  };
-
-  //4. 로그인 고객의 연락처 정보를 사용해 중복 검증을 통과한 예약만 서버에 저장합니다.
+  //3. 로그인 고객의 연락처 정보를 사용해 중복 검증을 통과한 예약만 서버에 저장합니다.
   const submit = async (event) => {
     event.preventDefault();
     if (!user) {
@@ -147,25 +131,16 @@ export default function Reservation() {
       {message && <p role="alert">{message}</p>}
 
       {showProfileForm && user && (
-        <form className="simple-form" onSubmit={saveProfile}>
-          <h2>예약 연락처 입력</h2>
-          <p>예약 안내에 사용할 정보를 한 번만 입력하면 다음 예약에도 사용됩니다.</p>
-          <input name="name" defaultValue={user.name} placeholder="이름" required />
-          <input
-            name="email"
-            type="email"
-            defaultValue={editableContactValue(user.email, 'email')}
-            placeholder="이메일"
-            required
-          />
-          <input
-            name="phone"
-            defaultValue={editableContactValue(user.phone, 'phone')}
-            placeholder="연락처"
-            required
-          />
-          <button>연락처 저장 후 예약 계속</button>
-        </form>
+        <ProfileForm
+          user={user}
+          title="예약 연락처 입력"
+          description="예약 안내에 사용할 정보를 한 번만 입력하면 다음 예약에도 사용됩니다."
+          submitLabel="연락처 저장 후 예약 계속"
+          successMessage="고객 정보를 저장했습니다. 예약을 계속해 주세요."
+          failureMessage="고객 정보를 저장하지 못했습니다. 입력값을 확인해 주세요."
+          onSaved={(updatedUser) => { setUser(updatedUser); setShowProfileForm(false); }}
+          onMessage={setMessage}
+        />
       )}
 
       <form className="simple-form" onSubmit={submit}>

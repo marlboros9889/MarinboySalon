@@ -20,14 +20,6 @@ export function canSubmitReservation({
   );
 }
 
-/** 소셜 로그인에서 임시로 저장한 연락처는 수정 폼에 노출하지 않습니다. */
-export function editableContactValue(value, type) {
-  if (!value) return '';
-  if (type === 'email' && value.endsWith('@social.marinboy.local')) return '';
-  if (type === 'phone' && value.startsWith('SOCIAL_REQUIRED')) return '';
-  return value;
-}
-
 /** 백엔드의 예약 허용 범위와 같은 마지막 선택 날짜를 반환합니다. */
 export function getMaximumBookingDate(today) {
   const maximumDate = new Date(`${today}T00:00:00`);

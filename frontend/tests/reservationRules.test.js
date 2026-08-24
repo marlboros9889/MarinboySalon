@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   canSubmitReservation,
-  editableContactValue,
   formatReservationTime,
   getMaximumBookingDate,
   includeCurrentReservationSlot,
@@ -23,13 +22,6 @@ test('소셜 고객은 연락처를 입력한 뒤 시간까지 선택해야 예�
   assert.equal(canSubmitReservation({ ...base, user: { profileComplete: true } }), true);
   assert.equal(canSubmitReservation({ ...base, user: { profileComplete: true }, reservationDateTime: '' }), false);
   assert.equal(canSubmitReservation({ ...base, user: { profileComplete: true }, noShowPolicyAgreed: false }), false);
-});
-
-// 소셜 로그인용 임시 연락처는 고객이 실제 값으로 바꿀 수 있도록 빈 입력값으로 변환합니다.
-test('소셜 임시 연락처는 수정 폼에서 빈 값으로 보여 준다', () => {
-  assert.equal(editableContactValue('social_a@social.marinboy.local', 'email'), '');
-  assert.equal(editableContactValue('SOCIAL_REQUIRED', 'phone'), '');
-  assert.equal(editableContactValue('customer@example.com', 'email'), 'customer@example.com');
 });
 
 // 오늘 기준 예약 범위가 정책상 허용한 7일을 넘지 않는지 날짜 경계를 검증합니다.

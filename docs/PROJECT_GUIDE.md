@@ -27,8 +27,9 @@
 
 - 메뉴: `Controller → ServiceItemService → ServiceItemMapper → service-item.xml`
 - 예약 저장: `ReservationController → ReservationService → ReservationMapper → reservation.xml`
-- 예약 시간: `ReservationController → ReservationScheduleService → ReservationScheduleTool`
+- 예약 시간: `ReservationController → ReservationScheduleService → ReservationScheduleMapper → ReservationScheduleTool`
 - 인증: `AuthController → AuthService → AuthMapper → auth.xml`
+- 소셜 계정: `SocialLoginController → SocialAccountService → AuthMapper → auth.xml`
 - 화면 데이터: SSR props 또는 해당 화면의 React state
 
 ## 3. 핵심 업무 흐름
@@ -52,11 +53,11 @@
 ```text
 일반 로그인 → BCrypt 확인 → JWT 발급
 소셜 로그인 → Redis state 확인 → 제공자 사용자 조회
-→ 기존 이메일 고객 연결 또는 신규 고객 생성 → JWT 발급
+→ 검증된 이메일만 기존 고객 연결 또는 신규 고객 생성 → JWT 발급
 로그아웃 → JWT 남은 시간만큼 Redis 블랙리스트 저장
 ```
 
-소셜 가입 직후 임시 이메일·연락처라면 예약 전에 고객 정보 입력을 요구합니다.
+Google·Kakao처럼 제공자가 검증한 이메일만 기존 일반 계정 자동 연결에 사용합니다. 검증 여부가 없는 이메일은 계정 탈취를 막기 위해 자동 연결하지 않으며, 소셜 가입 직후 임시 이메일·연락처라면 예약 전에 고객 정보 입력을 요구합니다.
 
 ### 3.3 관리자
 
@@ -89,16 +90,20 @@ frontend
 이 프로젝트에서 "기능을 가져다 썼다 빼는 구조"는 다음 연결을 뜻합니다.
 
 ```text
-Page → ReservationApi / AuthApi / AdminApi → JsonApiClient
-ReservationScheduleService → ReservationScheduleTool → 영업시간 + 기존 예약
-ReservationService → GoogleCalendarService(선택 주입)
+Page → reservationApi / authApi / adminApi → jwtApi
+Page → ProfileForm / useReservationSlots
+ReservationScheduleService → ReservationScheduleMapper + ReservationScheduleTool
+ServiceItemService → ServiceImageTool
+ReservationService → 예약 생성 이벤트 → GoogleCalendarService
 ```
 
 - Page는 API 주소·JWT 헤더·JSON 파싱을 직접 작성하지 않고 도메인 API 도구를 호출합니다.
-- `JsonApiClient`는 HTTP 전송과 공통 오류만 처리하며 예약 규칙을 알지 않습니다.
-- `ReservationApi`는 예약 URL과 요청 데이터를 알지만 화면의 `useState`를 알지 않습니다.
+- `jwtApi`는 HTTP 전송·Bearer JWT·공통 오류만 처리하며 예약 규칙을 알지 않습니다.
+- `reservationApi`는 예약 URL과 요청 데이터를 알지만 화면의 `useState`를 알지 않습니다.
+- `ProfileForm`과 `useReservationSlots`는 예약·내 예약·관리자 화면에서 같은 입력·조회 흐름을 재사용합니다.
 - `ReservationScheduleTool`은 DB를 직접 조회하지 않고 전달받은 영업시간·시술시간·예약 목록으로 가능 시간을 계산합니다.
-- Google Calendar는 선택 주입하므로 연동을 꺼도 예약 DB 저장 규칙은 바뀌지 않습니다.
+- `ServiceImageTool`은 메뉴 SQL을 모르고 이미지 검증·저장·트랜잭션 후 정리만 담당합니다.
+- Google Calendar는 DB 커밋 뒤 이벤트로 연결하므로 연동을 꺼도 예약 DB 저장 규칙은 바뀌지 않습니다.
 - 도구마다 공개 함수와 테스트를 두고, 사용하는 곳이 하나뿐이며 코드가 더 길어지면 분리하지 않습니다.
 
 금지 기준:

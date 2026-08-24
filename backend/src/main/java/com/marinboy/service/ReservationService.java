@@ -4,32 +4,27 @@ import com.marinboy.dto.ReservationDto;
 import com.marinboy.mapper.ReservationMapper;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /** 고객 예약의 생성·수정·취소와 관리자 상태 변경을 담당합니다. */
 @Service
 public class ReservationService {
-    private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
     private final ReservationMapper reservationMapper;
     private final ServiceItemService serviceItemService;
     private final ReservationScheduleService reservationScheduleService;
-    private final ObjectProvider<GoogleCalendarService> googleCalendarService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ReservationService(
             ReservationMapper reservationMapper,
             ServiceItemService serviceItemService,
             ReservationScheduleService reservationScheduleService,
-            ObjectProvider<GoogleCalendarService> googleCalendarService) {
+            ApplicationEventPublisher eventPublisher) {
         this.reservationMapper = reservationMapper;
         this.serviceItemService = serviceItemService;
         this.reservationScheduleService = reservationScheduleService;
-        this.googleCalendarService = googleCalendarService;
+        this.eventPublisher = eventPublisher;
     }
 
     /** JWT 사용자 ID를 소유자로 고정하고 DB 저장 뒤 Calendar를 동기화합니다. */
@@ -60,7 +55,8 @@ public class ReservationService {
         GoogleCalendarReservationEvent calendarEvent = new GoogleCalendarReservationEvent(
                 request.getCustomerName(), request.getCustomerPhone(), serviceName,
                 request.getReservationDateTime(), durationMinutes == null ? 60 : durationMinutes);
-        registerCalendarEventAfterCommit(calendarEvent);
+        // 예약 서비스는 외부 API를 모르고 커밋 뒤 필요한 사실만 이벤트로 알립니다.
+        eventPublisher.publishEvent(calendarEvent);
     }
 
     /** 로그인 고객 ID로만 조회해 전화번호 변경과 무관하게 예약 소유권을 유지합니다. */
@@ -69,14 +65,6 @@ public class ReservationService {
                 .stream()
                 .filter(item -> List.of("REQUESTED", "CONFIRMED").contains(item.getStatus()))
                 .toList();
-    }
-
-    public ReservationDto getCustomerReservation(Long reservationId, Long customerId) {
-        ReservationDto reservation = reservationMapper.findCustomerReservationByCustomerId(reservationId, customerId);
-        if (reservation == null || !List.of("REQUESTED", "CONFIRMED").contains(reservation.getStatus())) {
-            throw new IllegalArgumentException("수정할 수 있는 예약이 없습니다.");
-        }
-        return reservation;
     }
 
     /** 본인 예약만 수정하며 새 예약과 같은 영업시간·중복 규칙을 다시 적용합니다. */
@@ -133,7 +121,7 @@ public class ReservationService {
         if (!allowedFromRequested && !allowedFromConfirmed) {
             throw new IllegalArgumentException("현재 예약 상태에서는 해당 처리를 할 수 없습니다.");
         }
-        if (reservationMapper.updateReservationStatus(reservationId, status, null) == 0) {
+        if (reservationMapper.updateReservationStatus(reservationId, status) == 0) {
             throw new IllegalArgumentException("예약을 찾을 수 없습니다.");
         }
     }
@@ -178,19 +166,5 @@ public class ReservationService {
             throw new IllegalArgumentException("예약을 찾을 수 없습니다.");
         }
         return reservation;
-    }
-
-    private void registerCalendarEventAfterCommit(GoogleCalendarReservationEvent calendarEvent) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                GoogleCalendarService calendarService = googleCalendarService.getIfAvailable();
-                if (calendarService == null) {
-                    log.info("Google Calendar 연동이 꺼져 있어 일정 등록을 건너뜁니다.");
-                    return;
-                }
-                calendarService.createReservationEvent(calendarEvent);
-            }
-        });
     }
 }

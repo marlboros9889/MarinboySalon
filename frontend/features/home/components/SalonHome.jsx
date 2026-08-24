@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { authApi, serviceApi } from '../../shared/api/salonApi';
+import { authApi } from '../../auth/authApi';
+import { serviceApi } from '../../service/serviceApi';
 import { groupServices, monthlyTopFive, popularityBadges } from '../homeRules';
 import {
   DuplicateField,
@@ -7,7 +8,7 @@ import {
   ServiceGallery,
   SignupPolicyModal,
   TopList,
-} from './HomeTools';
+} from './HomeComponents';
 
 // public 폴더의 배너는 실행 폴더와 무관한 브라우저 절대경로로 사용합니다.
 const SALON_LUXURY_BANNER = '/images/salon-luxury-banner.png';
@@ -36,7 +37,7 @@ function SalonHome({ initialServices = [] }) {
         .catch(() => setMessage('시술 메뉴를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'));
     }
 
-    // 소셜 로그인 콜백의 세션 정보를 고객 화면에 연결합니다.
+    // 저장된 JWT로 현재 사용자를 조회해 고객 화면에 로그인 상태를 연결합니다.
     authApi.currentUser()
       .then((data) => data && setUser(data))
       .catch(() => null);
@@ -217,8 +218,8 @@ function SalonHome({ initialServices = [] }) {
       <section id="monthly" className="container salon-section">
         <div className="salon-section-title"><div><p className="salon-eyebrow">MONTHLY TOP 5</p><h2>이번 달 가장 사랑받은<br />시술이에요.</h2></div><p>고객님들이 선택한 여름 스타일을<br />지금 만나보세요.</p></div>
         <div className="salon-top-grid">
-          <TopList title="HAIR STYLE TOP 5" services={styleTopFive} badges={serviceBadges} fallback="인기 헤어 스타일을 준비하고 있어요." onOpen={openGallery} />
-          <TopList title="SCALP & HAIR CARE" services={careTopFive} badges={serviceBadges} fallback="두피·모발 케어를 준비하고 있어요." onOpen={openGallery} />
+          <TopList title="HAIR STYLE TOP 5" services={styleTopFive} fallback="인기 헤어 스타일을 준비하고 있어요." onOpen={openGallery} />
+          <TopList title="SCALP & HAIR CARE" services={careTopFive} fallback="두피·모발 케어를 준비하고 있어요." onOpen={openGallery} />
         </div>
       </section>
 

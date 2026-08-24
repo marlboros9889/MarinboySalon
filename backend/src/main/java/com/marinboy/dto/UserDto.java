@@ -3,7 +3,7 @@ package com.marinboy.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/** 로그인 요청과 세션 사용자 정보를 전달하는 DTO입니다. */
+/** MyBatis 사용자 행과 JWT 인증 주체를 서버 내부에서 전달하는 DTO입니다. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDto {
     private Long id;

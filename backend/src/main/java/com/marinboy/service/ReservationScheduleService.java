@@ -2,9 +2,10 @@ package com.marinboy.service;
 
 import com.marinboy.dto.BusinessHourRequestDto;
 import com.marinboy.dto.BusinessHourResponseDto;
+import com.marinboy.dto.AvailableSlotsResponseDto;
 import com.marinboy.dto.HolidayResponseDto;
 import com.marinboy.dto.ReservationDto;
-import com.marinboy.mapper.ReservationMapper;
+import com.marinboy.mapper.ReservationScheduleMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -19,21 +20,21 @@ public class ReservationScheduleService {
     private static final LocalTime DEFAULT_CLOSE_TIME = LocalTime.of(19, 0);
     private static final int MAX_BOOKING_DAYS = 7;
 
-    private final ReservationMapper reservationMapper;
+    private final ReservationScheduleMapper reservationScheduleMapper;
     private final ServiceItemService serviceItemService;
     private final ReservationScheduleTool reservationScheduleTool;
 
     public ReservationScheduleService(
-            ReservationMapper reservationMapper,
+            ReservationScheduleMapper reservationScheduleMapper,
             ServiceItemService serviceItemService,
             ReservationScheduleTool reservationScheduleTool) {
-        this.reservationMapper = reservationMapper;
+        this.reservationScheduleMapper = reservationScheduleMapper;
         this.serviceItemService = serviceItemService;
         this.reservationScheduleTool = reservationScheduleTool;
     }
 
     /** 날짜별 예약은 한 번만 조회하고 후보 시간 비교는 계산 도구에 맡깁니다. */
-    public ReservationDto getAvailableSlots(Long serviceId, LocalDate date) {
+    public AvailableSlotsResponseDto getAvailableSlots(Long serviceId, LocalDate date) {
         LocalDate today = LocalDate.now();
         if (date == null || date.isBefore(today) || date.isAfter(today.plusDays(MAX_BOOKING_DAYS))) {
             return availableSlots(List.of());
@@ -48,7 +49,7 @@ public class ReservationScheduleService {
             return availableSlots(List.of());
         }
 
-        List<ReservationDto> existingReservations = reservationMapper.findActiveReservationsForDate(date);
+        List<ReservationDto> existingReservations = reservationScheduleMapper.findActiveReservationsForDate(date);
         List<LocalDateTime> slots = reservationScheduleTool.createAvailableSlots(
                 date,
                 LocalTime.parse(businessHour.getOpenTime()),
@@ -89,11 +90,11 @@ public class ReservationScheduleService {
     }
 
     private boolean isHoliday(LocalDate date) {
-        return date != null && reservationMapper.countHoliday(date) > 0;
+        return date != null && reservationScheduleMapper.countHoliday(date) > 0;
     }
 
     public List<HolidayResponseDto> getHolidays() {
-        return reservationMapper.findHolidays();
+        return reservationScheduleMapper.findHolidays();
     }
 
     @Transactional
@@ -101,16 +102,16 @@ public class ReservationScheduleService {
         if (holidayDate == null) {
             throw new IllegalArgumentException("휴무일을 선택하세요.");
         }
-        reservationMapper.saveHoliday(holidayDate, reason == null ? "" : reason.trim());
+        reservationScheduleMapper.saveHoliday(holidayDate, reason == null ? "" : reason.trim());
     }
 
     @Transactional
     public void deleteHoliday(LocalDate holidayDate) {
-        reservationMapper.deleteHoliday(holidayDate);
+        reservationScheduleMapper.deleteHoliday(holidayDate);
     }
 
     public List<BusinessHourResponseDto> getBusinessHours() {
-        return reservationMapper.findBusinessHours();
+        return reservationScheduleMapper.findBusinessHours();
     }
 
     /** 관리자 영업시간을 검증한 뒤 예약 계산의 단일 기준으로 저장합니다. */
@@ -133,13 +134,13 @@ public class ReservationScheduleService {
             throw new IllegalArgumentException("영업 종료 시간은 시작 시간보다 늦어야 합니다.");
         }
 
-        reservationMapper.saveBusinessHour(
+        reservationScheduleMapper.saveBusinessHour(
                 request.getDayOfWeek(), Boolean.TRUE.equals(request.getOpen()) ? 1 : 0,
                 openTime.toString(), closeTime.toString());
     }
 
     private BusinessHourResponseDto getBusinessHour(LocalDate date) {
-        BusinessHourResponseDto businessHour = reservationMapper.findBusinessHour(date.getDayOfWeek().getValue());
+        BusinessHourResponseDto businessHour = reservationScheduleMapper.findBusinessHour(date.getDayOfWeek().getValue());
         if (businessHour != null) {
             return businessHour;
         }
@@ -160,9 +161,7 @@ public class ReservationScheduleService {
         }
     }
 
-    private ReservationDto availableSlots(List<LocalDateTime> slots) {
-        ReservationDto response = new ReservationDto();
-        response.setAvailableSlots(slots);
-        return response;
+    private AvailableSlotsResponseDto availableSlots(List<LocalDateTime> slots) {
+        return new AvailableSlotsResponseDto(slots);
     }
 }

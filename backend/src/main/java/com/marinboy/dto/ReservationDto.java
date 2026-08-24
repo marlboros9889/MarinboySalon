@@ -1,11 +1,9 @@
 package com.marinboy.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.apache.ibatis.type.LocalDateTimeTypeHandler;
 import java.time.LocalDateTime;
-import java.util.List;
 
-/** 예약 신청, 예약 조회, 예약 가능 시간 응답에 공통으로 사용하는 DTO입니다. */
+/** 예약 저장과 조회에 사용하는 예약 데이터만 전달합니다. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ReservationDto {
     // 저장된 예약의 기본 키와 선택한 시술 메뉴 ID입니다.
@@ -29,7 +27,6 @@ public class ReservationDto {
     // 고객이 입력한 요청 사항입니다.
     private String memo;
     // 특정 날짜에 고객이 선택할 수 있는 예약 시간 목록입니다.
-    private List<LocalDateTime> availableSlots;
 
     // MyBatis 매핑과 JSON 변환에 사용하는 getter/setter입니다.
     public Long getId() { return id; }
@@ -56,6 +53,4 @@ public class ReservationDto {
     public void setStatus(String status) { this.status = status; }
     public String getMemo() { return memo; }
     public void setMemo(String memo) { this.memo = memo; }
-    public List<LocalDateTime> getAvailableSlots() { return availableSlots; }
-    public void setAvailableSlots(List<LocalDateTime> availableSlots) { this.availableSlots = availableSlots; }
 }

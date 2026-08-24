@@ -13,7 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** 카카오·네이버·Google의 인가 코드, 토큰, 사용자 정보 조회를 한 흐름으로 처리합니다. */
+/** 카카오·네이버·Google의 공통 전송은 재사용하고 제공자별 응답만 변환합니다. */
 @Service
 public class SocialLoginService {
     private static final String KAKAO = "KAKAO";
@@ -112,7 +112,9 @@ public class SocialLoginService {
         String name = firstText(profile, "/kakao_account/name", "/kakao_account/profile/nickname");
         String email = text(profile, "/kakao_account/email");
         String phone = text(profile, "/kakao_account/phone_number");
-        return new SocialProfile(KAKAO, socialId, name, email, phone);
+        boolean emailVerified = profile.at("/kakao_account/is_email_valid").asBoolean(false)
+                && profile.at("/kakao_account/is_email_verified").asBoolean(false);
+        return new SocialProfile(KAKAO, socialId, name, email, phone, emailVerified);
     }
 
     private SocialProfile loadNaverProfile(String code, String state) {
@@ -131,7 +133,8 @@ public class SocialLoginService {
         String name = firstText(response, "/name", "/nickname");
         String email = text(response, "/email");
         String phone = text(response, "/mobile");
-        return new SocialProfile(NAVER, socialId, name, email, phone);
+        // 네이버 프로필 응답에는 이메일 검증 여부가 없어 기존 일반 계정 자동 연결에는 사용하지 않습니다.
+        return new SocialProfile(NAVER, socialId, name, email, phone, false);
     }
 
     private SocialProfile loadGoogleProfile(String code) {
@@ -148,8 +151,9 @@ public class SocialLoginService {
         String socialId = requiredText(profile, "sub");
         String name = text(profile, "/name");
         String email = text(profile, "/email");
+        boolean emailVerified = profile.path("email_verified").asBoolean(false);
         // Google 기본 프로필은 전화번호를 제공하지 않으므로 로그인 후 고객 정보에서 입력받습니다.
-        return new SocialProfile(GOOGLE, socialId, name, email, null);
+        return new SocialProfile(GOOGLE, socialId, name, email, null, emailVerified);
     }
 
     private JsonNode requestToken(String uri, MultiValueMap<String, String> form) {
@@ -204,6 +208,4 @@ public class SocialLoginService {
         return result;
     }
 
-    /** 외부 제공자 응답에서 우리 서비스에 필요한 최소 사용자 정보만 전달합니다. */
-    public record SocialProfile(String provider, String socialId, String name, String email, String phone) {}
 }

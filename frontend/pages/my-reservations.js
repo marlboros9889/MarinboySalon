@@ -3,11 +3,11 @@ import {
   formatReservationTime,
   includeCurrentReservationSlot,
 } from '../features/reservation/reservationRules';
-import {
-  authApi,
-  reservationApi,
-  serviceApi,
-} from '../features/shared/api/salonApi';
+import { authApi } from '../features/auth/authApi';
+import { ProfileForm } from '../features/auth/components/ProfileForm';
+import { reservationApi } from '../features/reservation/reservationApi';
+import { useReservationSlots } from '../features/reservation/useReservationSlots';
+import { serviceApi } from '../features/service/serviceApi';
 
 /** 로그인 고객의 예약 목록·프로필·예약 변경 기능을 필요한 도구로 조립합니다. */
 export default function MyReservations() {
@@ -16,7 +16,12 @@ export default function MyReservations() {
   const [services, setServices] = useState([]);
   const [editing, setEditing] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [slots, setSlots] = useState([]);
+  const {
+    slots,
+    clearSlots,
+    replaceSlots,
+    loadSlots: loadAvailableSlots,
+  } = useReservationSlots();
   const [message, setMessage] = useState('');
 
   // 로그인 확인 뒤 고객 소유권이 적용된 예약 API만 호출합니다.
@@ -54,28 +59,19 @@ export default function MyReservations() {
     load().catch(() => setMessage('로그인 후 내 예약을 확인해 주세요.'));
   }, []);
 
-  const saveProfile = async (event) => {
-    event.preventDefault();
-    const profile = Object.fromEntries(new FormData(event.currentTarget));
-    try {
-      setUser(await authApi.updateProfile(profile));
-      setShowProfile(false);
-      setMessage('고객 정보를 수정했습니다.');
-    } catch (error) {
-      setMessage(error.message || '고객 정보 수정에 실패했습니다.');
-    }
-  };
-
   const loadSlots = async (serviceId, date, currentSlot = '') => {
     if (!serviceId || !date) {
-      setSlots([]);
+      clearSlots();
       return;
     }
     try {
-      const result = await reservationApi.availableSlots(serviceId, date);
-      setSlots(includeCurrentReservationSlot(result.availableSlots, currentSlot, date));
+      await loadAvailableSlots(
+        serviceId,
+        date,
+        (availableSlots) => includeCurrentReservationSlot(availableSlots, currentSlot, date),
+      );
     } catch {
-      setSlots(includeCurrentReservationSlot([], currentSlot, date));
+      replaceSlots(includeCurrentReservationSlot([], currentSlot, date));
     }
   };
 
@@ -109,8 +105,18 @@ export default function MyReservations() {
         noShowPolicyAgreed: true,
       });
       setEditing(null);
-      setMessage('예약을 수정했습니다.');
       await load();
+      setMessage('예약을 수정했습니다.');
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
+  const cancelReservation = async (id) => {
+    try {
+      await reservationApi.cancel(id);
+      await load();
+      setMessage('예약을 취소했습니다.');
     } catch (error) {
       setMessage(error.message);
     }
@@ -133,23 +139,27 @@ export default function MyReservations() {
             <b>{item.serviceName}</b>
             <span>{new Date(item.reservationDateTime).toLocaleString('ko-KR')}</span>
             <em className={`status ${item.status}`}>{item.status}</em>
-            <button onClick={() => openEdit(item)}>예약 수정</button>
+            {item.status === 'REQUESTED' && (
+              <>
+                <button onClick={() => openEdit(item)}>예약 수정</button>
+                <button onClick={() => cancelReservation(item.id)}>예약 취소</button>
+              </>
+            )}
           </article>
         ))}
         {user && !items.length && <p>진행 중인 예약이 없습니다.</p>}
       </section>
 
       {showProfile && user && (
-        <div className="dialog-backdrop">
-          <form className="simple-form dialog" onSubmit={saveProfile}>
-            <button type="button" className="close" onClick={() => setShowProfile(false)}>×</button>
-            <h2>고객 정보 수정</h2>
-            <input name="name" defaultValue={user.name} placeholder="이름" required />
-            <input name="email" type="email" defaultValue={user.email} placeholder="이메일" required />
-            <input name="phone" defaultValue={user.phone} placeholder="연락처" required />
-            <button>정보 저장</button>
-          </form>
-        </div>
+        <ProfileForm
+          user={user}
+          title="고객 정보 수정"
+          successMessage="고객 정보를 수정했습니다."
+          dialog
+          onSaved={(updatedUser) => { setUser(updatedUser); setShowProfile(false); }}
+          onCancel={() => setShowProfile(false)}
+          onMessage={setMessage}
+        />
       )}
 
       {editing && (
