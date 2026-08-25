@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import AppLayout from '../components/AppLayout';
+import ServiceImageCarousel from '../components/ServiceImageCarousel';
 import { LOAD_SERVICE_ITEMS_REQUEST } from '../reducers/serviceItemReducer';
 import { getArchiveLook } from '../utils/serviceItem';
 
@@ -78,10 +79,13 @@ export default function Services() {
             <aside className="archive-preview-container" aria-live="polite">
               <article className="archive-collage-card">
                 <span className="archive-tape-effect" aria-hidden="true" />
-                <div className="archive-image-wrapper">
-                  <img src={selectedArchive.look.image} alt={`${selectedArchive.item.name} 스타일 참고 이미지`} />
+                <ServiceImageCarousel
+                  key={selectedArchive.item.id}
+                  serviceItem={selectedArchive.item}
+                  className="archive-image-wrapper"
+                >
                   <span className="archive-image-tag">{selectedArchive.look.tag}</span>
-                </div>
+                </ServiceImageCarousel>
                 <div className="archive-details">
                   <p className="archive-look-category">{selectedArchive.look.category}</p>
                   <h2>{selectedArchive.item.name}</h2>

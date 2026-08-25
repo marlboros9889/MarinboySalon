@@ -4,11 +4,13 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * 마린보이 살롱 v3 백엔드 REST API 실행 클래스입니다.
  */
 @SpringBootApplication
+@EnableAsync
 @ConfigurationPropertiesScan
 @MapperScan("com.marinboy.**.repository")
 public class BackApplication {

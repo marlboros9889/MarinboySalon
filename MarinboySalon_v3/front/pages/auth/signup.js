@@ -30,7 +30,7 @@ export default function Signup() {
       <section className="auth-section container">
         <form className="paper-form torn-paper-edge" onSubmit={onSubmit}>
           <p className="eyebrow">JOIN US</p>
-          <h1 className="serif-text">회원가입</h1>
+          <h1 className="heading-text">회원가입</h1>
           <label htmlFor="email">이메일</label>
           <input id="email" name="email" type="email" value={form.email} onChange={onChange} required />
           <label htmlFor="password">비밀번호</label>

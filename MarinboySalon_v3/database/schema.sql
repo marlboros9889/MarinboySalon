@@ -27,6 +27,17 @@ CREATE TABLE IF NOT EXISTS service_item (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 메뉴별 이미지를 표시 순서대로 최대 4장까지 저장합니다.
+CREATE TABLE IF NOT EXISTS service_item_image (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    service_item_id BIGINT NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    display_order TINYINT NOT NULL,
+    CONSTRAINT fk_service_item_image_service FOREIGN KEY (service_item_id) REFERENCES service_item(id),
+    CONSTRAINT uk_service_item_image_order UNIQUE (service_item_id, display_order),
+    CONSTRAINT ck_service_item_image_order CHECK (display_order BETWEEN 0 AND 3)
+);
+
 -- 회원이 선택한 시술과 예약 시간을 저장합니다.
 CREATE TABLE IF NOT EXISTS reservation (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

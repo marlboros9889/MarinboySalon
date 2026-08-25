@@ -10,7 +10,22 @@ import {
   LOAD_MY_RESERVATIONS_FAILURE,
   LOAD_MY_RESERVATIONS_REQUEST,
   LOAD_MY_RESERVATIONS_SUCCESS,
+  LOAD_AVAILABLE_TIMES_FAILURE,
+  LOAD_AVAILABLE_TIMES_REQUEST,
+  LOAD_AVAILABLE_TIMES_SUCCESS,
 } from '../reducers/reservationReducer';
+
+function* loadAvailableTimes(action) {
+  try {
+    const result = yield call(() => api.get('/api/reservations/available-times', { params: action.data }));
+    yield put({ type: LOAD_AVAILABLE_TIMES_SUCCESS, data: result.data });
+  } catch (error) {
+    yield put({
+      type: LOAD_AVAILABLE_TIMES_FAILURE,
+      error: error.response?.data?.message || '예약 가능 시간을 불러오지 못했습니다.',
+    });
+  }
+}
 
 function* loadMyReservations() {
   try {
@@ -51,10 +66,15 @@ function* watchCancelReservation() {
   yield takeLatest(CANCEL_RESERVATION_REQUEST, cancelReservation);
 }
 
+function* watchLoadAvailableTimes() {
+  yield takeLatest(LOAD_AVAILABLE_TIMES_REQUEST, loadAvailableTimes);
+}
+
 export default function* reservationSaga() {
   yield all([
     fork(watchLoadMyReservations),
     fork(watchCreateReservation),
     fork(watchCancelReservation),
+    fork(watchLoadAvailableTimes),
   ]);
 }

@@ -42,7 +42,7 @@ export default function ReservationList() {
       <section className="page-section container">
         <header className="page-heading">
           <p className="eyebrow">MY BOOKING</p>
-          <h1 className="serif-text">내 예약</h1>
+          <h1 className="heading-text">내 예약</h1>
         </header>
         {loadReservationsLoading && <p className="status-message">예약을 불러오는 중입니다.</p>}
         {reservationError && <p className="error-message">{reservationError}</p>}
@@ -53,7 +53,7 @@ export default function ReservationList() {
                 <span className={`status-badge status-${item.status.toLowerCase()}`}>
                   {statusLabel[item.status]}
                 </span>
-                <h2 className="serif-text">{item.serviceName}</h2>
+                <h2 className="heading-text">{item.serviceName}</h2>
                 <p>{item.reservationStart.replace('T', ' ')}</p>
                 {item.requestMemo && <small>{item.requestMemo}</small>}
               </div>

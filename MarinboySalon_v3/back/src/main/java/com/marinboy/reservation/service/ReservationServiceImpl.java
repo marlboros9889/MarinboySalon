@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.marinboy.businesshour.entity.BusinessHour;
 import com.marinboy.businesshour.repository.BusinessHourMapper;
@@ -19,6 +20,7 @@ import com.marinboy.reservation.entity.Reservation;
 import com.marinboy.reservation.repository.ReservationMapper;
 import com.marinboy.serviceitem.entity.ServiceItem;
 import com.marinboy.serviceitem.repository.ServiceItemMapper;
+import com.marinboy.calendar.GoogleCalendarReservationEvent;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,6 +39,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ServiceItemMapper serviceItemMapper;
     private final BusinessHourMapper businessHourMapper;
     private final HolidayMapper holidayMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,6 +51,40 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional(readOnly = true)
     public List<ReservationResponseDto> getAdminList() {
         return toResponseList(reservationMapper.selectAll());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getAvailableTimes(LocalDate date, Long serviceId) {
+        List<String> availableTimes = new ArrayList<>();
+        if (date == null || date.isBefore(LocalDate.now())) {
+            return availableTimes;
+        }
+
+        BusinessHour businessHour = businessHourMapper.selectByDayOfWeek(date.getDayOfWeek().getValue());
+        ServiceItem item = serviceItemMapper.selectById(serviceId);
+        if (businessHour == null || Boolean.TRUE.equals(businessHour.getClosed())
+                || item == null || !Boolean.TRUE.equals(item.getActive())
+                || holidayMapper.selectByDate(date) != null) {
+            return availableTimes;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime candidate = date.atTime(businessHour.getOpenTime()).withSecond(0).withNano(0);
+        int minuteRemainder = candidate.getMinute() % 30;
+        if (minuteRemainder != 0) {
+            candidate = candidate.plusMinutes(30 - minuteRemainder);
+        }
+        LocalDateTime closingTime = date.atTime(businessHour.getCloseTime());
+        while (!candidate.plusMinutes(item.getDurationMinutes()).isAfter(closingTime)) {
+            if (candidate.isAfter(now)
+                    && reservationMapper.countOverlap(
+                            candidate, candidate.plusMinutes(item.getDurationMinutes()), null) == 0) {
+                availableTimes.add(candidate.toLocalTime().toString());
+            }
+            candidate = candidate.plusMinutes(30);
+        }
+        return availableTimes;
     }
 
     @Override
@@ -68,7 +105,9 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setRequestMemo(request.getRequestMemo());
         reservation.setStatus("REQUESTED");
         reservationMapper.insert(reservation);
-        return ReservationResponseDto.from(reservationMapper.selectById(reservation.getId()));
+        Reservation savedReservation = reservationMapper.selectById(reservation.getId());
+        eventPublisher.publishEvent(GoogleCalendarReservationEvent.from(savedReservation));
+        return ReservationResponseDto.from(savedReservation);
     }
 
     @Override
@@ -110,6 +149,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     private void validateSchedule(ReservationRequestDto request, Long excludeId) {
         LocalDateTime start = request.getReservationStart();
+        if (start.getMinute() % 30 != 0 || start.getSecond() != 0 || start.getNano() != 0) {
+            throw new IllegalArgumentException("예약 시간은 30분 단위로 선택해 주세요.");
+        }
         if (!start.isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("지난 시간은 예약할 수 없습니다.");
         }

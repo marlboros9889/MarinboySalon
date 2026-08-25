@@ -37,3 +37,8 @@ app:
     access-token-exp-seconds: ${JWT_ACCESS_EXP:1800}
     refresh-token-exp-seconds: ${JWT_REFRESH_EXP:604800}
     cookie-secure: ${JWT_COOKIE_SECURE:false}
+  google-calendar:
+    # 비밀키와 캘린더 ID는 저장소가 아닌 실행 환경 변수로만 주입합니다.
+    enabled: ${GOOGLE_CALENDAR_ENABLED:false}
+    calendar-id: ${GOOGLE_CALENDAR_ID:}
+    credentials-path: ${GOOGLE_CALENDAR_CREDENTIALS_PATH:}

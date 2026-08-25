@@ -10,7 +10,7 @@
 | [2026-AI-FULLSTACK](https://github.com/sally03915/2026-AI-FULLSTACK) | `d9973e4` | Java·DB·JSP·Spring·React 단계 구분 |
 | [thejoa703-2](https://github.com/sally03915/thejoa703-2) | `8f1aa18a` | DTO, Service 트랜잭션, JWT·Redis 연결 |
 | [thejoa703-3](https://github.com/sally03915/thejoa703-3) | `e0b8943a` | Next.js, Redux-Saga, Axios의 요청 흐름 |
-| [spring-breeze-erp](https://github.com/yoonguri988/spring-breeze-erp) | `5d54c59e` | MVC/JSP에서 REST/Next로 확장하는 버전 분리 |
+| [spring-breeze-erp](https://github.com/yoonguri988/spring-breeze-erp) | `02bc46f2` | MVC/JSP에서 REST/Next로 확장하는 버전 분리 |
 
 참고 코드는 증거이지 자동 정답이 아니다. 현재 프로젝트의 버전 목적과 계약에 맞는 패턴만 채택한다.
 

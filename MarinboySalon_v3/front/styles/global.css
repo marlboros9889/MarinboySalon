@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,400&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-
 :root {
   --base-bg-color: #fdfcf5;
   --paper-color: #fffef9;
@@ -10,8 +8,8 @@
   --accent-yellow: #f9d68a;
   --accent-green: #7bb5a8;
   --accent-blue: #3d78a8;
-  --primary-font: 'Playfair Display', serif;
-  --secondary-font: 'Noto Sans KR', 'Helvetica Neue', Arial, sans-serif;
+  --primary-font: 'Times New Roman', serif;
+  --secondary-font: 'Malgun Gothic', sans-serif;
 }
 
 * {
@@ -52,8 +50,13 @@ textarea {
   font: inherit;
 }
 
-.serif-text {
+.display-text {
   font-family: var(--primary-font);
+}
+
+.heading-text {
+  font-family: var(--secondary-font);
+  font-weight: 700;
 }
 
 .site-shell {
@@ -208,64 +211,43 @@ main {
   padding-bottom: 3px;
 }
 
-.hero-collage {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: 1fr 1.45fr;
-  grid-template-rows: 210px 150px 72px;
+.hero-salon-visual {
+  min-height: 480px;
+  overflow: hidden;
   position: relative;
   transform: rotate(-1deg);
 }
 
-.collage-block,
-.collage-paper,
-.collage-circle,
-.collage-line {
-  align-items: center;
-  display: flex;
-  justify-content: center;
+.app-font-root {
+  --primary-font: var(--font-playfair-display), 'Times New Roman', serif;
+  --secondary-font: var(--font-noto-sans-kr), 'Malgun Gothic', sans-serif;
+  font-family: var(--secondary-font);
+  min-height: 100vh;
 }
 
-.collage-pink {
-  background: var(--accent-pink);
-  font-family: var(--primary-font);
-  font-size: 4rem;
+.hero-salon-visual > img {
+  display: block;
+  height: 480px;
+  object-fit: cover;
+  width: 100%;
 }
 
-.collage-paper {
+.hero-salon-caption {
   background: var(--paper-color);
-  border: 1px solid var(--line-color);
+  bottom: 26px;
+  display: flex;
   flex-direction: column;
-  grid-row: span 2;
-  transform: rotate(2deg);
+  left: 30px;
+  padding: 20px 26px;
+  position: absolute;
 }
 
-.collage-paper span {
-  font-size: clamp(2rem, 4vw, 4rem);
-  writing-mode: vertical-rl;
+.hero-salon-caption span {
+  font-size: 2rem;
 }
 
-.collage-paper small {
+.hero-salon-caption small {
   letter-spacing: 0.18em;
-  margin-top: 16px;
-}
-
-.collage-circle {
-  background: var(--accent-green);
-  border-radius: 50%;
-  font-family: var(--primary-font);
-  font-size: 3rem;
-  height: 150px;
-  justify-self: center;
-  width: 150px;
-}
-
-.collage-line {
-  background: var(--accent-yellow);
-  font-size: 0.78rem;
-  font-weight: 700;
-  grid-column: 1 / 3;
-  letter-spacing: 0.2em;
 }
 
 .feature-section {
@@ -273,6 +255,84 @@ main {
   border-top: 1px solid var(--line-color);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+}
+
+.home-menu-section {
+  padding-bottom: 90px;
+  padding-top: 90px;
+}
+
+.home-menu-heading {
+  margin-bottom: 34px;
+}
+
+.home-menu-heading h2 {
+  font-size: clamp(2.5rem, 5vw, 4.2rem);
+  margin: 0;
+}
+
+.home-menu-heading > p:last-child {
+  color: var(--muted-color);
+  margin-top: 10px;
+}
+
+.home-service-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.home-service-card {
+  background: var(--paper-color);
+  border: 1px solid var(--line-color);
+  box-shadow: 6px 8px 0 rgba(34, 34, 34, 0.05);
+  overflow: hidden;
+}
+
+.home-service-image {
+  background: #ede9e1;
+  height: 370px;
+  overflow: hidden;
+}
+
+.home-service-image img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.35s ease;
+  width: 100%;
+}
+
+.home-service-copy {
+  padding: 24px;
+}
+
+.home-service-copy p {
+  color: var(--accent-blue);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin: 0;
+}
+
+.home-service-copy h3 {
+  font-size: 1.65rem;
+  margin: 10px 0 8px;
+}
+
+.home-service-copy span {
+  display: block;
+  font-family: var(--primary-font);
+  font-size: 1.05rem;
+  margin-bottom: 18px;
+}
+
+.home-service-copy a {
+  border-bottom: 1px solid var(--text-color);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding-bottom: 3px;
 }
 
 .feature-section article {
@@ -581,9 +641,95 @@ textarea:focus {
   border: 1px solid var(--line-color);
   display: grid;
   gap: 12px;
-  grid-template-columns: 1fr 0.7fr 0.7fr 1.5fr auto;
+  grid-template-columns: 1fr 0.7fr 0.7fr 1.5fr;
   margin-bottom: 34px;
   padding: 20px;
+}
+
+.time-slot-fieldset {
+  border: 0;
+  margin: 26px 0 0;
+  padding: 0;
+}
+
+.time-slot-fieldset legend {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.time-slot-fieldset legend small {
+  color: var(--muted-color);
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+.time-slot-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.time-slot-button {
+  background: #ffffff;
+  border: 1px solid var(--line-color);
+  color: var(--text-color);
+  cursor: pointer;
+  min-height: 44px;
+  padding: 8px;
+}
+
+.time-slot-button:hover,
+.time-slot-button.active {
+  background: var(--text-color);
+  border-color: var(--text-color);
+  color: #ffffff;
+}
+
+.time-slot-button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(61, 120, 168, 0.2);
+  outline: 0;
+}
+
+.time-slot-guide {
+  color: var(--muted-color);
+  margin: 0;
+}
+
+.booking-selection-summary {
+  background: #ffffff;
+  border-left: 4px solid var(--accent-blue);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 24px;
+  padding: 14px 16px;
+}
+
+.booking-selection-summary span {
+  color: var(--muted-color);
+  font-size: 0.84rem;
+}
+
+.admin-image-fields {
+  border: 0;
+  display: grid;
+  gap: 10px;
+  grid-column: 1 / 5;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 0;
+  padding: 0;
+}
+
+.admin-image-fields legend {
+  color: var(--muted-color);
+  font-size: 0.8rem;
+  font-weight: 700;
+  grid-column: 1 / 3;
+}
+
+.admin-inline-form > .primary-button {
+  grid-column: 1 / 5;
 }
 
 .admin-inline-form .primary-button {
@@ -634,12 +780,12 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
-  .hero-collage {
-    max-width: 680px;
-  }
-
   .service-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .home-service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .admin-inline-form {
@@ -662,20 +808,27 @@ textarea:focus {
     padding-top: 52px;
   }
 
-  .hero-collage {
-    grid-template-rows: 150px 110px 58px;
-  }
-
-  .collage-circle {
-    font-size: 2rem;
-    height: 100px;
-    width: 100px;
+  .hero-salon-visual,
+  .hero-salon-visual > img {
+    height: 340px;
+    min-height: 340px;
   }
 
   .feature-section,
   .service-grid,
+  .home-service-grid,
   .admin-inline-form {
     grid-template-columns: 1fr;
+  }
+
+  .admin-image-fields {
+    grid-column: 1;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-image-fields legend,
+  .admin-inline-form > .primary-button {
+    grid-column: 1;
   }
 
   .feature-section article + article {
@@ -701,5 +854,9 @@ textarea:focus {
 
   .holiday-form .primary-button {
     grid-column: 1;
+  }
+
+  .time-slot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
