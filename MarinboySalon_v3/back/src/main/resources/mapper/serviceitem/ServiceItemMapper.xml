@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.serviceitem.repository.ServiceItemMapper">
+
+    <!-- selectActiveAll: 고객에게 활성 시술만 보여줍니다. -->
+    <select id="selectActiveAll" resultType="ServiceItem">
+        SELECT id, name, price, duration_minutes, description, active, created_at
+        FROM service_item
+        WHERE active = 1
+        ORDER BY id
+    </select>
+
+    <!-- selectAll: 관리자가 비활성 시술까지 함께 조회합니다. -->
+    <select id="selectAll" resultType="ServiceItem">
+        SELECT id, name, price, duration_minutes, description, active, created_at
+        FROM service_item
+        ORDER BY id
+    </select>
+
+    <!-- selectById: 시술 한 건을 조회합니다. -->
+    <select id="selectById" resultType="ServiceItem">
+        SELECT id, name, price, duration_minutes, description, active, created_at
+        FROM service_item
+        WHERE id = #{id}
+    </select>
+
+    <!-- insert: 새 시술 항목을 등록합니다. -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO service_item (name, price, duration_minutes, description, active)
+        VALUES (#{name}, #{price}, #{durationMinutes}, #{description}, #{active})
+    </insert>
+
+    <!-- update: 시술명, 가격, 시간, 설명, 사용 여부를 수정합니다. -->
+    <update id="update">
+        UPDATE service_item
+        SET name = #{name},
+            price = #{price},
+            duration_minutes = #{durationMinutes},
+            description = #{description},
+            active = #{active}
+        WHERE id = #{id}
+    </update>
+
+    <!-- deactivate: 예약 이력을 지키기 위해 실제 삭제 대신 비활성화합니다. -->
+    <update id="deactivate">
+        UPDATE service_item
+        SET active = 0
+        WHERE id = #{id}
+    </update>
+</mapper>

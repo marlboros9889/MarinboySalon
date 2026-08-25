@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.businesshour.repository.BusinessHourMapper">
+    <!-- selectAll: 월요일부터 일요일까지 영업시간을 조회합니다. -->
+    <select id="selectAll" resultType="BusinessHour">
+        SELECT id, day_of_week, open_time, close_time, closed
+        FROM business_hour
+        ORDER BY day_of_week
+    </select>
+    <!-- selectByDayOfWeek: 예약 날짜의 영업 여부를 확인합니다. -->
+    <select id="selectByDayOfWeek" resultType="BusinessHour">
+        SELECT id, day_of_week, open_time, close_time, closed
+        FROM business_hour
+        WHERE day_of_week = #{dayOfWeek}
+    </select>
+    <!-- selectByDayOfWeekForUpdate: 같은 날짜의 동시 예약 요청을 한 줄로 세워 중복 저장을 막습니다. -->
+    <select id="selectByDayOfWeekForUpdate" resultType="BusinessHour">
+        SELECT id, day_of_week, open_time, close_time, closed
+        FROM business_hour
+        WHERE day_of_week = #{dayOfWeek}
+        FOR UPDATE
+    </select>
+    <!-- update: 관리자가 요일별 영업시간을 수정합니다. -->
+    <update id="update">
+        UPDATE business_hour
+        SET open_time = #{openTime}, close_time = #{closeTime}, closed = #{closed}
+        WHERE id = #{id}
+    </update>
+</mapper>

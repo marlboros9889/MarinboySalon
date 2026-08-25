@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.businesshour.dao.BusinessHourDao">
+
+    <!-- BusinessHourDao.findAll: 월요일부터 일요일까지 영업시간을 조회합니다. -->
+    <select id="findAll" resultType="BusinessHourDto">
+        SELECT id,
+               day_of_week,
+               open_time,
+               close_time,
+               closed
+        FROM business_hour
+        ORDER BY day_of_week ASC
+    </select>
+
+    <!-- BusinessHourDao.findByDayOfWeek: 예약 날짜에 해당하는 영업시간을 찾습니다. -->
+    <select id="findByDayOfWeek" parameterType="int" resultType="BusinessHourDto">
+        SELECT id,
+               day_of_week,
+               open_time,
+               close_time,
+               closed
+        FROM business_hour
+        WHERE day_of_week = #{dayOfWeek}
+    </select>
+
+    <!-- BusinessHourDao.update: 관리자 화면에서 요일별 시간을 수정합니다. -->
+    <update id="update" parameterType="BusinessHourDto">
+        UPDATE business_hour
+        SET open_time = #{openTime},
+            close_time = #{closeTime},
+            closed = #{closed}
+        WHERE id = #{id}
+    </update>
+</mapper>

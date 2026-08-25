@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.serviceitem.dao.ServiceItemDao">
+
+    <!-- ServiceItemDao.findActiveList: 고객에게 공개할 시술만 조회합니다. -->
+    <select id="findActiveList" resultType="ServiceItemDto">
+        SELECT id,
+               name,
+               price,
+               duration_minutes,
+               description,
+               active
+        FROM service_item
+        WHERE active = 1
+        ORDER BY price ASC, id ASC
+    </select>
+
+    <!-- ServiceItemDao.findAll: 관리자에게 비활성 메뉴까지 모두 보여줍니다. -->
+    <select id="findAll" resultType="ServiceItemDto">
+        SELECT id,
+               name,
+               price,
+               duration_minutes,
+               description,
+               active
+        FROM service_item
+        ORDER BY id DESC
+    </select>
+
+    <!-- ServiceItemDao.findById: 예약할 시술의 가격과 소요 시간을 확인합니다. -->
+    <select id="findById" parameterType="long" resultType="ServiceItemDto">
+        SELECT id,
+               name,
+               price,
+               duration_minutes,
+               description,
+               active
+        FROM service_item
+        WHERE id = #{id}
+    </select>
+
+    <!-- ServiceItemDao.insert: 새 시술 메뉴를 등록합니다. -->
+    <insert id="insert" parameterType="ServiceItemDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO service_item (
+            name,
+            price,
+            duration_minutes,
+            description,
+            active
+        ) VALUES (
+            #{name},
+            #{price},
+            #{durationMinutes},
+            #{description},
+            #{active}
+        )
+    </insert>
+
+    <!-- ServiceItemDao.update: 시술 메뉴의 공개 정보와 활성 상태를 수정합니다. -->
+    <update id="update" parameterType="ServiceItemDto">
+        UPDATE service_item
+        SET name = #{name},
+            price = #{price},
+            duration_minutes = #{durationMinutes},
+            description = #{description},
+            active = #{active}
+        WHERE id = #{id}
+    </update>
+
+    <!-- ServiceItemDao.delete: 예약 기록을 보존하기 위해 실제 삭제 대신 비활성화합니다. -->
+    <update id="delete" parameterType="long">
+        UPDATE service_item
+        SET active = 0
+        WHERE id = #{id}
+    </update>
+</mapper>

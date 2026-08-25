@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.user.dao.UserDao">
+
+    <!-- UserDao.countByEmail: 같은 이메일이 이미 등록되었는지 확인합니다. -->
+    <select id="countByEmail" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM user_account
+        WHERE email = #{email}
+    </select>
+
+    <!-- UserDao.insert: 새 회원을 등록하고 생성된 id를 Dto에 담습니다. -->
+    <insert id="insert" parameterType="UserDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_account (
+            email,
+            password,
+            name,
+            phone,
+            role
+        ) VALUES (
+            #{email},
+            #{password},
+            #{name},
+            #{phone},
+            #{role}
+        )
+    </insert>
+
+    <!-- UserDao.findByEmail: 로그인할 회원 정보를 이메일로 찾습니다. -->
+    <select id="findByEmail" parameterType="String" resultType="UserDto">
+        SELECT id,
+               email,
+               password,
+               name,
+               phone,
+               role,
+               created_at
+        FROM user_account
+        WHERE email = #{email}
+    </select>
+
+    <!-- UserDao.findById: 화면에 보여줄 회원 정보를 id로 찾습니다. -->
+    <select id="findById" parameterType="long" resultType="UserDto">
+        SELECT id,
+               email,
+               password,
+               name,
+               phone,
+               role,
+               created_at
+        FROM user_account
+        WHERE id = #{id}
+    </select>
+
+    <!-- UserDao.update: 이메일과 권한은 유지하고 이름과 연락처만 수정합니다. -->
+    <update id="update" parameterType="UserDto">
+        UPDATE user_account
+        SET name = #{name},
+            phone = #{phone}
+        WHERE id = #{id}
+    </update>
+</mapper>

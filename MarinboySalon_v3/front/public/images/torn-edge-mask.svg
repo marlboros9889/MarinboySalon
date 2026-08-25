@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 종이 카드 아래쪽의 불규칙한 찢김 모양을 반복해서 사용합니다. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="12" viewBox="0 0 120 12">
+  <path fill="#fffef9" d="M0 0h120v5l-7 3-8-2-9 5-9-4-11 3-9-5-9 6-10-4-9 3-10-6-9 5-10-3-10 4z"/>
+</svg>
