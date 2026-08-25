@@ -1,10 +1,19 @@
-import { getArchiveLook, getValidServiceId } from '../utils/serviceItem';
+import { getArchiveLook, getServiceImageUrls, getValidServiceId } from '../utils/serviceItem';
 
 describe('서비스 메뉴 화면 도구', () => {
   test('메뉴 이름에 따라 아카이브 분류를 선택한다', () => {
     expect(getArchiveLook('남성 커트').category).toBe('CUT & DESIGN');
     expect(getArchiveLook('전체 염색').category).toBe('ARTISAN COLOR');
     expect(getArchiveLook('디자인 펌').category).toBe('WAVE & VOLUME');
+  });
+
+  test('등록된 메뉴 이미지는 최대 네 장까지만 화면에 전달한다', () => {
+    const serviceItem = {
+      imageUrls: ['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg', '/5.jpg'],
+    };
+
+    expect(getServiceImageUrls(serviceItem)).toEqual(['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg']);
+    expect(getServiceImageUrls({})).toEqual(['/images/salon-background.png']);
   });
 
   test('실제 서비스 id만 예약 폼 값으로 사용한다', () => {

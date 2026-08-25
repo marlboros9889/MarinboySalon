@@ -1,6 +1,7 @@
 package com.marinboy.serviceitem.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.marinboy.serviceitem.entity.ServiceItem;
 
@@ -21,8 +22,9 @@ public class ServiceItemResponseDto {
     private String description;
     private Boolean active;
     private LocalDateTime createdAt;
+    private List<String> imageUrls;
 
-    public static ServiceItemResponseDto from(ServiceItem item) {
+    public static ServiceItemResponseDto from(ServiceItem item, List<String> imageUrls) {
         return ServiceItemResponseDto.builder()
                 .id(item.getId())
                 .name(item.getName())
@@ -31,6 +33,7 @@ public class ServiceItemResponseDto {
                 .description(item.getDescription())
                 .active(item.getActive())
                 .createdAt(item.getCreatedAt())
+                .imageUrls(imageUrls)
                 .build();
     }
 }

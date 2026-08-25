@@ -42,11 +42,11 @@ export default function AdminSchedule() {
   return (
     <AppLayout>
       <section className="page-section container">
-        <header className="page-heading admin-heading"><p className="eyebrow">ADMIN</p><h1 className="serif-text">영업일 관리</h1></header>
+        <header className="page-heading admin-heading"><p className="eyebrow">ADMIN</p><h1 className="heading-text">영업일 관리</h1></header>
         {error && <p className="error-message">{error}</p>}
         <div className="booking-layout">
           <div className="paper-panel">
-            <h2 className="serif-text">주간 영업시간</h2>
+            <h2 className="heading-text">주간 영업시간</h2>
             <ul className="schedule-list">
               {businessHours.map((item) => (
                 <li key={item.id}><span>{item.dayOfWeek}요일</span><strong>{item.closed ? '휴무' : `${item.openTime} - ${item.closeTime}`}</strong></li>
@@ -54,7 +54,7 @@ export default function AdminSchedule() {
             </ul>
           </div>
           <div className="paper-panel accent-panel">
-            <h2 className="serif-text">임시 휴무</h2>
+            <h2 className="heading-text">임시 휴무</h2>
             <form className="holiday-form" onSubmit={onHolidaySubmit}>
               <input type="date" value={holidayDate} onChange={(event) => setHolidayDate(event.target.value)} required />
               <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="휴무 사유" />

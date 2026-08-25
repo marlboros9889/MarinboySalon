@@ -35,7 +35,7 @@ export default function AdminReservations() {
       <section className="page-section container">
         <header className="page-heading admin-heading">
           <p className="eyebrow">ADMIN</p>
-          <h1 className="serif-text">예약 관리</h1>
+          <h1 className="heading-text">예약 관리</h1>
         </header>
         {error && <p className="error-message">{error}</p>}
         <div className="table-responsive paper-table-wrap">

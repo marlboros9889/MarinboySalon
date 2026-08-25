@@ -25,7 +25,7 @@ export default function AppLayout({ children }) {
     <div className="site-shell">
       <header className="site-header">
         <div className="container header-inner">
-          <Link href="/" className="brand serif-text">MARINBOY SALON</Link>
+          <Link href="/" className="brand display-text">MARINBOY SALON</Link>
           <nav className="main-nav" aria-label="주요 메뉴">
             <Link href="/services">시술 메뉴</Link>
             <Link href="/reservations/new">예약하기</Link>

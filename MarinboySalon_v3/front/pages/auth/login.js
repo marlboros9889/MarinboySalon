@@ -28,7 +28,7 @@ export default function Login() {
       <section className="auth-section container">
         <form className="paper-form torn-paper-edge" onSubmit={onSubmit}>
           <p className="eyebrow">WELCOME BACK</p>
-          <h1 className="serif-text">로그인</h1>
+          <h1 className="heading-text">로그인</h1>
           <label htmlFor="email">이메일</label>
           <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
           <label htmlFor="password">비밀번호</label>

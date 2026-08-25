@@ -17,6 +17,7 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.marinboy.businesshour.entity.BusinessHour;
 import com.marinboy.businesshour.repository.BusinessHourMapper;
@@ -44,6 +45,9 @@ class ReservationServiceLockTest {
 
     @Mock
     private HolidayMapper holidayMapper;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ReservationServiceImpl reservationService;

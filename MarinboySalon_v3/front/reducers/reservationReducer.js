@@ -7,6 +7,9 @@ export const CREATE_RESERVATION_FAILURE = 'CREATE_RESERVATION_FAILURE';
 export const CANCEL_RESERVATION_REQUEST = 'CANCEL_RESERVATION_REQUEST';
 export const CANCEL_RESERVATION_SUCCESS = 'CANCEL_RESERVATION_SUCCESS';
 export const CANCEL_RESERVATION_FAILURE = 'CANCEL_RESERVATION_FAILURE';
+export const LOAD_AVAILABLE_TIMES_REQUEST = 'LOAD_AVAILABLE_TIMES_REQUEST';
+export const LOAD_AVAILABLE_TIMES_SUCCESS = 'LOAD_AVAILABLE_TIMES_SUCCESS';
+export const LOAD_AVAILABLE_TIMES_FAILURE = 'LOAD_AVAILABLE_TIMES_FAILURE';
 
 const initialState = {
   reservations: [],
@@ -14,6 +17,9 @@ const initialState = {
   createReservationLoading: false,
   createReservationDone: false,
   reservationError: null,
+  availableTimes: [],
+  loadAvailableTimesLoading: false,
+  availableTimesError: null,
 };
 
 export default function reservationReducer(state = initialState, action) {
@@ -30,6 +36,26 @@ export default function reservationReducer(state = initialState, action) {
         createReservationLoading: false,
         createReservationDone: true,
         reservations: [action.data, ...state.reservations],
+      };
+    case LOAD_AVAILABLE_TIMES_REQUEST:
+      return {
+        ...state,
+        availableTimes: [],
+        loadAvailableTimesLoading: true,
+        availableTimesError: null,
+      };
+    case LOAD_AVAILABLE_TIMES_SUCCESS:
+      return {
+        ...state,
+        availableTimes: action.data,
+        loadAvailableTimesLoading: false,
+      };
+    case LOAD_AVAILABLE_TIMES_FAILURE:
+      return {
+        ...state,
+        availableTimes: [],
+        loadAvailableTimesLoading: false,
+        availableTimesError: action.error,
       };
     case CANCEL_RESERVATION_SUCCESS:
       return {

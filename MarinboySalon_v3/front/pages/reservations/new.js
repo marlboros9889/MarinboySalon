@@ -3,20 +3,34 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import AppLayout from '../../components/AppLayout';
 import { LOAD_SERVICE_ITEMS_REQUEST } from '../../reducers/serviceItemReducer';
-import { CREATE_RESERVATION_REQUEST } from '../../reducers/reservationReducer';
+import {
+  CREATE_RESERVATION_REQUEST,
+  LOAD_AVAILABLE_TIMES_REQUEST,
+} from '../../reducers/reservationReducer';
 import { getValidServiceId } from '../../utils/serviceItem';
+import { formatDateInputValue, formatTimeLabel } from '../../utils/reservation';
 
 export default function NewReservation() {
   const dispatch = useDispatch();
   const router = useRouter();
   const { me } = useSelector((state) => state.auth);
   const { serviceItems } = useSelector((state) => state.serviceItem);
-  const { createReservationLoading, createReservationDone, reservationError } = useSelector(
+  const {
+    availableTimes,
+    loadAvailableTimesLoading,
+    availableTimesError,
+    createReservationLoading,
+    createReservationDone,
+    reservationError,
+  } = useSelector(
     (state) => state.reservation,
   );
   const [serviceId, setServiceId] = useState('');
-  const [reservationStart, setReservationStart] = useState('');
+  const [reservationDate, setReservationDate] = useState('');
+  const [reservationTime, setReservationTime] = useState('');
   const [requestMemo, setRequestMemo] = useState('');
+  const minimumDate = formatDateInputValue(new Date());
+  const selectedService = serviceItems.find((item) => String(item.id) === serviceId);
 
   useEffect(() => {
     dispatch({ type: LOAD_SERVICE_ITEMS_REQUEST });
@@ -40,6 +54,17 @@ export default function NewReservation() {
     }
   }, [createReservationDone, router]);
 
+  useEffect(() => {
+    setReservationTime('');
+    if (!serviceId || !reservationDate) {
+      return;
+    }
+    dispatch({
+      type: LOAD_AVAILABLE_TIMES_REQUEST,
+      data: { serviceId: Number(serviceId), date: reservationDate },
+    });
+  }, [dispatch, reservationDate, serviceId]);
+
   const onSubmit = (event) => {
     event.preventDefault();
     if (!me) {
@@ -48,7 +73,11 @@ export default function NewReservation() {
     }
     dispatch({
       type: CREATE_RESERVATION_REQUEST,
-      data: { serviceId: Number(serviceId), reservationStart, requestMemo },
+      data: {
+        serviceId: Number(serviceId),
+        reservationStart: `${reservationDate}T${reservationTime}:00`,
+        requestMemo,
+      },
     });
   };
 
@@ -57,15 +86,21 @@ export default function NewReservation() {
       <section className="page-section container">
         <header className="page-heading">
           <p className="eyebrow">RESERVATION</p>
-          <h1 className="serif-text">예약 신청</h1>
+          <h1 className="heading-text">예약 신청</h1>
           <p>영업시간, 휴무일, 기존 예약은 서버에서 다시 확인합니다.</p>
         </header>
         <form className="booking-layout" onSubmit={onSubmit}>
           <div className="paper-panel torn-paper-edge">
-            <span className="step-number serif-text">01</span>
-            <h2 className="serif-text">DATE & SERVICE</h2>
+            <span className="step-number display-text">01</span>
+            <h2 className="display-text">DATE & SERVICE</h2>
             <label htmlFor="serviceId">시술 메뉴</label>
-            <select id="serviceId" value={serviceId} onChange={(event) => setServiceId(event.target.value)} required>
+            <select
+              id="serviceId"
+              name="serviceId"
+              value={serviceId}
+              onChange={(event) => setServiceId(event.target.value)}
+              required
+            >
               <option value="">시술을 선택해 주세요</option>
               {serviceItems.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -73,18 +108,52 @@ export default function NewReservation() {
                 </option>
               ))}
             </select>
-            <label htmlFor="reservationStart">예약 일시</label>
+            <label htmlFor="reservationDate">예약 날짜</label>
             <input
-              id="reservationStart"
-              type="datetime-local"
-              value={reservationStart}
-              onChange={(event) => setReservationStart(event.target.value)}
+              id="reservationDate"
+              name="reservationDate"
+              type="date"
+              min={minimumDate}
+              value={reservationDate}
+              onChange={(event) => setReservationDate(event.target.value)}
               required
             />
+            <fieldset className="time-slot-fieldset">
+              <legend>예약 시간 <small>30분 단위</small></legend>
+              {!serviceId || !reservationDate ? (
+                <p className="time-slot-guide">메뉴와 날짜를 먼저 선택해 주세요.</p>
+              ) : loadAvailableTimesLoading ? (
+                <p className="time-slot-guide">가능한 시간을 확인하고 있습니다.</p>
+              ) : availableTimes.length > 0 ? (
+                <div className="time-slot-grid">
+                  {availableTimes.map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      className={`time-slot-button ${reservationTime === time ? 'active' : ''}`}
+                      aria-pressed={reservationTime === time}
+                      onClick={() => setReservationTime(time)}
+                    >
+                      {formatTimeLabel(time)}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-message">선택 가능한 시간이 없습니다.</p>
+              )}
+              {availableTimesError && <p className="error-message">{availableTimesError}</p>}
+            </fieldset>
+            {selectedService && (
+              <div className="booking-selection-summary">
+                <strong>{selectedService.name}</strong>
+                <span>{selectedService.durationMinutes}분 · {selectedService.price.toLocaleString()}원</span>
+                <span>{reservationDate || '날짜 미선택'} · {reservationTime ? formatTimeLabel(reservationTime) : '시간 미선택'}</span>
+              </div>
+            )}
           </div>
           <div className="paper-panel accent-panel torn-paper-edge">
-            <span className="step-number serif-text">02</span>
-            <h2 className="serif-text">REQUEST</h2>
+            <span className="step-number display-text">02</span>
+            <h2 className="display-text">REQUEST</h2>
             <label htmlFor="requestMemo">요청사항</label>
             <textarea
               id="requestMemo"
@@ -95,7 +164,11 @@ export default function NewReservation() {
               placeholder="모발 상태나 원하는 스타일을 적어 주세요."
             />
             {reservationError && <p className="error-message">{reservationError}</p>}
-            <button type="submit" className="primary-button" disabled={createReservationLoading}>
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={createReservationLoading || !reservationTime}
+            >
               {createReservationLoading ? '예약 확인 중...' : '예약 신청하기'}
             </button>
           </div>

@@ -47,4 +47,27 @@
         SET active = 0
         WHERE id = #{id}
     </update>
+
+    <!-- selectImagesByServiceItemIds: 여러 메뉴의 이미지를 한 번에 조회해 반복 쿼리를 막습니다. -->
+    <select id="selectImagesByServiceItemIds" resultType="ServiceItemImage">
+        SELECT id, service_item_id, image_url, display_order
+        FROM service_item_image
+        WHERE service_item_id IN
+        <foreach collection="serviceItemIds" item="serviceItemId" open="(" separator="," close=")">
+            #{serviceItemId}
+        </foreach>
+        ORDER BY service_item_id, display_order
+    </select>
+
+    <!-- insertImage: 메뉴 이미지와 표시 순서를 함께 저장합니다. -->
+    <insert id="insertImage">
+        INSERT INTO service_item_image (service_item_id, image_url, display_order)
+        VALUES (#{serviceItemId}, #{imageUrl}, #{displayOrder})
+    </insert>
+
+    <!-- deleteImagesByServiceItemId: 수정 전 기존 이미지 목록을 정리합니다. -->
+    <delete id="deleteImagesByServiceItemId">
+        DELETE FROM service_item_image
+        WHERE service_item_id = #{serviceItemId}
+    </delete>
 </mapper>

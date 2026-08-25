@@ -63,6 +63,7 @@ public class SecurityConfig {
                                 "/auth/signup", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/check-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/service-items/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reservations/available-times").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

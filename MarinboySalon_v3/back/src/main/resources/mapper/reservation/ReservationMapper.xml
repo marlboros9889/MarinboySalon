@@ -62,6 +62,13 @@
         WHERE id = #{id}
     </update>
 
+    <!-- updateCalendarEventId: Google Calendar에 생성된 일정 번호를 예약과 연결합니다. -->
+    <update id="updateCalendarEventId">
+        UPDATE reservation
+        SET calendar_event_id = #{calendarEventId}
+        WHERE id = #{id}
+    </update>
+
     <!-- countOverlap: 한 명이 운영하므로 모든 활성 예약의 시간 겹침을 검사합니다. -->
     <select id="countOverlap" resultType="int">
         SELECT COUNT(*)

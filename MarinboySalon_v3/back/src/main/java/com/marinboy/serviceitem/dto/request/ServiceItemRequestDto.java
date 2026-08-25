@@ -1,8 +1,11 @@
 package com.marinboy.serviceitem.dto.request;
 
+import java.util.List;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,4 +29,8 @@ public class ServiceItemRequestDto {
 
     private String description;
     private Boolean active;
+
+    @Size(max = 4, message = "메뉴 이미지는 최대 4개까지 등록할 수 있습니다.")
+    private List<@NotBlank(message = "빈 이미지 주소는 등록할 수 없습니다.")
+            @Size(max = 500, message = "이미지 주소는 500자 이하여야 합니다.") String> imageUrls;
 }

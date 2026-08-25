@@ -25,3 +25,15 @@ MarinboySalon_v3
 - MySQL 8
 - Redis 7
 - 모든 소스 파일 UTF-8
+
+## Google Calendar 로컬 설정
+
+예약 저장이 완료되면 Google Calendar 일정을 비동기로 생성하고, 생성된 이벤트 ID를 `reservation.calendar_event_id`에 기록합니다. 비밀값과 서비스 계정 키는 Git에 넣지 않고 실행 환경 변수로 전달합니다.
+
+```powershell
+$env:GOOGLE_CALENDAR_ENABLED = 'true'
+$env:GOOGLE_CALENDAR_ID = '공유받은 캘린더 ID'
+$env:GOOGLE_CALENDAR_CREDENTIALS_PATH = 'C:\절대경로\service-account.json'
+```
+
+서비스 계정 이메일에는 대상 캘린더의 일정 변경 권한이 필요합니다.
