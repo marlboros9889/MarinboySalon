@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.reservation.dao.ReservationDao">
+
+    <!-- ReservationDao.insert: 로그인 회원의 새 예약을 접수 상태로 저장합니다. -->
+    <insert id="insert" parameterType="ReservationDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reservation (
+            user_id,
+            service_id,
+            reservation_start,
+            status,
+            request_memo
+        ) VALUES (
+            #{userId},
+            #{serviceId},
+            #{reservationStart},
+            #{status},
+            #{requestMemo}
+        )
+    </insert>
+
+    <!-- ReservationDao.findByUserId: 로그인 회원 본인의 예약만 보여줍니다. -->
+    <select id="findByUserId" parameterType="long" resultType="ReservationDto">
+        SELECT r.id,
+               r.user_id,
+               r.service_id,
+               r.reservation_start,
+               r.status,
+               r.request_memo,
+               r.created_at,
+               u.name AS user_name,
+               s.name AS service_name,
+               s.price AS service_price,
+               s.duration_minutes
+        FROM reservation r
+        INNER JOIN user_account u ON u.id = r.user_id
+        INNER JOIN service_item s ON s.id = r.service_id
+        WHERE r.user_id = #{userId}
+        ORDER BY r.reservation_start DESC
+    </select>
+
+    <!-- ReservationDao.findAll: 관리자가 모든 고객 예약을 확인합니다. -->
+    <select id="findAll" resultType="ReservationDto">
+        SELECT r.id,
+               r.user_id,
+               r.service_id,
+               r.reservation_start,
+               r.status,
+               r.request_memo,
+               r.created_at,
+               u.name AS user_name,
+               s.name AS service_name,
+               s.price AS service_price,
+               s.duration_minutes
+        FROM reservation r
+        INNER JOIN user_account u ON u.id = r.user_id
+        INNER JOIN service_item s ON s.id = r.service_id
+        ORDER BY r.reservation_start DESC
+    </select>
+
+    <!-- ReservationDao.findByIdAndUserId: 주소의 id만 바꿔 다른 회원 예약을 볼 수 없게 합니다. -->
+    <select id="findByIdAndUserId" resultType="ReservationDto">
+        SELECT r.id,
+               r.user_id,
+               r.service_id,
+               r.reservation_start,
+               r.status,
+               r.request_memo,
+               r.created_at,
+               u.name AS user_name,
+               s.name AS service_name,
+               s.price AS service_price,
+               s.duration_minutes
+        FROM reservation r
+        INNER JOIN user_account u ON u.id = r.user_id
+        INNER JOIN service_item s ON s.id = r.service_id
+        WHERE r.id = #{id}
+          AND r.user_id = #{userId}
+    </select>
+
+    <!-- ReservationDao.countTimeConflict: 기존 시술 종료 전에는 새 예약을 받을 수 없습니다. -->
+    <select id="countTimeConflict" resultType="int">
+        SELECT COUNT(*)
+        FROM reservation r
+        INNER JOIN service_item s ON s.id = r.service_id
+        WHERE r.status != 'CANCELLED'
+          AND r.reservation_start &lt; #{reservationEnd}
+          AND DATE_ADD(r.reservation_start, INTERVAL s.duration_minutes MINUTE) &gt; #{reservationStart}
+        <if test="excludeId != null">
+          AND r.id != #{excludeId}
+        </if>
+    </select>
+
+    <!-- ReservationDao.update: 접수 중인 본인 예약의 시술, 시간, 요청사항만 수정합니다. -->
+    <update id="update" parameterType="ReservationDto">
+        UPDATE reservation
+        SET service_id = #{serviceId},
+            reservation_start = #{reservationStart},
+            request_memo = #{requestMemo}
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND status = 'REQUESTED'
+    </update>
+
+    <!-- ReservationDao.cancelByIdAndUserId: 기록은 남기고 예약 상태만 취소로 변경합니다. -->
+    <update id="cancelByIdAndUserId">
+        UPDATE reservation
+        SET status = 'CANCELLED'
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND status = 'REQUESTED'
+    </update>
+
+    <!-- ReservationDao.updateStatus: 관리자가 허용된 예약 상태로 변경합니다. -->
+    <update id="updateStatus">
+        UPDATE reservation
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+</mapper>

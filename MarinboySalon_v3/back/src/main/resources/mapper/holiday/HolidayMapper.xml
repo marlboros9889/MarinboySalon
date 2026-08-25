@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.holiday.repository.HolidayMapper">
+    <!-- selectAll: 등록된 임시 휴무일을 최신 날짜부터 조회합니다. -->
+    <select id="selectAll" resultType="Holiday">
+        SELECT id, holiday_date, reason, created_at
+        FROM holiday
+        ORDER BY holiday_date DESC
+    </select>
+    <!-- selectByDate: 선택한 예약일이 휴무일인지 확인합니다. -->
+    <select id="selectByDate" resultType="Holiday">
+        SELECT id, holiday_date, reason, created_at
+        FROM holiday
+        WHERE holiday_date = #{holidayDate}
+    </select>
+    <!-- insert: 임시 휴무일을 등록합니다. -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO holiday (holiday_date, reason)
+        VALUES (#{holidayDate}, #{reason})
+    </insert>
+    <!-- delete: 임시 휴무일을 삭제합니다. -->
+    <delete id="delete">
+        DELETE FROM holiday WHERE id = #{id}
+    </delete>
+</mapper>

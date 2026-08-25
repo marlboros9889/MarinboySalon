@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: marinboy-salon-back
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL:jdbc:mysql://localhost:3306/marinboy_salon?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  jackson:
+    time-zone: Asia/Seoul
+
+server:
+  port: ${BACK_PORT:8080}
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.marinboy
+  configuration:
+    map-underscore-to-camel-case: true
+
+app:
+  front-url: ${FRONT_URL:http://localhost:3000}
+  cors:
+    # 로컬 브라우저의 localhost/127.0.0.1 접속을 모두 허용하고 운영 주소는 환경 변수로 교체합니다.
+    allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}"
+  jwt:
+    secret: ${JWT_SECRET:marinboy-salon-local-secret-key-change-before-production-2026}
+    access-token-exp-seconds: ${JWT_ACCESS_EXP:1800}
+    refresh-token-exp-seconds: ${JWT_REFRESH_EXP:604800}
+    cookie-secure: ${JWT_COOKIE_SECURE:false}

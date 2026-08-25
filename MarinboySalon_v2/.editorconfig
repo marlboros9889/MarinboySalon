@@ -1,0 +1,12 @@
+# 모든 편집기에서 같은 문자 인코딩과 줄바꿈 규칙을 사용합니다.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{java,xml,jsp,js,css,sql,md,properties}]
+indent_style = space
+indent_size = 4

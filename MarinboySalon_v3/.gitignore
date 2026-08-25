@@ -1,0 +1,6 @@
+back/.gradle/
+back/build/
+front/node_modules/
+front/.next/
+front/.env.local
+*.log

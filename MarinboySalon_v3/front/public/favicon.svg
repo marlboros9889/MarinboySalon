@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- M 글자와 빈티지 포인트 색을 사용한 마린보이 살롱 파비콘입니다. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="8" fill="#fdfcf5"/>
+  <circle cx="49" cy="15" r="9" fill="#e9a5a6"/>
+  <path d="M12 48V17h8l12 18 12-18h8v31h-8V29L32 46 20 29v19z" fill="#222222"/>
+</svg>

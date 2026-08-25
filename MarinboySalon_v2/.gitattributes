@@ -1,0 +1,11 @@
+# 운영체제가 달라도 Git 내부 파일은 UTF-8과 LF 기준으로 관리합니다.
+* text=auto eol=lf
+
+*.java text working-tree-encoding=UTF-8
+*.xml text working-tree-encoding=UTF-8
+*.jsp text working-tree-encoding=UTF-8
+*.js text working-tree-encoding=UTF-8
+*.css text working-tree-encoding=UTF-8
+*.sql text working-tree-encoding=UTF-8
+*.md text working-tree-encoding=UTF-8
+*.properties text working-tree-encoding=UTF-8

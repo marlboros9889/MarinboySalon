@@ -1,6 +1,8 @@
 # 빌드 산출물
 target/
 **/target/
+**/build/
+**/.gradle/
 bin/
 **/bin/
 **/.next/
@@ -48,6 +50,9 @@ service-account-key*.json
 config/application-local.properties
 .runtime/
 backend.7z
+
+# 구조 교정 전 로컬 복구본(실행·배포·커밋 대상 아님)
+MarinboySalon_v3_incorrect_backup_*/
 
 # 운영 중 생성되는 업로드 파일
 uploads/

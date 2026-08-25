@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.holiday.dao.HolidayDao">
+
+    <!-- HolidayDao.findAll: 다가오는 휴무일을 날짜순으로 조회합니다. -->
+    <select id="findAll" resultType="HolidayDto">
+        SELECT id,
+               holiday_date,
+               reason,
+               created_at
+        FROM holiday
+        ORDER BY holiday_date ASC
+    </select>
+
+    <!-- HolidayDao.countByDate: 선택 날짜가 휴무일인지 확인합니다. -->
+    <select id="countByDate" parameterType="java.time.LocalDate" resultType="int">
+        SELECT COUNT(*)
+        FROM holiday
+        WHERE holiday_date = #{holidayDate}
+    </select>
+
+    <!-- HolidayDao.insert: 관리자 입력 휴무일을 등록합니다. -->
+    <insert id="insert" parameterType="HolidayDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO holiday (
+            holiday_date,
+            reason
+        ) VALUES (
+            #{holidayDate},
+            #{reason}
+        )
+    </insert>
+
+    <!-- HolidayDao.delete: 관리자가 선택한 휴무일을 삭제합니다. -->
+    <delete id="delete" parameterType="long">
+        DELETE FROM holiday
+        WHERE id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.user.repository.AppUserMapper">
+
+    <!-- selectById: 회원 번호로 한 명을 조회합니다. -->
+    <select id="selectById" resultType="AppUser">
+        SELECT id, email, password, name, phone, role, created_at
+        FROM user_account
+        WHERE id = #{id}
+    </select>
+
+    <!-- selectByEmail: 로그인할 회원을 이메일로 조회합니다. -->
+    <select id="selectByEmail" resultType="AppUser">
+        SELECT id, email, password, name, phone, role, created_at
+        FROM user_account
+        WHERE email = #{email}
+    </select>
+
+    <!-- insert: 비밀번호를 BCrypt로 암호화한 회원을 등록합니다. -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_account (email, password, name, phone, role)
+        VALUES (#{email}, #{password}, #{name}, #{phone}, #{role})
+    </insert>
+
+    <!-- update: 본인의 이름과 연락처를 수정합니다. -->
+    <update id="update">
+        UPDATE user_account
+        SET name = #{name}, phone = #{phone}
+        WHERE id = #{id}
+    </update>
+
+    <!-- countByEmail: 이메일 중복을 확인합니다. -->
+    <select id="countByEmail" resultType="int">
+        SELECT COUNT(*)
+        FROM user_account
+        WHERE email = #{email}
+    </select>
+</mapper>
