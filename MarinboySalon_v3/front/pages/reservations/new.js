@@ -31,6 +31,7 @@ export default function NewReservation() {
   const [requestMemo, setRequestMemo] = useState('');
   const minimumDate = formatDateInputValue(new Date());
   const selectedService = serviceItems.find((item) => String(item.id) === serviceId);
+  const progressStep = !serviceId ? 1 : !reservationDate ? 2 : !reservationTime ? 3 : 4;
 
   useEffect(() => {
     dispatch({ type: LOAD_SERVICE_ITEMS_REQUEST });
@@ -86,28 +87,41 @@ export default function NewReservation() {
       <section className="page-section container">
         <header className="page-heading">
           <p className="eyebrow">RESERVATION</p>
-          <h1 className="heading-text">예약 신청</h1>
+          <h1 className="heading-text">예약하기</h1>
           <p>영업시간, 휴무일, 기존 예약은 서버에서 다시 확인합니다.</p>
         </header>
+        <ol className="reservation-progress" aria-label="예약 진행 단계">
+          {['시술 선택', '날짜 선택', '시간 선택', '정보 입력'].map((label, index) => (
+            <li className={progressStep >= index + 1 ? 'active' : ''} key={label}>
+              <span>{index + 1}</span>
+              <strong>{label}</strong>
+            </li>
+          ))}
+        </ol>
         <form className="booking-layout" onSubmit={onSubmit}>
           <div className="paper-panel torn-paper-edge">
             <span className="step-number display-text">01</span>
             <h2 className="display-text">DATE & SERVICE</h2>
-            <label htmlFor="serviceId">시술 메뉴</label>
-            <select
-              id="serviceId"
-              name="serviceId"
-              value={serviceId}
-              onChange={(event) => setServiceId(event.target.value)}
-              required
-            >
-              <option value="">시술을 선택해 주세요</option>
+            <fieldset className="service-choice-fieldset">
+              <legend>시술 메뉴</legend>
+              <div className="service-choice-grid">
               {serviceItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name} · {item.durationMinutes}분 · {item.price.toLocaleString()}원
-                </option>
+                <button
+                  type="button"
+                  className={serviceId === String(item.id) ? 'service-choice active' : 'service-choice'}
+                  aria-pressed={serviceId === String(item.id)}
+                  key={item.id}
+                  onClick={() => setServiceId(String(item.id))}
+                >
+                  <img src={item.imageUrls?.[0] || '/images/salon-background.png'} alt="" />
+                  <span>
+                    <strong>{item.name}</strong>
+                    <small>{item.price.toLocaleString()}원~ · 약 {item.durationMinutes}분</small>
+                  </span>
+                </button>
               ))}
-            </select>
+              </div>
+            </fieldset>
             <label htmlFor="reservationDate">예약 날짜</label>
             <input
               id="reservationDate"
