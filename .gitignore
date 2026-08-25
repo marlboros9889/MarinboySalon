@@ -49,6 +49,7 @@ service-account-key*.json
 **/*service-account*.json
 config/application-local.properties
 .runtime/
+.runtime-logs/
 backend.7z
 
 # 구조 교정 전 로컬 복구본(실행·배포·커밋 대상 아님)

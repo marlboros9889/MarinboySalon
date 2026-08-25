@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { FiInstagram, FiMapPin, FiMessageCircle, FiPhone } from 'react-icons/fi';
 import { LOAD_ME_REQUEST, LOG_OUT_REQUEST } from '../reducers/authReducer';
 
 /**
@@ -25,10 +26,14 @@ export default function AppLayout({ children }) {
     <div className="site-shell">
       <header className="site-header">
         <div className="container header-inner">
-          <Link href="/" className="brand display-text">MARINBOY SALON</Link>
+          <Link href="/" className="brand display-text"><span>Marinboy</span><small>HAIR SALON</small></Link>
           <nav className="main-nav" aria-label="주요 메뉴">
-            <Link href="/services">시술 메뉴</Link>
-            <Link href="/reservations/new">예약하기</Link>
+            <Link href="/#about">ABOUT</Link>
+            <Link href="/#menu">MENU</Link>
+            <Link href="/#style">STYLE</Link>
+            <Link href="/#review">REVIEW</Link>
+            <Link href="/reservations/new">RESERVATION</Link>
+            <Link href="/#contact">LOCATION</Link>
             {me && <Link href="/reservations">내 예약</Link>}
             {me?.role === 'ADMIN' && <Link href="/admin/reservations">관리자</Link>}
           </nav>
@@ -41,16 +46,29 @@ export default function AppLayout({ children }) {
             ) : (
               <>
                 <Link href="/auth/login">로그인</Link>
-                <Link href="/auth/signup" className="outline-link">회원가입</Link>
+                <Link href="/reservations/new" className="header-booking-link">예약하기</Link>
               </>
             )}
           </div>
         </div>
       </header>
       <main>{children}</main>
-      <footer className="site-footer">
-        <div className="container">1인 헤어샵을 위한 예약 포트폴리오 · UTF-8</div>
+      <footer className="site-footer" id="contact">
+        <div className="container site-footer-inner">
+          <Link href="/" className="footer-brand display-text"><span>Marinboy</span><small>HAIR SALON</small></Link>
+          <div className="footer-contact-grid">
+            <div><FiPhone /><span><strong>전화 예약</strong><small>010-1234-5678</small></span></div>
+            <div><FiMessageCircle /><span><strong>Kakao 상담</strong><small>@marinboy_hair</small></span></div>
+            <div><FiInstagram /><span><strong>Instagram</strong><small>@marinboy_hair</small></span></div>
+            <div><FiMapPin /><span><strong>오시는 길</strong><small>서울시 강남구 도산대로 123</small></span></div>
+          </div>
+        </div>
       </footer>
+      <nav className="mobile-booking-nav" aria-label="빠른 예약 메뉴">
+        <a href="tel:01012345678"><FiPhone /> 전화하기</a>
+        <a href="#contact"><FiMessageCircle /> Kakao 상담</a>
+        <Link href="/reservations/new">예약하기</Link>
+      </nav>
     </div>
   );
 }
