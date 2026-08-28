@@ -58,7 +58,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/oauth2/**", "/login/oauth2/**",
-                                "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                                "/swagger-ui/**", "/v3/api-docs/**",
+                                "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/auth/signup", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/check-email").permitAll()
@@ -68,7 +69,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // oauth 프로필에 Client ID가 있을 때만 소셜 로그인 구성을 활성화합니다.
         if (clientRegistrationRepositoryProvider.getIfAvailable() != null) {
             http.oauth2Login(oauth -> oauth
                     .authorizationEndpoint(endpoint -> endpoint
@@ -82,7 +82,6 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // 쉼표로 구분한 환경 변수 목록을 사용해 개발/운영 프론트 주소를 한 곳에서 관리합니다.
         List<String> origins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
