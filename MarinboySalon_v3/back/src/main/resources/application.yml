@@ -27,18 +27,36 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+
 app:
   front-url: ${FRONT_URL:http://localhost:3000}
   cors:
-    # 로컬 브라우저의 localhost/127.0.0.1 접속을 모두 허용하고 운영 주소는 환경 변수로 교체합니다.
     allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}"
   jwt:
     secret: ${JWT_SECRET:marinboy-salon-local-secret-key-change-before-production-2026}
     access-token-exp-seconds: ${JWT_ACCESS_EXP:1800}
     refresh-token-exp-seconds: ${JWT_REFRESH_EXP:604800}
     cookie-secure: ${JWT_COOKIE_SECURE:false}
+    allow-weak-local-secret: ${JWT_ALLOW_WEAK_LOCAL:true}
   google-calendar:
-    # 비밀키와 캘린더 ID는 저장소가 아닌 실행 환경 변수로만 주입합니다.
     enabled: ${GOOGLE_CALENDAR_ENABLED:false}
     calendar-id: ${GOOGLE_CALENDAR_ID:}
     credentials-path: ${GOOGLE_CALENDAR_CREDENTIALS_PATH:}
+
+logging:
+  level:
+    com.marinboy: INFO
+    com.marinboy.reservation: INFO
