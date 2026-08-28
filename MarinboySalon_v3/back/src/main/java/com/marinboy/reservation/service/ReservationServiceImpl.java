@@ -5,35 +5,38 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.context.ApplicationEventPublisher;
 
 import com.marinboy.businesshour.entity.BusinessHour;
 import com.marinboy.businesshour.repository.BusinessHourMapper;
+import com.marinboy.calendar.GoogleCalendarReservationEvent;
 import com.marinboy.holiday.repository.HolidayMapper;
+import com.marinboy.reservation.domain.ReservationStatus;
 import com.marinboy.reservation.dto.request.ReservationRequestDto;
 import com.marinboy.reservation.dto.response.ReservationResponseDto;
 import com.marinboy.reservation.entity.Reservation;
 import com.marinboy.reservation.repository.ReservationMapper;
+import com.marinboy.reservation.support.ReservationSlotSupport;
 import com.marinboy.serviceitem.entity.ServiceItem;
 import com.marinboy.serviceitem.repository.ServiceItemMapper;
-import com.marinboy.calendar.GoogleCalendarReservationEvent;
 
 import lombok.RequiredArgsConstructor;
 
 /**
  * 예약 소유권, 영업시간, 휴무일, 시간 중복을 한 곳에서 검사합니다.
+ * 가능 시간 조회와 등록 검증은 ReservationSlotSupport 규칙을 공유합니다.
  */
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ReservationServiceImpl implements ReservationService {
 
-    private static final Set<String> ADMIN_STATUS =
-            Set.of("REQUESTED", "CONFIRMED", "COMPLETED", "CANCELED");
+    private static final Logger log = LoggerFactory.getLogger(ReservationServiceImpl.class);
 
     private final ReservationMapper reservationMapper;
     private final ServiceItemMapper serviceItemMapper;
@@ -70,19 +73,17 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime candidate = date.atTime(businessHour.getOpenTime()).withSecond(0).withNano(0);
-        int minuteRemainder = candidate.getMinute() % 30;
-        if (minuteRemainder != 0) {
-            candidate = candidate.plusMinutes(30 - minuteRemainder);
-        }
+        LocalDateTime candidate = ReservationSlotSupport.alignToNextSlot(
+                date.atTime(businessHour.getOpenTime()));
         LocalDateTime closingTime = date.atTime(businessHour.getCloseTime());
+
         while (!candidate.plusMinutes(item.getDurationMinutes()).isAfter(closingTime)) {
             if (candidate.isAfter(now)
                     && reservationMapper.countOverlap(
                             candidate, candidate.plusMinutes(item.getDurationMinutes()), null) == 0) {
                 availableTimes.add(candidate.toLocalTime().toString());
             }
-            candidate = candidate.plusMinutes(30);
+            candidate = ReservationSlotSupport.nextSlot(candidate);
         }
         return availableTimes;
     }
@@ -103,17 +104,20 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setServiceId(request.getServiceId());
         reservation.setReservationStart(request.getReservationStart());
         reservation.setRequestMemo(request.getRequestMemo());
-        reservation.setStatus("REQUESTED");
+        reservation.setStatus(ReservationStatus.REQUESTED.name());
         reservationMapper.insert(reservation);
         Reservation savedReservation = reservationMapper.selectById(reservation.getId());
         eventPublisher.publishEvent(GoogleCalendarReservationEvent.from(savedReservation));
+        log.info("Reservation created id={} userId={} start={}",
+                savedReservation.getId(), userId, savedReservation.getReservationStart());
         return ReservationResponseDto.from(savedReservation);
     }
 
     @Override
     public ReservationResponseDto update(Long id, Long userId, ReservationRequestDto request) {
         Reservation reservation = getOwnedReservation(id, userId, false);
-        if (!"REQUESTED".equals(reservation.getStatus())) {
+        ReservationStatus current = ReservationStatus.from(reservation.getStatus());
+        if (!current.canCustomerEdit()) {
             throw new IllegalArgumentException("접수 상태의 예약만 변경할 수 있습니다.");
         }
 
@@ -122,36 +126,40 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setReservationStart(request.getReservationStart());
         reservation.setRequestMemo(request.getRequestMemo());
         reservationMapper.update(reservation);
+        log.info("Reservation updated id={} userId={}", id, userId);
         return ReservationResponseDto.from(reservationMapper.selectById(id));
     }
 
     @Override
     public void cancel(Long id, Long userId, boolean admin) {
         Reservation reservation = getOwnedReservation(id, userId, admin);
-        if ("COMPLETED".equals(reservation.getStatus())) {
+        ReservationStatus current = ReservationStatus.from(reservation.getStatus());
+        if (admin) {
+            current.assertTransitionTo(ReservationStatus.CANCELED);
+        } else if (!current.canCustomerCancel()) {
             throw new IllegalArgumentException("완료된 예약은 취소할 수 없습니다.");
         }
-        reservationMapper.updateStatus(id, "CANCELED");
+        reservationMapper.updateStatus(id, ReservationStatus.CANCELED.name());
+        log.info("Reservation canceled id={} byAdmin={}", id, admin);
     }
 
     @Override
     public ReservationResponseDto updateStatus(Long id, String status) {
-        if (!ADMIN_STATUS.contains(status)) {
-            throw new IllegalArgumentException("사용할 수 없는 예약 상태입니다.");
-        }
+        ReservationStatus next = ReservationStatus.from(status);
         Reservation reservation = reservationMapper.selectById(id);
         if (reservation == null) {
             throw new IllegalArgumentException("예약을 찾을 수 없습니다.");
         }
-        reservationMapper.updateStatus(id, status);
+        ReservationStatus current = ReservationStatus.from(reservation.getStatus());
+        current.assertTransitionTo(next);
+        reservationMapper.updateStatus(id, next.name());
+        log.info("Reservation status changed id={} {} -> {}", id, current, next);
         return ReservationResponseDto.from(reservationMapper.selectById(id));
     }
 
     private void validateSchedule(ReservationRequestDto request, Long excludeId) {
         LocalDateTime start = request.getReservationStart();
-        if (start.getMinute() % 30 != 0 || start.getSecond() != 0 || start.getNano() != 0) {
-            throw new IllegalArgumentException("예약 시간은 30분 단위로 선택해 주세요.");
-        }
+        ReservationSlotSupport.assertAlignedSlot(start);
         if (!start.isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("지난 시간은 예약할 수 없습니다.");
         }
@@ -159,7 +167,6 @@ public class ReservationServiceImpl implements ReservationService {
         LocalDate reservationDate = start.toLocalDate();
         int dayOfWeek = reservationDate.getDayOfWeek().getValue();
 
-        // 다른 조회보다 먼저 잠가 대기 후 생성되는 DB 읽기 스냅샷이 최신 예약을 포함하게 합니다.
         BusinessHour businessHour = businessHourMapper.selectByDayOfWeekForUpdate(dayOfWeek);
         if (businessHour == null || Boolean.TRUE.equals(businessHour.getClosed())) {
             throw new IllegalArgumentException("선택한 요일은 정기 휴무일입니다.");
@@ -177,12 +184,14 @@ public class ReservationServiceImpl implements ReservationService {
         LocalTime startTime = start.toLocalTime();
         LocalDateTime end = start.plusMinutes(item.getDurationMinutes());
         LocalTime endTime = end.toLocalTime();
-        if (startTime.isBefore(businessHour.getOpenTime()) || endTime.isAfter(businessHour.getCloseTime())) {
+        if (!ReservationSlotSupport.fitsWithinBusinessHours(
+                businessHour.getOpenTime(), businessHour.getCloseTime(), startTime, endTime)) {
             throw new IllegalArgumentException("영업시간 안에서 시술이 끝나는 시간을 선택해 주세요.");
         }
 
-        if (reservationMapper.countOverlap(start, end, excludeId) > 0) {
-            throw new IllegalArgumentException("이미 예약된 시간과 겹칩니다.");
+        int overlap = reservationMapper.countOverlapForUpdate(start, end, excludeId);
+        if (overlap > 0) {
+            throw new IllegalStateException("이미 예약된 시간과 겹칩니다.");
         }
     }
 
