@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AppLayout from '../../components/AppLayout';
+import AdminNavigation from '../../components/AdminNavigation';
 import api from '../../api/axios';
 
 export default function AdminSchedule() {
@@ -42,7 +43,8 @@ export default function AdminSchedule() {
   return (
     <AppLayout>
       <section className="page-section container">
-        <header className="page-heading admin-heading"><p className="eyebrow">ADMIN</p><h1 className="heading-text">영업일 관리</h1></header>
+    <header className="page-heading admin-heading"><p className="eyebrow">ADMIN</p><h1 className="heading-text">영업일 관리</h1></header>
+    <AdminNavigation />
         {error && <p className="error-message">{error}</p>}
         <div className="booking-layout">
           <div className="paper-panel">

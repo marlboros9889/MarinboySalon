@@ -1101,6 +1101,12 @@ textarea:focus {
   min-height: 210px;
 }
 
+.admin-navigation { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.admin-navigation a { background: var(--surface-soft); border: 1px solid var(--line-color); border-radius: 999px; color: var(--muted-color); font-size: 0.78rem; padding: 9px 13px; }
+.admin-navigation a.active { background: var(--brand-brown-dark); border-color: var(--brand-brown-dark); color: #fff; font-weight: 700; }
+.admin-card-actions { display: flex; gap: 8px; }
+.danger-button { background: #fff; border: 1px solid #b94b4b; border-radius: 4px; color: #9c3838; cursor: pointer; font-size: 0.78rem; padding: 8px 11px; }
+
 .schedule-list {
   list-style: none;
   margin: 18px 0 0;
@@ -1128,11 +1134,19 @@ textarea:focus {
 
 @media (max-width: 992px) {
   .main-nav {
-    display: none;
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    white-space: nowrap;
   }
 
   .header-inner {
+    gap: 14px;
     grid-template-columns: 1fr auto;
+    padding-bottom: 10px;
+    padding-top: 10px;
   }
 
   .lumiere-hero-content {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AppLayout from '../../components/AppLayout';
+import AdminNavigation from '../../components/AdminNavigation';
 import api from '../../api/axios';
 
 const MAX_IMAGE_COUNT = 4;
@@ -67,6 +68,22 @@ export default function AdminServiceItems() {
     setSelectedImages(selectedImages.filter((imageFile, index) => index !== imageIndex));
   };
 
+  /** 삭제는 예약 이력을 보존하기 위해 메뉴를 비활성 상태로 바꿉니다. */
+  const onDelete = async (item) => {
+    if (!window.confirm(`'${item.name}' 메뉴를 비활성화할까요?`)) {
+      return;
+    }
+    try {
+      await api.delete(`/api/admin/service-items/${item.id}`);
+      if (editingItemId === item.id) {
+        cancelEdit();
+      }
+      await loadItems();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || '시술 메뉴 삭제에 실패했습니다.');
+    }
+  };
+
   /** 파일 업로드가 성공한 뒤 반환 URL만 메뉴 정보와 함께 저장합니다. */
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -108,6 +125,7 @@ export default function AdminServiceItems() {
     <AppLayout>
       <section className="page-section container">
         <header className="page-heading admin-heading"><p className="eyebrow">ADMIN</p><h1 className="heading-text">시술 메뉴 관리</h1></header>
+        <AdminNavigation />
         <form className="admin-inline-form" onSubmit={onSubmit}>
           {editingItemId && <p className="admin-edit-notice">선택한 메뉴를 수정 중입니다. 새 이미지를 선택하면 기존 이미지가 교체됩니다.</p>}
           <label className="admin-field">시술명<input name="name" value={form.name} onChange={onChange} placeholder="예: 디자인 커트" required /></label>
@@ -148,7 +166,10 @@ export default function AdminServiceItems() {
               {item.imageUrls?.map((imageUrl, imageIndex) => <img key={imageUrl} src={imageUrl.startsWith('/uploads/') ? `http://localhost:8080${imageUrl}` : imageUrl} alt={`${item.name} 이미지 ${imageIndex + 1}`} />)}
             </div>
             <p>{item.active ? '사용 중' : '비활성'}</p>
-            <button className="secondary-button" type="button" onClick={() => onEdit(item)}>메뉴 수정</button>
+            <div className="admin-card-actions">
+              <button className="secondary-button" type="button" onClick={() => onEdit(item)}>메뉴 수정</button>
+              <button className="danger-button" type="button" onClick={() => onDelete(item)}>메뉴 삭제</button>
+            </div>
           </article>)}
         </div>
       </section>

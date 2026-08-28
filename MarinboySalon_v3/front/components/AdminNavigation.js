@@ -5,6 +5,7 @@ const adminMenus = [
   { href: '/admin/reservations', label: '예약 관리' },
   { href: '/admin/schedule', label: '영업일 관리' },
   { href: '/admin/service-items', label: '시술 메뉴 관리' },
+  { href: '/admin/users', label: '계정 관리' },
 ];
 
 /** 관리자 기능을 한곳에 모아 화면 크기와 관계없이 페이지를 바로 이동하게 합니다. */

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AppLayout from '../../components/AppLayout';
+import AdminNavigation from '../../components/AdminNavigation';
 import api from '../../api/axios';
 
 const statusInfo = {
@@ -24,6 +25,7 @@ export default function AdminReservations() {
   };
   return <AppLayout><section className="page-section container">
     <header className="page-heading admin-heading"><p className="eyebrow">ADMIN</p><h1 className="heading-text">예약 관리</h1></header>
+    <AdminNavigation />
     {error && <p className="error-message">{error}</p>}
     <div className="table-responsive paper-table-wrap"><table className="table align-middle">
       <thead><tr><th>고객</th><th>시술</th><th>예약 일시</th><th>상태</th></tr></thead><tbody>
