@@ -385,8 +385,10 @@ main {
 
 .lumiere-menu-image {
   background: var(--surface-soft);
+  /* 카드 높이는 기존 메뉴와 같게 유지하고, 서로 다른 원본 비율은 이 안에서 맞춥니다. */
   height: 235px;
   overflow: hidden;
+  position: relative;
 }
 
 .lumiere-menu-image img {
@@ -399,6 +401,19 @@ main {
 
 .lumiere-menu-card:hover img {
   transform: scale(1.02);
+}
+
+.popular-service-badge {
+  background: var(--brand-brown-dark);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  left: 12px;
+  letter-spacing: 0.04em;
+  padding: 7px 10px;
+  position: absolute;
+  top: 12px;
 }
 
 .lumiere-menu-copy {
@@ -1056,13 +1071,41 @@ textarea:focus {
   grid-column: 1 / 3;
 }
 
+.admin-field { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.admin-image-upload { border: 1px dashed var(--brand-brown); border-radius: 5px; grid-column: 1 / 5; margin: 0; padding: 14px; }
+.admin-image-upload legend { color: var(--muted-color); font-size: 0.76rem; font-weight: 700; }
+.admin-image-upload input[type='file'] { height: 1px; opacity: 0; overflow: hidden; position: absolute; width: 1px; }
+.image-select-button { background: var(--brand-brown-dark); border-radius: 4px; color: #fff; cursor: pointer; display: inline-flex; font-size: 0.78rem; margin: 0; padding: 10px 14px; width: fit-content; }
+.admin-image-upload p, .selected-image-item span { color: var(--muted-color); font-size: 0.7rem; }
+.selected-image-list, .admin-image-thumbnail-list { display: grid; gap: 8px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 10px; }
+.selected-image-item img, .admin-image-thumbnail-list img { aspect-ratio: 1; border-radius: 4px; display: block; object-fit: cover; width: 100%; }
+.selected-image-item .link-button { color: #a24a3a; font-size: 0.7rem; margin-top: 5px; }
+.reservation-status { border-radius: 999px; display: inline-block; font-size: 0.72rem; font-weight: 700; margin-right: 8px; padding: 5px 10px; }
+.reservation-status.status-requested { background: #fff0bd; color: #6d5100; }
+.reservation-status.status-confirmed { background: #dcefdc; color: #286331; }
+.reservation-status.status-completed { background: #dce7f5; color: #28527a; }
+.reservation-status.status-canceled { background: #f2dfdf; color: #8b3434; }
+.status-lock { color: var(--muted-color); font-weight: 700; }
+
 .admin-inline-form > .primary-button {
   grid-column: 1 / 5;
 }
 
+.admin-edit-notice, .admin-active-field, .admin-form-actions { grid-column: 1 / 5; }
+.admin-edit-notice { background: #fff0bd; border-radius: 4px; color: #6d5100; font-size: 0.78rem; margin: 0; padding: 10px; }
+.admin-active-field { align-items: center; display: flex; font-size: 0.8rem; gap: 7px; }
+.admin-form-actions { display: flex; gap: 8px; }
+.admin-form-actions .primary-button { margin: 0; }
+
 .admin-grid .paper-card {
   min-height: 210px;
 }
+
+.admin-navigation { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.admin-navigation a { background: var(--surface-soft); border: 1px solid var(--line-color); border-radius: 999px; color: var(--muted-color); font-size: 0.78rem; padding: 9px 13px; }
+.admin-navigation a.active { background: var(--brand-brown-dark); border-color: var(--brand-brown-dark); color: #fff; font-weight: 700; }
+.admin-card-actions { display: flex; gap: 8px; }
+.danger-button { background: #fff; border: 1px solid #b94b4b; border-radius: 4px; color: #9c3838; cursor: pointer; font-size: 0.78rem; padding: 8px 11px; }
 
 .schedule-list {
   list-style: none;
@@ -1091,11 +1134,19 @@ textarea:focus {
 
 @media (max-width: 992px) {
   .main-nav {
-    display: none;
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    white-space: nowrap;
   }
 
   .header-inner {
+    gap: 14px;
     grid-template-columns: 1fr auto;
+    padding-bottom: 10px;
+    padding-top: 10px;
   }
 
   .lumiere-hero-content {
@@ -1280,6 +1331,7 @@ textarea:focus {
   }
 
   .admin-image-fields,
+  .admin-image-upload,
   .admin-inline-form > .primary-button {
     grid-column: 1;
   }
@@ -1287,6 +1339,9 @@ textarea:focus {
   .admin-image-fields {
     grid-template-columns: 1fr;
   }
+
+  .selected-image-list,
+  .admin-image-thumbnail-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .admin-image-fields legend {
     grid-column: 1;

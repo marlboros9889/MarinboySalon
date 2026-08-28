@@ -35,4 +35,20 @@
         FROM user_account
         WHERE email = #{email}
     </select>
+
+    <select id="selectAll" resultType="AppUser">
+        SELECT id, email, password, name, phone, role, created_at FROM user_account ORDER BY created_at DESC
+    </select>
+
+    <update id="updateRole">
+        UPDATE user_account SET role = #{role} WHERE id = #{id}
+    </update>
+
+    <select id="countReservations" resultType="int">
+        SELECT COUNT(*) FROM reservation WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM user_account WHERE id = #{id}
+    </delete>
 </mapper>

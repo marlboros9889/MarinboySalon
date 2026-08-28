@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.review.repository.ReviewMapper">
+    <!-- insert: 완료한 예약 한 건에 후기 한 건만 저장합니다. -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO review (reservation_id, user_id, rating, content) VALUES (#{reservationId}, #{userId}, #{rating}, #{content})
+    </insert>
+    <!-- countByReservationId: 같은 예약의 중복 후기 등록을 막습니다. -->
+    <select id="countByReservationId" resultType="int">SELECT COUNT(*) FROM review WHERE reservation_id = #{reservationId}</select>
+    <select id="selectPublicList" resultType="Review">
+        SELECT r.id, r.reservation_id, r.user_id, r.rating, r.content, r.created_at, u.name AS user_name, s.name AS service_name
+        FROM review r INNER JOIN user_account u ON u.id = r.user_id INNER JOIN reservation rs ON rs.id = r.reservation_id INNER JOIN service_item s ON s.id = rs.service_id
+        ORDER BY r.created_at DESC LIMIT 8
+    </select>
+    <select id="selectMyList" resultType="Review">
+        SELECT r.id, r.reservation_id, r.user_id, r.rating, r.content, r.created_at, u.name AS user_name, s.name AS service_name
+        FROM review r INNER JOIN user_account u ON u.id = r.user_id INNER JOIN reservation rs ON rs.id = r.reservation_id INNER JOIN service_item s ON s.id = rs.service_id
+        WHERE r.user_id = #{userId} ORDER BY r.created_at DESC
+    </select>
+</mapper>

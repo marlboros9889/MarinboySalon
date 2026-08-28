@@ -14,10 +14,10 @@ public enum ReservationStatus {
     CANCELED;
 
     private static final Map<ReservationStatus, Set<ReservationStatus>> ALLOWED_TRANSITIONS = Map.of(
-            REQUESTED, EnumSet.of(CONFIRMED, CANCELED, REQUESTED),
-            CONFIRMED, EnumSet.of(COMPLETED, CANCELED, CONFIRMED),
-            COMPLETED, EnumSet.of(COMPLETED),
-            CANCELED, EnumSet.of(CANCELED)
+            REQUESTED, EnumSet.of(CONFIRMED, CANCELED),
+            CONFIRMED, EnumSet.of(COMPLETED, CANCELED),
+            COMPLETED, EnumSet.noneOf(ReservationStatus.class),
+            CANCELED, EnumSet.noneOf(ReservationStatus.class)
     );
 
     public static ReservationStatus from(String value) {

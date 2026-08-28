@@ -1,6 +1,9 @@
 spring:
   application:
     name: marinboy-salon-back
+  profiles:
+    # 소셜 로그인 설정을 모든 실행 환경에서 읽되, 키 값은 환경변수로만 받습니다.
+    include: oauth
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL:jdbc:mysql://localhost:3306/marinboy_salon?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
@@ -55,6 +58,9 @@ app:
     enabled: ${GOOGLE_CALENDAR_ENABLED:false}
     calendar-id: ${GOOGLE_CALENDAR_ID:}
     credentials-path: ${GOOGLE_CALENDAR_CREDENTIALS_PATH:}
+  upload:
+    # 운영에서는 SERVICE_IMAGE_DIRECTORY로 외부 저장 폴더를 지정합니다.
+    service-image-directory: ${SERVICE_IMAGE_DIRECTORY:${user.dir}/uploads/service-items}
 
 logging:
   level:

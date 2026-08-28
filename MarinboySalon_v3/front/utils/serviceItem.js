@@ -23,6 +23,15 @@ const archiveLooks = {
 
 const fallbackImageUrl = '/images/salon-background.png';
 
+/** 업로드 이미지는 백엔드, 기본 이미지는 프론트 정적 폴더에서 읽습니다. */
+function resolveServiceImageUrl(imageUrl) {
+  if (imageUrl.startsWith('/uploads/')) {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    return `${apiUrl}${imageUrl}`;
+  }
+  return imageUrl;
+}
+
 /** DB 메뉴 이름을 화면용 아카이브 분류로 바꿉니다. */
 export function getArchiveLook(serviceName = '') {
   const normalizedName = serviceName.toLowerCase();
@@ -47,7 +56,7 @@ export function getServiceImageUrls(serviceItem = {}) {
   if (!Array.isArray(serviceItem.imageUrls) || serviceItem.imageUrls.length === 0) {
     return [fallbackImageUrl];
   }
-  return serviceItem.imageUrls.slice(0, 4);
+  return serviceItem.imageUrls.slice(0, 4).map(resolveServiceImageUrl);
 }
 
 /** URL의 서비스 id가 실제 활성 메뉴에 있을 때만 폼 값으로 반환합니다. */
