@@ -21,6 +21,8 @@ public class ReservationResponseDto {
     private LocalDateTime reservationEnd;
     private String status;
     private String requestMemo;
+    // 관리자 화면에서 외부 일정 등록 여부를 확인하기 위한 Google Calendar 이벤트 번호입니다.
+    private String calendarEventId;
     private LocalDateTime createdAt;
     private String userName;
     private String userPhone;
@@ -39,6 +41,7 @@ public class ReservationResponseDto {
                 .reservationEnd(end)
                 .status(reservation.getStatus())
                 .requestMemo(reservation.getRequestMemo())
+                .calendarEventId(reservation.getCalendarEventId())
                 .createdAt(reservation.getCreatedAt())
                 .userName(reservation.getUserName())
                 .userPhone(reservation.getUserPhone())
