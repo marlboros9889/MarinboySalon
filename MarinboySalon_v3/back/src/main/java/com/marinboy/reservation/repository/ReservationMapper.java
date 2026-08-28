@@ -27,4 +27,12 @@ public interface ReservationMapper {
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("excludeId") Long excludeId);
+
+    /**
+     * 겹침 검사용 행을 잠가 동시 예약 race를 줄입니다.
+     */
+    int countOverlapForUpdate(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("excludeId") Long excludeId);
 }

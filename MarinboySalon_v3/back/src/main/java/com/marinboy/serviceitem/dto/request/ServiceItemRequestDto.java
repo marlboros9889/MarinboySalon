@@ -3,6 +3,7 @@ package com.marinboy.serviceitem.dto.request;
 import java.util.List;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,6 +27,15 @@ public class ServiceItemRequestDto {
     @NotNull(message = "소요 시간은 필수입니다.")
     @Min(value = 10, message = "소요 시간은 10분 이상이어야 합니다.")
     private Integer durationMinutes;
+
+    /** 예약 단위를 통일해 빈 시간을 정확하게 계산합니다. */
+    @AssertTrue(message = "소요 시간은 30분 단위로만 설정할 수 있습니다.")
+    public boolean isDurationMinutesInThirtyMinuteUnits() {
+        if (durationMinutes == null) {
+            return true;
+        }
+        return durationMinutes % 30 == 0;
+    }
 
     private String description;
     private Boolean active;

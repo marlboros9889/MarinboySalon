@@ -28,26 +28,14 @@ import com.marinboy.reservation.repository.ReservationMapper;
 import com.marinboy.serviceitem.entity.ServiceItem;
 import com.marinboy.serviceitem.repository.ServiceItemMapper;
 
-/**
- * 예약 중복 조회 전에 날짜별 잠금을 획득해 동시 INSERT를 직렬화하는지 확인합니다.
- */
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceLockTest {
 
-    @Mock
-    private ReservationMapper reservationMapper;
-
-    @Mock
-    private ServiceItemMapper serviceItemMapper;
-
-    @Mock
-    private BusinessHourMapper businessHourMapper;
-
-    @Mock
-    private HolidayMapper holidayMapper;
-
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+    @Mock private ReservationMapper reservationMapper;
+    @Mock private ServiceItemMapper serviceItemMapper;
+    @Mock private BusinessHourMapper businessHourMapper;
+    @Mock private HolidayMapper holidayMapper;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ReservationServiceImpl reservationService;
@@ -72,7 +60,7 @@ class ReservationServiceLockTest {
         businessHour.setClosed(false);
         when(businessHourMapper.selectByDayOfWeekForUpdate(anyInt())).thenReturn(businessHour);
         when(holidayMapper.selectByDate(any())).thenReturn(null);
-        when(reservationMapper.countOverlap(any(), any(), isNull())).thenReturn(0);
+        when(reservationMapper.countOverlapForUpdate(any(), any(), isNull())).thenReturn(0);
 
         doAnswer(invocation -> {
             Reservation reservation = invocation.getArgument(0);
@@ -95,7 +83,7 @@ class ReservationServiceLockTest {
         order.verify(businessHourMapper).selectByDayOfWeekForUpdate(start.getDayOfWeek().getValue());
         order.verify(serviceItemMapper).selectById(1L);
         order.verify(holidayMapper).selectByDate(start.toLocalDate());
-        order.verify(reservationMapper).countOverlap(start, start.plusMinutes(30), null);
+        order.verify(reservationMapper).countOverlapForUpdate(start, start.plusMinutes(30), null);
         order.verify(reservationMapper).insert(any(Reservation.class));
     }
 }

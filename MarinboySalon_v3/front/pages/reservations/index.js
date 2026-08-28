@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import AppLayout from '../../components/AppLayout';
 import {
   CANCEL_RESERVATION_REQUEST,
@@ -59,6 +60,9 @@ export default function ReservationList() {
               </div>
               {item.status !== 'CANCELED' && item.status !== 'COMPLETED' && (
                 <button type="button" className="outline-button" onClick={() => onCancel(item.id)}>예약 취소</button>
+              )}
+              {item.status === 'COMPLETED' && (
+                <Link className="outline-button" href={`/reviews/new?reservationId=${item.id}`}>리뷰 작성</Link>
               )}
             </article>
           ))}

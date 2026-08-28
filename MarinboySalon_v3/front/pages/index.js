@@ -49,7 +49,8 @@ export default function Home() {
     dispatch({ type: LOAD_SERVICE_ITEMS_REQUEST });
   }, [dispatch]);
 
-  const bestServiceItems = serviceItems.slice(0, 4);
+  // 현재 메뉴 정렬의 앞 3개를 메인 화면 인기 시술로 고정합니다.
+  const popularServiceItems = serviceItems.slice(0, 3);
 
   return (
     <AppLayout>
@@ -110,11 +111,13 @@ export default function Home() {
         {loadServiceItemsLoading && <p className="status-message">메뉴를 불러오는 중입니다.</p>}
         {loadServiceItemsError && <p className="error-message">{loadServiceItemsError}</p>}
         <div className="lumiere-menu-grid">
-          {bestServiceItems.map((serviceItem) => (
+          {popularServiceItems.map((serviceItem, index) => (
             <article className="lumiere-menu-card" key={serviceItem.id}>
-              <ServiceImageCarousel serviceItem={serviceItem} className="lumiere-menu-image" />
+              <ServiceImageCarousel serviceItem={serviceItem} className="lumiere-menu-image">
+                <span className="popular-service-badge">인기 시술 TOP {index + 1}</span>
+              </ServiceImageCarousel>
               <div className="lumiere-menu-copy">
-                <span>{serviceItem.category}</span>
+                <span>POPULAR SERVICE</span>
                 <h3>{serviceItem.name}</h3>
                 <p>{serviceItem.description || '고객의 얼굴형과 모발 상태를 고려한 맞춤 디자인'}</p>
                 <div>
