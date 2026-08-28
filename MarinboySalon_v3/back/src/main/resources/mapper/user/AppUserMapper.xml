@@ -44,6 +44,10 @@
         UPDATE user_account SET role = #{role} WHERE id = #{id}
     </update>
 
+    <update id="updateAdminUser">
+        UPDATE user_account SET email = #{email}, name = #{name}, phone = #{phone} WHERE id = #{id}
+    </update>
+
     <select id="countReservations" resultType="int">
         SELECT COUNT(*) FROM reservation WHERE user_id = #{userId}
     </select>
