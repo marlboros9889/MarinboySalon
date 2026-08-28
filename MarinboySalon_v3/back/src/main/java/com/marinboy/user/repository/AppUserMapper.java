@@ -25,6 +25,8 @@ public interface AppUserMapper {
 
     int updateRole(@Param("id") Long id, @Param("role") String role);
 
+    int updateAdminUser(@Param("id") Long id, @Param("email") String email, @Param("name") String name, @Param("phone") String phone);
+
     int countReservations(@Param("userId") Long userId);
 
     int deleteById(@Param("id") Long id);

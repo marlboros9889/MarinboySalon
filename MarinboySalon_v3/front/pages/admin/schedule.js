@@ -3,6 +3,8 @@ import AppLayout from '../../components/AppLayout';
 import AdminNavigation from '../../components/AdminNavigation';
 import api from '../../api/axios';
 
+const weekdayLabels = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+
 export default function AdminSchedule() {
   const [businessHours, setBusinessHours] = useState([]);
   const [holidays, setHolidays] = useState([]);
@@ -50,8 +52,8 @@ export default function AdminSchedule() {
           <div className="paper-panel">
             <h2 className="heading-text">주간 영업시간</h2>
             <ul className="schedule-list">
-              {businessHours.map((item) => (
-                <li key={item.id}><span>{item.dayOfWeek}요일</span><strong>{item.closed ? '휴무' : `${item.openTime} - ${item.closeTime}`}</strong></li>
+              {[...businessHours].sort((first, second) => first.dayOfWeek - second.dayOfWeek).map((item) => (
+                <li key={item.id}><span>{weekdayLabels[item.dayOfWeek - 1]}</span><strong>{item.closed ? '휴무' : `${item.openTime} - ${item.closeTime}`}</strong></li>
               ))}
             </ul>
           </div>
