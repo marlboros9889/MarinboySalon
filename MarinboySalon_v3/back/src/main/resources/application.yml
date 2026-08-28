@@ -6,7 +6,8 @@ spring:
     include: oauth
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL:jdbc:mysql://localhost:3306/marinboy_salon?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    # 로컬 MySQL 8의 caching_sha2_password 인증에 필요한 공개키 조회를 허용합니다.
+    url: ${DB_URL:jdbc:mysql://localhost:3306/marinboy_salon?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
   data:

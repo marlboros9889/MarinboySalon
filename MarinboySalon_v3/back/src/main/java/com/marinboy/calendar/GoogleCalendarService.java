@@ -4,7 +4,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,9 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.AclRule;
+import com.google.api.services.calendar.model.CalendarList;
+import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.EventReminder;
@@ -84,6 +89,96 @@ public class GoogleCalendarService {
             log.warn("Google Calendar 예약 일정 등록에 실패했습니다: reservationId={}, message={}",
                     reservationEvent.reservationId(), exception.getMessage());
         }
+    }
+
+    /**
+     * 관리자 화면에서 서비스 계정의 실제 캘린더 접근 권한을 확인합니다.
+     * 키와 토큰은 응답에 포함하지 않아 외부에 노출되지 않습니다.
+     */
+    public Map<String, Object> checkConnection() {
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        try {
+            Calendar calendar = createCalendarClient();
+            CalendarList calendarList = calendar.calendarList().list().execute();
+            List<CalendarListEntry> calendars = calendarList.getItems();
+            int accessibleCalendarCount = calendars == null ? 0 : calendars.size();
+            CalendarListEntry targetCalendar = findTargetCalendar(calendars);
+
+            result.put("accessibleCalendarCount", accessibleCalendarCount);
+            if (targetCalendar == null) {
+                result.put("connected", false);
+                result.put("message", "서비스 계정의 캘린더 목록에 대상 캘린더가 없습니다.");
+                result.put("reason", "캘린더 공유가 서버 계정에 적용되지 않음");
+                return result;
+            }
+
+            result.put("connected", true);
+            result.put("calendarId", targetCalendar.getId());
+            result.put("summary", targetCalendar.getSummary());
+        } catch (Exception exception) {
+            result.put("connected", false);
+            result.put("message", "서비스 계정이 설정된 캘린더에 접근할 수 없습니다.");
+            result.put("reason", extractReason(exception));
+        }
+
+        return result;
+    }
+
+    /**
+     * 기존 개인 캘린더 공유가 막힌 경우 서비스 계정 전용 예약 캘린더를 만듭니다.
+     * 생성한 캘린더는 요청한 관리자 계정에도 쓰기 권한으로 공유합니다.
+     */
+    public Map<String, String> createDedicatedCalendar(String ownerEmail) throws Exception {
+        Calendar calendarClient = createCalendarClient();
+        com.google.api.services.calendar.model.Calendar newCalendar =
+                new com.google.api.services.calendar.model.Calendar()
+                        .setSummary("Marinboy Salon 예약")
+                        .setTimeZone(SEOUL_ZONE.getId());
+
+        com.google.api.services.calendar.model.Calendar createdCalendar =
+                calendarClient.calendars().insert(newCalendar).execute();
+
+        try {
+            AclRule shareRule = new AclRule()
+                    .setRole("writer")
+                    .setScope(new AclRule.Scope().setType("user").setValue(ownerEmail));
+            calendarClient.acl().insert(createdCalendar.getId(), shareRule)
+                    .setSendNotifications(true)
+                    .execute();
+        } catch (Exception exception) {
+            // 공유에 실패한 빈 캘린더가 남지 않도록 생성 직후 정리합니다.
+            calendarClient.calendars().delete(createdCalendar.getId()).execute();
+            throw exception;
+        }
+
+        return Map.of(
+                "calendarId", createdCalendar.getId(),
+                "summary", createdCalendar.getSummary());
+    }
+
+    private CalendarListEntry findTargetCalendar(List<CalendarListEntry> calendars) {
+        if (calendars == null) {
+            return null;
+        }
+
+        for (CalendarListEntry calendar : calendars) {
+            if (calendarId.equalsIgnoreCase(calendar.getId())) {
+                return calendar;
+            }
+        }
+        return null;
+    }
+
+    private String extractReason(Exception exception) {
+        String message = exception.getMessage();
+        if (message != null && message.contains("404")) {
+            return "캘린더를 찾을 수 없음";
+        }
+        if (message != null && message.contains("403")) {
+            return "캘린더 권한이 없음";
+        }
+        return "Google Calendar 연결 오류";
     }
 
     private Calendar createCalendarClient() throws Exception {
