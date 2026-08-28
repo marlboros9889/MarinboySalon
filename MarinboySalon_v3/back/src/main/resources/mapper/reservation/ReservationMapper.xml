@@ -10,7 +10,6 @@
         s.duration_minutes
     </sql>
 
-    <!-- selectMyList: 로그인한 고객 본인의 예약만 조회합니다. -->
     <select id="selectMyList" resultType="Reservation">
         SELECT <include refid="reservationColumns" />
         FROM reservation r
@@ -20,7 +19,6 @@
         ORDER BY r.reservation_start DESC
     </select>
 
-    <!-- selectAll: 관리자가 전체 예약을 조회합니다. -->
     <select id="selectAll" resultType="Reservation">
         SELECT <include refid="reservationColumns" />
         FROM reservation r
@@ -29,7 +27,6 @@
         ORDER BY r.reservation_start DESC
     </select>
 
-    <!-- selectById: 예약 상세와 소유권 검사에 사용합니다. -->
     <select id="selectById" resultType="Reservation">
         SELECT <include refid="reservationColumns" />
         FROM reservation r
@@ -38,7 +35,6 @@
         WHERE r.id = #{id}
     </select>
 
-    <!-- insert: 로그인 사용자 번호를 서버에서 넣어 새 예약을 등록합니다. -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservation
             (user_id, service_id, reservation_start, status, request_memo)
@@ -46,7 +42,6 @@
             (#{userId}, #{serviceId}, #{reservationStart}, #{status}, #{requestMemo})
     </insert>
 
-    <!-- update: 본인의 접수 상태 예약 시간과 시술을 수정합니다. -->
     <update id="update">
         UPDATE reservation
         SET service_id = #{serviceId},
@@ -55,21 +50,18 @@
         WHERE id = #{id}
     </update>
 
-    <!-- updateStatus: 예약 취소 또는 관리자 상태 변경에 사용합니다. -->
     <update id="updateStatus">
         UPDATE reservation
         SET status = #{status}
         WHERE id = #{id}
     </update>
 
-    <!-- updateCalendarEventId: Google Calendar에 생성된 일정 번호를 예약과 연결합니다. -->
     <update id="updateCalendarEventId">
         UPDATE reservation
         SET calendar_event_id = #{calendarEventId}
         WHERE id = #{id}
     </update>
 
-    <!-- countOverlap: 한 명이 운영하므로 모든 활성 예약의 시간 겹침을 검사합니다. -->
     <select id="countOverlap" resultType="int">
         SELECT COUNT(*)
         FROM reservation r
@@ -80,5 +72,18 @@
         <if test="excludeId != null">
           AND r.id != #{excludeId}
         </if>
+    </select>
+
+    <select id="countOverlapForUpdate" resultType="int">
+        SELECT COUNT(*)
+        FROM reservation r
+        INNER JOIN service_item s ON s.id = r.service_id
+        WHERE r.status IN ('REQUESTED', 'CONFIRMED')
+          AND r.reservation_start <![CDATA[ < ]]> #{end}
+          AND DATE_ADD(r.reservation_start, INTERVAL s.duration_minutes MINUTE) <![CDATA[ > ]]> #{start}
+        <if test="excludeId != null">
+          AND r.id != #{excludeId}
+        </if>
+        FOR UPDATE
     </select>
 </mapper>
