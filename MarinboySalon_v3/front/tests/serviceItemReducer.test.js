@@ -4,6 +4,7 @@ import serviceItemReducer, {
   LOAD_SERVICE_ITEMS_SUCCESS,
 } from '../reducers/serviceItemReducer';
 
+// 메뉴 조회 결과가 로딩·성공·실패에 따라 올바르게 저장되는지 확인합니다.
 describe('서비스 메뉴 상태 흐름', () => {
   test('요청, 성공, 실패 상태를 구분한다', () => {
     const loadingState = serviceItemReducer(undefined, { type: LOAD_SERVICE_ITEMS_REQUEST });

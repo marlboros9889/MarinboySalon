@@ -4,6 +4,7 @@ import { createWrapper } from 'next-redux-wrapper';
 import rootReducer from '../reducers';
 import rootSaga from '../sagas';
 
+// 페이지 요청마다 Redux 저장소를 만들고, 비동기 Saga 처리기를 함께 연결합니다.
 const configureStore = () => {
   const sagaMiddleware = createSagaMiddleware();
   const middlewares = [sagaMiddleware];

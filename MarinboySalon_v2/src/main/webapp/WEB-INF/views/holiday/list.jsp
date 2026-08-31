@@ -11,6 +11,7 @@
 </head>
 <body class="bg-body-tertiary">
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<%-- 임시 휴무일을 등록·삭제하여 해당 날짜의 예약 접수를 막는 관리자 화면입니다. --%>
 <main class="container py-5">
     <h1 class="h2 mb-4">휴무일 관리</h1>
 

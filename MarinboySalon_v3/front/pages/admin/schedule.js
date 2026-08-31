@@ -5,6 +5,7 @@ import api from '../../api/axios';
 
 const weekdayLabels = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
 
+// 주간 영업시간과 특정일 휴무를 함께 관리하는 관리자 화면입니다.
 export default function AdminSchedule() {
   const [businessHours, setBusinessHours] = useState([]);
   const [holidays, setHolidays] = useState([]);
@@ -14,6 +15,7 @@ export default function AdminSchedule() {
 
   const loadSchedule = async () => {
     try {
+      // 두 목록은 서로 의존하지 않으므로 동시에 요청해 화면 대기 시간을 줄입니다.
       const [hoursResponse, holidaysResponse] = await Promise.all([
         api.get('/api/admin/business-hours'),
         api.get('/api/admin/holidays'),

@@ -4,6 +4,7 @@ import '../styles/global.css';
 import '../styles/services.css';
 import { wrapper } from '../store/configureStore';
 
+// 영문 제목용 글꼴을 전역 변수로 등록해 모든 화면에서 같은 분위기를 유지합니다.
 const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '600', '800'],

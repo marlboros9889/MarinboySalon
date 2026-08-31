@@ -10,6 +10,7 @@ import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
 
+// 고객이 예약 화면에서 30분 단위 시간만 선택하도록 제한하는 규칙을 검증합니다.
 class ReservationSlotSupportTest {
 
     @Test

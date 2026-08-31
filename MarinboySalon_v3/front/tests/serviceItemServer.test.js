@@ -1,5 +1,6 @@
 import { loadServiceItemsForServer } from '../server/serviceItemServer';
 
+// 서버가 페이지를 만들기 전에 메뉴 데이터를 준비하는 흐름을 검증합니다.
 describe('시술 메뉴 SSR 조회', () => {
   afterEach(() => {
     jest.restoreAllMocks();
