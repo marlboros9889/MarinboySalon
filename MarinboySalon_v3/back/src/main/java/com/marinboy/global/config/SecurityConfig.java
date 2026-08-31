@@ -22,6 +22,7 @@ import com.marinboy.global.security.JwtAuthenticationFilter;
 import com.marinboy.global.security.RestAccessDeniedHandler;
 import com.marinboy.global.security.RestAuthenticationEntryPoint;
 import com.marinboy.auth.service.CustomOAuth2UserService;
+import com.marinboy.global.oauth2.OAuth2FailureHandler;
 import com.marinboy.global.oauth2.OAuth2SuccessHandler;
 import com.marinboy.global.oauth2.RedisOAuthAuthorizationRequestRepository;
 
@@ -38,6 +39,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oauth2SuccessHandler;
+    private final OAuth2FailureHandler oauth2FailureHandler;
     private final RedisOAuthAuthorizationRequestRepository authorizationRequestRepository;
     private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepositoryProvider;
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
@@ -76,7 +78,9 @@ public class SecurityConfig {
                     .authorizationEndpoint(endpoint -> endpoint
                             .authorizationRequestRepository(authorizationRequestRepository))
                     .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                    .successHandler(oauth2SuccessHandler));
+                    .successHandler(oauth2SuccessHandler)
+                    // OAuth 제공자 오류를 기본 오류 페이지가 아닌 프런트 로그인 화면에서 안내합니다.
+                    .failureHandler(oauth2FailureHandler));
         }
         return http.build();
     }
