@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.marinboy.reservation.repository.ReservationSlotLockMapper">
+    <!-- lockSlot: 같은 예약 슬롯만 행 잠금으로 직렬화합니다. -->
+    <insert id="lockSlot">
+        INSERT INTO reservation_slot_lock (reservation_date, slot_time)
+        VALUES (#{reservationDate}, #{slotTime})
+        ON DUPLICATE KEY UPDATE locked_at = CURRENT_TIMESTAMP
+    </insert>
+</mapper>

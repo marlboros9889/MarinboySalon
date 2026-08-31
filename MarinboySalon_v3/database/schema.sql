@@ -57,6 +57,14 @@ CREATE TABLE IF NOT EXISTS reservation (
     INDEX idx_reservation_status_start (status, reservation_start)
 );
 
+-- 예약 생성 시 같은 날짜·30분 슬롯만 트랜잭션으로 직렬화합니다.
+CREATE TABLE IF NOT EXISTS reservation_slot_lock (
+    reservation_date DATE NOT NULL,
+    slot_time TIME NOT NULL,
+    locked_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (reservation_date, slot_time)
+);
+
 -- 요일별 영업시간을 저장합니다. 1은 월요일, 7은 일요일입니다.
 CREATE TABLE IF NOT EXISTS business_hour (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

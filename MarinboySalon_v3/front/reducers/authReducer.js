@@ -18,6 +18,8 @@ const initialState = {
   signUpLoading: false,
   signUpDone: false,
   signUpError: null,
+  loadMeLoading: false,
+  loadMeDone: false,
 };
 
 // 인증 상태를 요청/성공/실패 세 단계로 나눠 화면에서 로딩과 오류를 표시합니다.
@@ -26,7 +28,7 @@ export default function authReducer(state = initialState, action) {
     case LOG_IN_REQUEST:
       return { ...state, logInLoading: true, logInError: null };
     case LOG_IN_SUCCESS:
-      return { ...state, logInLoading: false, me: action.data };
+      return { ...state, logInLoading: false, me: action.data, loadMeDone: true };
     case LOG_IN_FAILURE:
       return { ...state, logInLoading: false, logInError: action.error };
     case SIGN_UP_REQUEST:
@@ -36,10 +38,13 @@ export default function authReducer(state = initialState, action) {
     case SIGN_UP_FAILURE:
       return { ...state, signUpLoading: false, signUpError: action.error };
     case LOAD_ME_SUCCESS:
-      return { ...state, me: action.data };
+      return { ...state, me: action.data, loadMeLoading: false, loadMeDone: true };
     case LOAD_ME_FAILURE:
+      return { ...state, me: null, loadMeLoading: false, loadMeDone: true };
     case LOG_OUT_SUCCESS:
       return { ...state, me: null };
+    case LOAD_ME_REQUEST:
+      return { ...state, loadMeLoading: true, loadMeDone: false };
     default:
       return state;
   }

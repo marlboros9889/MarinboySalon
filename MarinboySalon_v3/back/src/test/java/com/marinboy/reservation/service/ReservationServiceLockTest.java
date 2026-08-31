@@ -25,14 +25,16 @@ import com.marinboy.holiday.repository.HolidayMapper;
 import com.marinboy.reservation.dto.request.ReservationRequestDto;
 import com.marinboy.reservation.entity.Reservation;
 import com.marinboy.reservation.repository.ReservationMapper;
+import com.marinboy.reservation.repository.ReservationSlotLockMapper;
 import com.marinboy.serviceitem.entity.ServiceItem;
 import com.marinboy.serviceitem.repository.ServiceItemMapper;
 
-// 예약 겹침 검사 전에 영업 요일 행을 잠가 동시 요청 순서를 지키는지 확인합니다.
+// 예약 겹침 검사 전에 시술에 포함된 슬롯만 잠가 동시 요청 순서를 지키는지 확인합니다.
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceLockTest {
 
     @Mock private ReservationMapper reservationMapper;
+    @Mock private ReservationSlotLockMapper reservationSlotLockMapper;
     @Mock private ServiceItemMapper serviceItemMapper;
     @Mock private BusinessHourMapper businessHourMapper;
     @Mock private HolidayMapper holidayMapper;
@@ -42,7 +44,7 @@ class ReservationServiceLockTest {
     private ReservationServiceImpl reservationService;
 
     @Test
-    void insertLocksBusinessDayBeforeOverlapCheck() {
+    void insertLocksOnlyRequestedSlotsBeforeOverlapCheck() {
         LocalDateTime start = LocalDate.now().plusDays(14).atTime(11, 0);
         ReservationRequestDto request = new ReservationRequestDto();
         request.setServiceId(1L);
@@ -51,7 +53,7 @@ class ReservationServiceLockTest {
         ServiceItem item = new ServiceItem();
         item.setId(1L);
         item.setActive(true);
-        item.setDurationMinutes(30);
+        item.setDurationMinutes(60);
         when(serviceItemMapper.selectById(1L)).thenReturn(item);
 
         BusinessHour businessHour = new BusinessHour();
@@ -59,7 +61,7 @@ class ReservationServiceLockTest {
         businessHour.setOpenTime(LocalTime.of(10, 0));
         businessHour.setCloseTime(LocalTime.of(19, 0));
         businessHour.setClosed(false);
-        when(businessHourMapper.selectByDayOfWeekForUpdate(anyInt())).thenReturn(businessHour);
+        when(businessHourMapper.selectByDayOfWeek(anyInt())).thenReturn(businessHour);
         when(holidayMapper.selectByDate(any())).thenReturn(null);
         when(reservationMapper.countOverlapForUpdate(any(), any(), isNull())).thenReturn(0);
 
@@ -80,11 +82,13 @@ class ReservationServiceLockTest {
 
         reservationService.insert(7L, request);
 
-        InOrder order = inOrder(businessHourMapper, serviceItemMapper, holidayMapper, reservationMapper);
-        order.verify(businessHourMapper).selectByDayOfWeekForUpdate(start.getDayOfWeek().getValue());
+        InOrder order = inOrder(businessHourMapper, serviceItemMapper, holidayMapper, reservationSlotLockMapper, reservationMapper);
+        order.verify(businessHourMapper).selectByDayOfWeek(start.getDayOfWeek().getValue());
         order.verify(serviceItemMapper).selectById(1L);
         order.verify(holidayMapper).selectByDate(start.toLocalDate());
-        order.verify(reservationMapper).countOverlapForUpdate(start, start.plusMinutes(30), null);
+        order.verify(reservationSlotLockMapper).lockSlot(start.toLocalDate(), LocalTime.of(11, 0));
+        order.verify(reservationSlotLockMapper).lockSlot(start.toLocalDate(), LocalTime.of(11, 30));
+        order.verify(reservationMapper).countOverlapForUpdate(start, start.plusMinutes(60), null);
         order.verify(reservationMapper).insert(any(Reservation.class));
     }
 }
