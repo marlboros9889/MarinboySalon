@@ -21,6 +21,7 @@ import com.marinboy.reservation.dto.request.ReservationRequestDto;
 import com.marinboy.reservation.dto.response.ReservationResponseDto;
 import com.marinboy.reservation.entity.Reservation;
 import com.marinboy.reservation.repository.ReservationMapper;
+import com.marinboy.reservation.repository.ReservationSlotLockMapper;
 import com.marinboy.reservation.support.ReservationSlotSupport;
 import com.marinboy.serviceitem.entity.ServiceItem;
 import com.marinboy.serviceitem.repository.ServiceItemMapper;
@@ -39,6 +40,7 @@ public class ReservationServiceImpl implements ReservationService {
     private static final Logger log = LoggerFactory.getLogger(ReservationServiceImpl.class);
 
     private final ReservationMapper reservationMapper;
+    private final ReservationSlotLockMapper reservationSlotLockMapper;
     private final ServiceItemMapper serviceItemMapper;
     private final BusinessHourMapper businessHourMapper;
     private final HolidayMapper holidayMapper;
@@ -167,7 +169,7 @@ public class ReservationServiceImpl implements ReservationService {
         LocalDate reservationDate = start.toLocalDate();
         int dayOfWeek = reservationDate.getDayOfWeek().getValue();
 
-        BusinessHour businessHour = businessHourMapper.selectByDayOfWeekForUpdate(dayOfWeek);
+        BusinessHour businessHour = businessHourMapper.selectByDayOfWeek(dayOfWeek);
         if (businessHour == null || Boolean.TRUE.equals(businessHour.getClosed())) {
             throw new IllegalArgumentException("선택한 요일은 정기 휴무일입니다.");
         }
@@ -189,9 +191,22 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("영업시간 안에서 시술이 끝나는 시간을 선택해 주세요.");
         }
 
+        lockReservationSlots(start, end);
         int overlap = reservationMapper.countOverlapForUpdate(start, end, excludeId);
         if (overlap > 0) {
             throw new IllegalStateException("이미 예약된 시간과 겹칩니다.");
+        }
+    }
+
+    /**
+     * 시술 시간에 포함되는 30분 슬롯을 시간순으로 잠급니다.
+     * 겹치는 두 예약만 같은 슬롯을 잠그므로, 다른 시간대 예약은 함께 처리할 수 있습니다.
+     */
+    private void lockReservationSlots(LocalDateTime start, LocalDateTime end) {
+        LocalDateTime slot = start;
+        while (slot.isBefore(end)) {
+            reservationSlotLockMapper.lockSlot(slot.toLocalDate(), slot.toLocalTime());
+            slot = slot.plusMinutes(30);
         }
     }
 

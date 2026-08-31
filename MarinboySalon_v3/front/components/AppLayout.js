@@ -1,26 +1,45 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiInstagram, FiMapPin, FiMessageCircle, FiPhone } from 'react-icons/fi';
 import { LOAD_ME_REQUEST, LOG_OUT_REQUEST } from '../reducers/authReducer';
+import { getAdminRedirectTarget } from '../utils/adminAccess';
 
 /**
  * 모든 페이지에서 같은 헤더와 폭을 사용하도록 공통 레이아웃으로 묶습니다.
  */
 export default function AppLayout({ children }) {
   const dispatch = useDispatch();
-  const { me } = useSelector((state) => state.auth);
+  const router = useRouter();
+  const { me, loadMeLoading, loadMeDone } = useSelector((state) => state.auth);
+  const isAdminPage = router.pathname.startsWith('/admin');
 
   useEffect(() => {
     // 새로고침하면 메모리 토큰이 비므로 HttpOnly Refresh 쿠키로 사용자 정보를 복구합니다.
-    if (!me) {
+    if (!me && !loadMeLoading && !loadMeDone) {
       dispatch({ type: LOAD_ME_REQUEST });
     }
-  }, [dispatch, me]);
+  }, [dispatch, me, loadMeDone, loadMeLoading]);
+
+  useEffect(() => {
+    if (!isAdminPage || !loadMeDone) {
+      return;
+    }
+
+    const redirectTarget = getAdminRedirectTarget(me, router.asPath);
+    if (redirectTarget) {
+      router.replace(redirectTarget);
+    }
+  }, [isAdminPage, loadMeDone, me, router]);
 
   const onLogOut = () => {
     dispatch({ type: LOG_OUT_REQUEST });
   };
+
+  if (isAdminPage && (!loadMeDone || me?.role !== 'ADMIN')) {
+    return <main className="page-section container">관리자 권한을 확인하는 중입니다.</main>;
+  }
 
   return (
     <div className="site-shell">
