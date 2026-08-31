@@ -14,6 +14,7 @@
     <section class="form-card mx-auto bg-white border rounded-4 shadow-sm p-4">
         <h1 class="h3 mb-4">시술 등록</h1>
         <form action="${pageContext.request.contextPath}/serviceItem/insert" method="post">
+            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
             <div class="mb-3">
                 <label class="form-label" for="name">시술명</label>
                 <input class="form-control" id="name" name="name" required>

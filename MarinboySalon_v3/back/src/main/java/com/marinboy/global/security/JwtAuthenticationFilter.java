@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final TokenStore tokenStore;
 
     @Override
     protected void doFilterInternal(
@@ -37,6 +38,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authorization.substring(7);
             try {
                 Claims claims = jwtProvider.parse(token);
+                if (tokenStore.isAccessTokenBlocked(claims.getId())) {
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
+                }
                 String userId = claims.getSubject();
                 String role = String.valueOf(claims.get("role"));
 

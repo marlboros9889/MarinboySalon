@@ -17,6 +17,8 @@ import {
 import AppLayout from '../components/AppLayout';
 import ServiceImageCarousel from '../components/ServiceImageCarousel';
 import { LOAD_SERVICE_ITEMS_REQUEST } from '../reducers/serviceItemReducer';
+import { LOAD_SERVICE_ITEMS_SUCCESS } from '../reducers/serviceItemReducer';
+import { loadServiceItemsForServer } from '../server/serviceItemServer';
 
 const serviceCategories = [
   { icon: FiScissors, name: 'CUT', label: '컷' },
@@ -39,18 +41,24 @@ const reviews = [
   { score: '5.0', text: '홈케어 방법까지 알려주셔서 손질하기 훨씬 편해졌어요.', customer: '30대 고객' },
 ];
 
-export default function Home() {
+export default function Home({ initialServiceItems = [], initialLoadError = null }) {
   const dispatch = useDispatch();
   const { serviceItems, loadServiceItemsLoading, loadServiceItemsError } = useSelector(
     (state) => state.serviceItem,
   );
 
   useEffect(() => {
+    if (initialServiceItems.length > 0) {
+      dispatch({ type: LOAD_SERVICE_ITEMS_SUCCESS, data: initialServiceItems });
+      return;
+    }
     dispatch({ type: LOAD_SERVICE_ITEMS_REQUEST });
-  }, [dispatch]);
+  }, [dispatch, initialServiceItems]);
 
   // 현재 메뉴 정렬의 앞 3개를 메인 화면 인기 시술로 고정합니다.
-  const popularServiceItems = serviceItems.slice(0, 3);
+  const displayedServiceItems = serviceItems.length > 0 ? serviceItems : initialServiceItems;
+  const popularServiceItems = displayedServiceItems.slice(0, 3);
+  const serviceItemsError = loadServiceItemsError || initialLoadError;
 
   return (
     <AppLayout>
@@ -109,7 +117,7 @@ export default function Home() {
           <Link href="/services">전체 메뉴 보기 <FiArrowRight /></Link>
         </header>
         {loadServiceItemsLoading && <p className="status-message">메뉴를 불러오는 중입니다.</p>}
-        {loadServiceItemsError && <p className="error-message">{loadServiceItemsError}</p>}
+        {serviceItemsError && <p className="error-message">{serviceItemsError}</p>}
         <div className="lumiere-menu-grid">
           {popularServiceItems.map((serviceItem, index) => (
             <article className="lumiere-menu-card" key={serviceItem.id}>
@@ -162,4 +170,15 @@ export default function Home() {
       </section>
     </AppLayout>
   );
+}
+
+/** 메뉴가 들어 있는 HTML을 서버에서 바로 내려주기 위한 SSR 진입점입니다. */
+export async function getServerSideProps() {
+  const result = await loadServiceItemsForServer();
+  return {
+    props: {
+      initialServiceItems: result.serviceItems,
+      initialLoadError: result.error,
+    },
+  };
 }

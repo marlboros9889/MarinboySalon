@@ -1,18 +1,19 @@
 import axios from 'axios';
+import { clearAccessToken, getAccessToken, setAccessToken } from './accessToken';
 
 // 프론트와 백이 분리되어 있으므로 모든 API 주소를 한 곳에서 관리합니다.
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082',
   withCredentials: true,
 });
 
-// 로그인 후 받은 Access Token을 선생님 예제처럼 Authorization 헤더에 붙입니다.
+let refreshPromise = null;
+
+// 메모리에 있는 Access Token만 Authorization 헤더에 붙입니다.
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const accessToken = window.localStorage.getItem('accessToken');
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
+  const accessToken = getAccessToken();
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
 });
@@ -28,13 +29,22 @@ api.interceptors.response.use(
     if (isUnauthorized && !isRefreshRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const response = await api.post('/auth/refresh');
-        const accessToken = response.data.accessToken;
-        window.localStorage.setItem('accessToken', accessToken);
+        // 여러 요청이 동시에 만료되어도 Refresh 요청은 한 번만 실행합니다.
+        if (!refreshPromise) {
+          refreshPromise = api.post('/auth/refresh')
+            .then((response) => {
+              setAccessToken(response.data.accessToken);
+              return response.data.accessToken;
+            })
+            .finally(() => {
+              refreshPromise = null;
+            });
+        }
+        const accessToken = await refreshPromise;
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        window.localStorage.removeItem('accessToken');
+        clearAccessToken();
       }
     }
     return Promise.reject(error);

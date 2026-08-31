@@ -26,6 +26,18 @@
         WHERE day_of_week = #{dayOfWeek}
     </select>
 
+    <!-- BusinessHourDao.findByDayOfWeekForUpdate: 같은 요일의 예약 생성을 한 줄로 세웁니다. -->
+    <select id="findByDayOfWeekForUpdate" parameterType="int" resultType="BusinessHourDto">
+        SELECT id,
+               day_of_week,
+               open_time,
+               close_time,
+               closed
+        FROM business_hour
+        WHERE day_of_week = #{dayOfWeek}
+        FOR UPDATE
+    </select>
+
     <!-- BusinessHourDao.update: 관리자 화면에서 요일별 시간을 수정합니다. -->
     <update id="update" parameterType="BusinessHourDto">
         UPDATE business_hour

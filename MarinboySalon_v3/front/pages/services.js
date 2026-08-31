@@ -3,10 +3,14 @@ import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import AppLayout from '../components/AppLayout';
 import ServiceImageCarousel from '../components/ServiceImageCarousel';
-import { LOAD_SERVICE_ITEMS_REQUEST } from '../reducers/serviceItemReducer';
+import {
+  LOAD_SERVICE_ITEMS_REQUEST,
+  LOAD_SERVICE_ITEMS_SUCCESS,
+} from '../reducers/serviceItemReducer';
 import { getArchiveLook } from '../utils/serviceItem';
+import { loadServiceItemsForServer } from '../server/serviceItemServer';
 
-export default function Services() {
+export default function Services({ initialServiceItems = [], initialLoadError = null }) {
   const dispatch = useDispatch();
   const [selectedServiceId, setSelectedServiceId] = useState(null);
   const { serviceItems, loadServiceItemsLoading, loadServiceItemsError } = useSelector(
@@ -14,18 +18,25 @@ export default function Services() {
   );
 
   useEffect(() => {
+    if (initialServiceItems.length > 0) {
+      dispatch({ type: LOAD_SERVICE_ITEMS_SUCCESS, data: initialServiceItems });
+      return;
+    }
     dispatch({ type: LOAD_SERVICE_ITEMS_REQUEST });
-  }, [dispatch]);
+  }, [dispatch, initialServiceItems]);
+
+  const displayedServiceItems = serviceItems.length > 0 ? serviceItems : initialServiceItems;
+  const serviceItemsError = loadServiceItemsError || initialLoadError;
 
   useEffect(() => {
-    if (serviceItems.length > 0 && selectedServiceId === null) {
-      setSelectedServiceId(serviceItems[0].id);
+    if (displayedServiceItems.length > 0 && selectedServiceId === null) {
+      setSelectedServiceId(displayedServiceItems[0].id);
     }
-  }, [selectedServiceId, serviceItems]);
+  }, [displayedServiceItems, selectedServiceId]);
 
   const archiveServiceItems = useMemo(
-    () => serviceItems.map((item) => ({ item, look: getArchiveLook(item.name) })),
-    [serviceItems],
+    () => displayedServiceItems.map((item) => ({ item, look: getArchiveLook(item.name) })),
+    [displayedServiceItems],
   );
   const archiveCategories = useMemo(
     () => [...new Set(archiveServiceItems.map(({ look }) => look.category))],
@@ -43,8 +54,8 @@ export default function Services() {
           <p className="archive-header-subtitle">시술 메뉴를 고르면 스타일 기록과 예약 정보를 함께 확인할 수 있습니다.</p>
         </header>
         {loadServiceItemsLoading && <p className="status-message">메뉴를 불러오는 중입니다.</p>}
-        {loadServiceItemsError && <p className="error-message">{loadServiceItemsError}</p>}
-        {!loadServiceItemsLoading && !loadServiceItemsError && serviceItems.length === 0 && (
+        {serviceItemsError && <p className="error-message">{serviceItemsError}</p>}
+        {!loadServiceItemsLoading && !serviceItemsError && displayedServiceItems.length === 0 && (
           <p className="status-message">현재 예약 가능한 메뉴가 없습니다.</p>
         )}
         {selectedArchive && (
@@ -108,4 +119,15 @@ export default function Services() {
       </section>
     </AppLayout>
   );
+}
+
+/** 메뉴 목록 화면도 최초 응답 HTML에 실제 메뉴를 포함합니다. */
+export async function getServerSideProps() {
+  const result = await loadServiceItemsForServer();
+  return {
+    props: {
+      initialServiceItems: result.serviceItems,
+      initialLoadError: result.error,
+    },
+  };
 }

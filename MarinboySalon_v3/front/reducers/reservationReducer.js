@@ -61,7 +61,7 @@ export default function reservationReducer(state = initialState, action) {
       return {
         ...state,
         reservations: state.reservations.map((item) => (
-          item.id === action.data ? { ...item, status: 'CANCELED' } : item
+          item.id === action.data ? { ...item, status: 'CANCELLED' } : item
         )),
       };
     case LOAD_MY_RESERVATIONS_FAILURE:

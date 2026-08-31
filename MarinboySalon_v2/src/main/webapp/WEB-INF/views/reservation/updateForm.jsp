@@ -16,6 +16,7 @@
     <section class="form-card mx-auto bg-white border rounded-4 shadow-sm p-4">
         <h1 class="h3 mb-4">예약 수정</h1>
         <form action="${pageContext.request.contextPath}/reservation/update" method="post">
+            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
             <input type="hidden" name="id" value="${reservationDto.id}">
             <div class="mb-3">
                 <label class="form-label" for="serviceId">시술</label>

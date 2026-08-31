@@ -22,6 +22,7 @@
 
         <%-- 일반 폼 전송이므로 각 input의 name은 UserDto 필드명과 일치시킵니다. --%>
         <form:form action="${pageContext.request.contextPath}/user/insert" method="post" modelAttribute="userDto">
+            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
             <div class="mb-3">
                 <label class="form-label" for="email">이메일</label>
                 <form:input path="email" id="email" type="email" cssClass="form-control"/>

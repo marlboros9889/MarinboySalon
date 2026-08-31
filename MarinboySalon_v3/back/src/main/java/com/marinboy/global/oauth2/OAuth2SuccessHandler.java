@@ -1,9 +1,6 @@
 package com.marinboy.global.oauth2;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -43,7 +40,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         CustomOAuth2User oauthUser = (CustomOAuth2User) authentication.getPrincipal();
         AppUser user = oauthUser.getAppUser();
         String userId = user.getId().toString();
-        String accessToken = jwtProvider.createAccessToken(userId, Map.of("role", user.getRole()));
         String refreshToken = jwtProvider.createRefreshToken(userId);
         tokenStore.saveRefreshToken(userId, refreshToken, jwtProperties.getRefreshTokenExpSeconds());
 
@@ -56,7 +52,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        String encodedToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
-        response.sendRedirect(frontUrl + "/oauth2/callback?accessToken=" + encodedToken);
+        // Access Token은 URL에 넣지 않고 콜백 화면의 /auth/me 요청에서 재발급합니다.
+        response.sendRedirect(frontUrl + "/oauth2/callback");
     }
 }

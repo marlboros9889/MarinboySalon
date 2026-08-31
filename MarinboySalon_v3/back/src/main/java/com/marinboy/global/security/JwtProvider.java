@@ -3,6 +3,7 @@ package com.marinboy.global.security;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -43,6 +44,7 @@ public class JwtProvider {
         Date expiresAt = new Date(now.getTime() + expiresInSeconds * 1000L);
 
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setSubject(userId)
                 .addClaims(claims)
                 .setIssuedAt(now)

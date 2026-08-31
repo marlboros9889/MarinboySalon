@@ -1,5 +1,6 @@
 import { all, call, fork, put, takeLatest } from 'redux-saga/effects';
 import api from '../api/axios';
+import { clearAccessToken, setAccessToken } from '../api/accessToken';
 import {
   LOAD_ME_FAILURE,
   LOAD_ME_REQUEST,
@@ -22,7 +23,7 @@ function logInAPI(data) {
 function* logIn(action) {
   try {
     const result = yield call(logInAPI, action.data);
-    window.localStorage.setItem('accessToken', result.data.accessToken);
+    setAccessToken(result.data.accessToken);
     yield put({ type: LOG_IN_SUCCESS, data: result.data.user });
   } catch (error) {
     yield put({ type: LOG_IN_FAILURE, error: error.response?.data?.message || '로그인에 실패했습니다.' });
@@ -54,7 +55,7 @@ function* loadMe() {
 function* logOut() {
   try {
     yield call(() => api.post('/auth/logout'));
-    window.localStorage.removeItem('accessToken');
+    clearAccessToken();
     yield put({ type: LOG_OUT_SUCCESS });
     // 로그아웃 뒤 관리자 화면의 이전 데이터가 남지 않도록 홈으로 이동합니다.
     window.location.href = '/';

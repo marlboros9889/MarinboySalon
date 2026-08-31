@@ -135,11 +135,11 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = getOwnedReservation(id, userId, admin);
         ReservationStatus current = ReservationStatus.from(reservation.getStatus());
         if (admin) {
-            current.assertTransitionTo(ReservationStatus.CANCELED);
+            current.assertTransitionTo(ReservationStatus.CANCELLED);
         } else if (!current.canCustomerCancel()) {
             throw new IllegalArgumentException("완료된 예약은 취소할 수 없습니다.");
         }
-        reservationMapper.updateStatus(id, ReservationStatus.CANCELED.name());
+        reservationMapper.updateStatus(id, ReservationStatus.CANCELLED.name());
         log.info("Reservation canceled id={} byAdmin={}", id, admin);
     }
 
