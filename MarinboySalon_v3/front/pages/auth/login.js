@@ -4,9 +4,9 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import AppLayout from '../../components/AppLayout';
 import { LOG_IN_REQUEST } from '../../reducers/authReducer';
+import { apiBaseUrl } from '../../api/apiConfig';
 
-const socialLoginApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082';
-
+// 일반·소셜 로그인 진입점과 로그인 후 이동할 화면을 관리합니다.
 export default function Login() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
 
   useEffect(() => {
+    // 관리자와 고객은 사용하는 업무 화면이 달라 역할별 기본 화면으로 이동합니다.
     if (me) {
       const destination = me.role === 'ADMIN' ? '/admin/reservations' : (router.query.returnTo || '/reservations');
       router.replace(destination);
@@ -41,9 +42,9 @@ export default function Login() {
             {logInLoading ? '확인 중...' : '로그인'}
           </button>
           <div className="social-login-list" aria-label="소셜 로그인">
-            <a href={`${socialLoginApiUrl}/oauth2/authorization/google`}>Google</a>
-            <a href={`${socialLoginApiUrl}/oauth2/authorization/kakao`}>Kakao</a>
-            <a href={`${socialLoginApiUrl}/oauth2/authorization/naver`}>Naver</a>
+            <a href={`${apiBaseUrl}/oauth2/authorization/google`}>Google</a>
+            <a href={`${apiBaseUrl}/oauth2/authorization/kakao`}>Kakao</a>
+            <a href={`${apiBaseUrl}/oauth2/authorization/naver`}>Naver</a>
           </div>
           <p className="form-guide">처음 방문하셨나요? <Link href="/auth/signup">회원가입</Link></p>
         </form>

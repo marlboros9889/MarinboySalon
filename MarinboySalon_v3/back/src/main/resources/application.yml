@@ -18,7 +18,8 @@ spring:
     time-zone: Asia/Seoul
 
 server:
-  port: ${BACK_PORT:8082}
+  # 포트폴리오 시연에서는 V1·V2의 8080과 충돌하지 않도록 V3 API를 8082로 고정합니다.
+  port: 8082
   servlet:
     encoding:
       charset: UTF-8

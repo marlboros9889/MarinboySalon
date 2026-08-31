@@ -12,6 +12,7 @@
 </head>
 <body class="bg-body-tertiary">
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<%-- 고객이 시술과 30분 단위 희망 시간을 선택해 예약을 접수하는 화면입니다. --%>
 <main class="container py-5">
     <section class="form-card mx-auto bg-white border rounded-4 shadow-sm p-4">
         <h1 class="h3 mb-4">예약하기</h1>

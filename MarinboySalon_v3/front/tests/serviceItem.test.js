@@ -1,5 +1,6 @@
 import { getArchiveLook, getServiceImageUrls, getValidServiceId } from '../utils/serviceItem';
 
+// 메뉴 화면에 전달할 분류·이미지·예약값의 안전한 변환 규칙을 확인합니다.
 describe('서비스 메뉴 화면 도구', () => {
   test('메뉴 이름에 따라 아카이브 분류를 선택한다', () => {
     expect(getArchiveLook('남성 커트').category).toBe('CUT & DESIGN');

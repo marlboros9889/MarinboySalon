@@ -6,6 +6,7 @@ import reservationReducer, {
 } from '../reducers/reservationReducer';
 import { formatDateInputValue, formatTimeLabel } from '../utils/reservation';
 
+// 예약 가능 시간과 취소 상태가 화면 저장소에 정확히 반영되는지 검증합니다.
 describe('예약 가능 시간 상태 흐름', () => {
   test('30분 시간 목록의 요청, 성공, 실패 상태를 구분한다', () => {
     const loadingState = reservationReducer(undefined, { type: LOAD_AVAILABLE_TIMES_REQUEST });

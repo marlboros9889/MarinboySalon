@@ -28,6 +28,7 @@ import com.marinboy.reservation.repository.ReservationMapper;
 import com.marinboy.serviceitem.entity.ServiceItem;
 import com.marinboy.serviceitem.repository.ServiceItemMapper;
 
+// 예약 겹침 검사 전에 영업 요일 행을 잠가 동시 요청 순서를 지키는지 확인합니다.
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceLockTest {
 

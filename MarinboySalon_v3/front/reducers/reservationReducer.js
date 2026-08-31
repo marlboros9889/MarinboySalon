@@ -11,6 +11,7 @@ export const LOAD_AVAILABLE_TIMES_REQUEST = 'LOAD_AVAILABLE_TIMES_REQUEST';
 export const LOAD_AVAILABLE_TIMES_SUCCESS = 'LOAD_AVAILABLE_TIMES_SUCCESS';
 export const LOAD_AVAILABLE_TIMES_FAILURE = 'LOAD_AVAILABLE_TIMES_FAILURE';
 
+// 예약 목록, 생성 결과, 가능 시간 조회 결과를 화면별로 분리해 보관합니다.
 const initialState = {
   reservations: [],
   loadReservationsLoading: false,
@@ -60,6 +61,7 @@ export default function reservationReducer(state = initialState, action) {
     case CANCEL_RESERVATION_SUCCESS:
       return {
         ...state,
+        // 서버가 취소를 확정한 예약만 목록에서 취소 상태로 표시합니다.
         reservations: state.reservations.map((item) => (
           item.id === action.data ? { ...item, status: 'CANCELLED' } : item
         )),

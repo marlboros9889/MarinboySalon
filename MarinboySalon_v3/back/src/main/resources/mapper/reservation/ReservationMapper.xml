@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.marinboy.reservation.repository.ReservationMapper">
 
+    <!-- 고객 예약 조회와 겹침 검사, 상태 변경에 사용하는 MyBatis SQL 모음입니다. -->
     <sql id="reservationColumns">
         r.id, r.user_id, r.service_id, r.reservation_start, r.status,
         r.request_memo, r.calendar_event_id, r.created_at,
@@ -75,6 +76,7 @@
     </select>
 
     <select id="countOverlapForUpdate" resultType="int">
+        <!-- 동시 예약 처리 중에는 잠금이 잡힌 행을 기준으로 겹침 여부를 확인합니다. -->
         SELECT COUNT(*)
         FROM reservation r
         INNER JOIN service_item s ON s.id = r.service_id

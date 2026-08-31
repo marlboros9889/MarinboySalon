@@ -12,6 +12,7 @@
 </head>
 <body class="bg-body-tertiary">
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<%-- 시술 공개 상태를 확인하고 등록·수정·비공개 처리를 수행하는 관리자 목록입니다. --%>
 <main class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h2 mb-0">시술 메뉴 관리</h1>

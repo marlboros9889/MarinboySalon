@@ -5,6 +5,7 @@ import {
 } from '../utils/reservationStatus';
 import { getDayName } from '../utils/schedule';
 
+// 관리자가 보는 예약 상태와 요일 표기가 업무 용어와 일치하는지 검증합니다.
 describe('관리자 화면 표시 도구', () => {
   test('예약 상태 선택값은 한글로 표시한다', () => {
     expect(RESERVATION_STATUS_OPTIONS.map((option) => option.label))

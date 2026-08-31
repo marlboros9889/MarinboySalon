@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import AppLayout from '../../components/AppLayout';
 import { SIGN_UP_REQUEST } from '../../reducers/authReducer';
 
+// 회원가입 입력값을 관리하고, 성공하면 로그인 화면으로 안내합니다.
 export default function Signup() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function Signup() {
   const [form, setForm] = useState({ email: '', password: '', name: '', phone: '' });
 
   useEffect(() => {
+    // 가입 직후에는 비밀번호를 다시 입력받도록 자동 로그인하지 않습니다.
     if (signUpDone) {
       router.push('/auth/login');
     }

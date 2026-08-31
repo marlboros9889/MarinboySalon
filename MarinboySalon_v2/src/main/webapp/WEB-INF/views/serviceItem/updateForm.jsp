@@ -11,6 +11,7 @@
 </head>
 <body class="bg-body-tertiary">
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<%-- 관리자가 고객 화면에 노출할 시술 정보와 공개 상태를 수정하는 화면입니다. --%>
 <main class="container py-5">
     <section class="form-card mx-auto bg-white border rounded-4 shadow-sm p-4">
         <h1 class="h3 mb-4">시술 수정</h1>

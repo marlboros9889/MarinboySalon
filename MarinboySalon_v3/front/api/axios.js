@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { clearAccessToken, getAccessToken, setAccessToken } from './accessToken';
+import { apiBaseUrl } from './apiConfig';
 
 // 프론트와 백이 분리되어 있으므로 모든 API 주소를 한 곳에서 관리합니다.
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082',
+  baseURL: apiBaseUrl,
   withCredentials: true,
 });
 

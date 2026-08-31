@@ -10,6 +10,7 @@
 </head>
 <body class="bg-body-tertiary">
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<%-- 새 시술의 가격과 소요 시간을 등록해 예약 가능 시간 계산에 사용합니다. --%>
 <main class="container py-5">
     <section class="form-card mx-auto bg-white border rounded-4 shadow-sm p-4">
         <h1 class="h3 mb-4">시술 등록</h1>

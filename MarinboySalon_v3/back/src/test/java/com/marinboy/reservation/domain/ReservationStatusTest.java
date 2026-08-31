@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+// 예약 상태별 고객 권한과 허용되는 상태 변경 규칙을 검증합니다.
 class ReservationStatusTest {
 
     @Test

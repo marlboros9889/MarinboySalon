@@ -15,6 +15,7 @@ import {
   LOAD_AVAILABLE_TIMES_SUCCESS,
 } from '../reducers/reservationReducer';
 
+// 선택한 날짜와 시술의 실제 예약 가능 시간을 서버 기준으로 조회합니다.
 function* loadAvailableTimes(action) {
   try {
     const result = yield call(() => api.get('/api/reservations/available-times', { params: action.data }));
@@ -27,6 +28,7 @@ function* loadAvailableTimes(action) {
   }
 }
 
+// 로그인한 고객의 예약 목록을 마이페이지 화면에 표시하기 위해 조회합니다.
 function* loadMyReservations() {
   try {
     const result = yield call(() => api.get('/api/reservations/my'));
@@ -36,6 +38,7 @@ function* loadMyReservations() {
   }
 }
 
+// 예약 생성 결과를 저장소에 반영해 완료 화면과 목록을 즉시 갱신합니다.
 function* createReservation(action) {
   try {
     const result = yield call(() => api.post('/api/reservations', action.data));
@@ -45,6 +48,7 @@ function* createReservation(action) {
   }
 }
 
+// 예약 취소 후에는 해당 예약의 상태만 취소 상태로 바꿉니다.
 function* cancelReservation(action) {
   try {
     yield call(() => api.delete(`/api/reservations/${action.data}`));

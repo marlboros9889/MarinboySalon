@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import AppLayout from '../../components/AppLayout';
 import AdminNavigation from '../../components/AdminNavigation';
 import api from '../../api/axios';
+import { apiBaseUrl } from '../../api/apiConfig';
 
 const MAX_IMAGE_COUNT = 4;
 const emptyForm = { name: '', price: '', durationMinutes: '', description: '', active: true };
+
+// 서버에 저장된 업로드 경로만 API 주소를 붙여 브라우저에서 표시합니다.
+function getImageUrl(imageUrl) {
+  return imageUrl.startsWith('/uploads/') ? `${apiBaseUrl}${imageUrl}` : imageUrl;
+}
 
 /** 시술 정보와 선택한 이미지 파일을 한 화면에서 등록합니다. */
 export default function AdminServiceItems() {
@@ -139,7 +145,7 @@ export default function AdminServiceItems() {
             <input id="service-images" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={onImageSelect} />
             <p>JPG, PNG, WEBP / 각 5MB 이하 {editingItemId && '/ 이미지 미선택 시 기존 이미지 유지'}</p>
             {editingItemId && savedImageUrls.length > 0 && selectedImages.length === 0 && <div className="admin-image-thumbnail-list">
-              {savedImageUrls.map((imageUrl, imageIndex) => <img key={imageUrl} src={imageUrl.startsWith('/uploads/') ? `http://localhost:8082${imageUrl}` : imageUrl} alt={`${form.name} 기존 이미지 ${imageIndex + 1}`} />)}
+              {savedImageUrls.map((imageUrl, imageIndex) => <img key={imageUrl} src={getImageUrl(imageUrl)} alt={`${form.name} 기존 이미지 ${imageIndex + 1}`} />)}
             </div>}
             <div className="selected-image-list">
               {selectedImages.map((imageFile, imageIndex) => (
@@ -163,7 +169,7 @@ export default function AdminServiceItems() {
             <p>{item.price.toLocaleString()}원 · {item.durationMinutes}분</p>
             <p>등록 이미지 {item.imageUrls?.length || 0} / 4장</p>
             <div className="admin-image-thumbnail-list">
-              {item.imageUrls?.map((imageUrl, imageIndex) => <img key={imageUrl} src={imageUrl.startsWith('/uploads/') ? `http://localhost:8082${imageUrl}` : imageUrl} alt={`${item.name} 이미지 ${imageIndex + 1}`} />)}
+              {item.imageUrls?.map((imageUrl, imageIndex) => <img key={imageUrl} src={getImageUrl(imageUrl)} alt={`${item.name} 이미지 ${imageIndex + 1}`} />)}
             </div>
             <p>{item.active ? '사용 중' : '비활성'}</p>
             <div className="admin-card-actions">
