@@ -23,6 +23,7 @@
         </c:if>
 
         <form action="${pageContext.request.contextPath}/user/login" method="post">
+            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
             <%-- 로그인 후 원래 보려던 내부 화면으로 돌아가기 위한 값입니다. --%>
             <input type="hidden" name="returnTo" value="<c:out value='${returnTo}'/>"/>
             <div class="mb-3">

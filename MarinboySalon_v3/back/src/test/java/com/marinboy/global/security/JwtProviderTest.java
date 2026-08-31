@@ -23,5 +23,6 @@ class JwtProviderTest {
 
         assertThat(provider.parse(token).getSubject()).isEqualTo("7");
         assertThat(provider.parse(token).get("role")).isEqualTo("ADMIN");
+        assertThat(provider.parse(token).getId()).isNotBlank();
     }
 }

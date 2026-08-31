@@ -5,7 +5,7 @@ import Link from 'next/link';
 import AppLayout from '../../components/AppLayout';
 import { LOG_IN_REQUEST } from '../../reducers/authReducer';
 
-const socialLoginApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const socialLoginApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082';
 
 export default function Login() {
   const dispatch = useDispatch();

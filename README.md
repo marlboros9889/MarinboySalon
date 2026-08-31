@@ -31,12 +31,19 @@ MarinboySalon_v3/  front(Next.js) + back(Spring Boot REST API) 완전 분리
 | `REDIS_HOST` / `REDIS_PORT` | Redis |
 | `CORS_ALLOWED_ORIGINS` / `FRONT_URL` | 프론트 주소 |
 
-- Health: `http://localhost:8080/actuator/health`
-- Swagger: `http://localhost:8080/swagger-ui/index.html`
+- Health: `http://localhost:8082/actuator/health`
+- Swagger: `http://localhost:8082/swagger-ui/index.html`
 
 ## 범위 메모
 
 - **v1**: 예약은 현재 이후 시간·활성 시술·겹침만 검사 (영업시간·휴무일 없음)
-- **v2**: `AdminAuthInterceptor` + Controller 이중 권한 검사
+- **v2**: `AdminAuthInterceptor` + Controller 이중 권한 검사, 전체 POST 폼 CSRF 검증
 - **v3**: 상태 전이 enum, 30분 슬롯 공통 규칙, 겹침 FOR UPDATE, Actuator, Swagger
 - **메뉴 이미지**: URL만 DB 저장 (파일 업로드는 후속)
+
+## 인증과 동시성 경계
+
+- v2는 `JSESSIONID` 세션, v3는 Access JWT + HttpOnly Refresh 쿠키 + Redis를 사용합니다.
+- 두 버전은 `user_account` 데이터만 공유하며 로그인 상태는 공유하지 않습니다. 한 버전에서 로그인해도 다른 버전에는 다시 로그인해야 합니다.
+- v2와 v3 예약 생성은 모두 해당 요일 `business_hour` 행을 `FOR UPDATE`로 잠근 뒤 겹침을 조회하고 저장합니다.
+- 행 잠금은 같은 요일 요청을 순서대로 처리하고, DB 유니크 제약은 완전히 같은 단일 값의 중복만 막는 마지막 방어선입니다. 시술 시간이 구간으로 겹치는지는 행 잠금과 겹침 쿼리가 담당합니다.

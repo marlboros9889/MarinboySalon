@@ -19,7 +19,7 @@ class ReservationStatusTest {
     @Test
     void completedCannotTransitionToCanceled() {
         assertThrows(IllegalArgumentException.class,
-                () -> ReservationStatus.COMPLETED.assertTransitionTo(ReservationStatus.CANCELED));
+                () -> ReservationStatus.COMPLETED.assertTransitionTo(ReservationStatus.CANCELLED));
     }
 
     @Test

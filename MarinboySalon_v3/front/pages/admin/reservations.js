@@ -4,10 +4,10 @@ import AdminNavigation from '../../components/AdminNavigation';
 import api from '../../api/axios';
 
 const statusInfo = {
-  REQUESTED: { label: '접수', nextStatuses: ['CONFIRMED', 'CANCELED'] },
-  CONFIRMED: { label: '확정', nextStatuses: ['COMPLETED', 'CANCELED'] },
+  REQUESTED: { label: '접수', nextStatuses: ['CONFIRMED', 'CANCELLED'] },
+  CONFIRMED: { label: '확정', nextStatuses: ['COMPLETED', 'CANCELLED'] },
   COMPLETED: { label: '완료', nextStatuses: [] },
-  CANCELED: { label: '취소', nextStatuses: [] },
+  CANCELLED: { label: '취소', nextStatuses: [] },
 };
 
 /** 완료와 취소 예약은 상태를 잠그고 색상으로 바로 구분합니다. */

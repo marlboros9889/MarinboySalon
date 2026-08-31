@@ -5,6 +5,7 @@ import com.marinboy.user.dto.UserDto;
 import com.marinboy.user.service.UserService;
 import com.marinboy.user.tool.LoginSessionTool;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -73,7 +74,7 @@ public class UserController {
     public String login(@RequestParam String email,
                         @RequestParam String password,
                         @RequestParam(required = false) String returnTo,
-                        HttpSession session,
+                        HttpServletRequest request,
                         Model model) {
         UserDto userDto = userService.login(email, password);
 
@@ -84,7 +85,13 @@ public class UserController {
             return "user/loginForm";
         }
 
-        loginSessionTool.saveLoginUser(session, userDto);
+        // 로그인 전 세션을 버리고 새 세션을 발급해 세션 고정 공격을 막습니다.
+        HttpSession oldSession = request.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
+        HttpSession newSession = request.getSession(true);
+        loginSessionTool.saveLoginUser(newSession, userDto);
         return "redirect:" + getSafeReturnTo(returnTo);
     }
 

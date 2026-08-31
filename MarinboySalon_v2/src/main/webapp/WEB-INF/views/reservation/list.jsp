@@ -52,6 +52,7 @@
                                         <a class="btn btn-outline-primary btn-sm"
                                            href="${pageContext.request.contextPath}/reservation/updateForm?id=${reservation.id}">수정</a>
                                         <form action="${pageContext.request.contextPath}/reservation/delete" method="post">
+                                            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
                                             <input type="hidden" name="id" value="${reservation.id}">
                                             <button class="btn btn-outline-danger btn-sm" type="submit">취소</button>
                                         </form>

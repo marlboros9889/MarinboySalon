@@ -48,6 +48,7 @@
                             <c:out value="${sessionScope.loginUser.name}"/>님
                         </a>
                         <form action="${pageContext.request.contextPath}/user/logout" method="post" class="m-0">
+                            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
                             <button class="btn btn-outline-secondary btn-sm" type="submit">로그아웃</button>
                         </form>
                     </c:otherwise>

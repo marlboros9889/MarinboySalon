@@ -1,6 +1,8 @@
 package com.marinboy.auth.controller;
 
 import java.util.Map;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -25,6 +27,7 @@ import com.marinboy.user.service.AppUserService;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -97,7 +100,20 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            HttpServletRequest request,
             HttpServletResponse response) {
+
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            try {
+                Claims accessClaims = jwtProvider.parse(authorization.substring(7));
+                long remainingSeconds = Instant.now().until(
+                        accessClaims.getExpiration().toInstant(), ChronoUnit.SECONDS);
+                tokenStore.blockAccessToken(accessClaims.getId(), remainingSeconds);
+            } catch (Exception exception) {
+                // 이미 만료되었거나 잘못된 Access Token은 별도 차단할 필요가 없습니다.
+            }
+        }
 
         if (refreshToken != null) {
             try {

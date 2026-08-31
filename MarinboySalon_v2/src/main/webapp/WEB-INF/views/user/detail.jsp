@@ -21,6 +21,7 @@
 
         <%-- id는 세션에서 읽으므로 사용자가 임의로 바꿀 수 있는 hidden input으로 보내지 않습니다. --%>
         <form action="${pageContext.request.contextPath}/user/update" method="post">
+            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
             <div class="mb-3">
                 <label class="form-label" for="email">이메일</label>
                 <input class="form-control" id="email" value="<c:out value='${userDto.email}'/>" readonly>

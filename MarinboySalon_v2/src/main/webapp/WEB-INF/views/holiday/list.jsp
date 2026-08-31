@@ -21,6 +21,7 @@
     <section class="bg-white border rounded-3 shadow-sm p-4 mb-4">
         <h2 class="h5 mb-3">새 휴무일 등록</h2>
         <form class="row g-3 align-items-end" action="${pageContext.request.contextPath}/holiday/insert" method="post">
+            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
             <div class="col-12 col-md-4">
                 <label class="form-label" for="holidayDate">날짜</label>
                 <input class="form-control reservation-date" id="holidayDate" name="holidayDate" type="date" required>
@@ -51,6 +52,7 @@
                     <td><c:out value="${holiday.reason}"/></td>
                     <td>
                         <form action="${pageContext.request.contextPath}/holiday/delete" method="post">
+                            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
                             <input type="hidden" name="id" value="${holiday.id}">
                             <button class="btn btn-outline-danger btn-sm" type="submit">삭제</button>
                         </form>

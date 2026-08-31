@@ -26,7 +26,7 @@ const fallbackImageUrl = '/images/salon-background.png';
 /** 업로드 이미지는 백엔드, 기본 이미지는 프론트 정적 폴더에서 읽습니다. */
 function resolveServiceImageUrl(imageUrl) {
   if (imageUrl.startsWith('/uploads/')) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082';
     return `${apiUrl}${imageUrl}`;
   }
   return imageUrl;

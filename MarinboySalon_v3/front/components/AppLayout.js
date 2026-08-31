@@ -12,8 +12,8 @@ export default function AppLayout({ children }) {
   const { me } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    const accessToken = window.localStorage.getItem('accessToken');
-    if (accessToken && !me) {
+    // 새로고침하면 메모리 토큰이 비므로 HttpOnly Refresh 쿠키로 사용자 정보를 복구합니다.
+    if (!me) {
       dispatch({ type: LOAD_ME_REQUEST });
     }
   }, [dispatch, me]);

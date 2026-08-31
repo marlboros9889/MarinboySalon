@@ -139,7 +139,7 @@ export default function AdminServiceItems() {
             <input id="service-images" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={onImageSelect} />
             <p>JPG, PNG, WEBP / 각 5MB 이하 {editingItemId && '/ 이미지 미선택 시 기존 이미지 유지'}</p>
             {editingItemId && savedImageUrls.length > 0 && selectedImages.length === 0 && <div className="admin-image-thumbnail-list">
-              {savedImageUrls.map((imageUrl, imageIndex) => <img key={imageUrl} src={imageUrl.startsWith('/uploads/') ? `http://localhost:8080${imageUrl}` : imageUrl} alt={`${form.name} 기존 이미지 ${imageIndex + 1}`} />)}
+              {savedImageUrls.map((imageUrl, imageIndex) => <img key={imageUrl} src={imageUrl.startsWith('/uploads/') ? `http://localhost:8082${imageUrl}` : imageUrl} alt={`${form.name} 기존 이미지 ${imageIndex + 1}`} />)}
             </div>}
             <div className="selected-image-list">
               {selectedImages.map((imageFile, imageIndex) => (
@@ -163,7 +163,7 @@ export default function AdminServiceItems() {
             <p>{item.price.toLocaleString()}원 · {item.durationMinutes}분</p>
             <p>등록 이미지 {item.imageUrls?.length || 0} / 4장</p>
             <div className="admin-image-thumbnail-list">
-              {item.imageUrls?.map((imageUrl, imageIndex) => <img key={imageUrl} src={imageUrl.startsWith('/uploads/') ? `http://localhost:8080${imageUrl}` : imageUrl} alt={`${item.name} 이미지 ${imageIndex + 1}`} />)}
+              {item.imageUrls?.map((imageUrl, imageIndex) => <img key={imageUrl} src={imageUrl.startsWith('/uploads/') ? `http://localhost:8082${imageUrl}` : imageUrl} alt={`${item.name} 이미지 ${imageIndex + 1}`} />)}
             </div>
             <p>{item.active ? '사용 중' : '비활성'}</p>
             <div className="admin-card-actions">

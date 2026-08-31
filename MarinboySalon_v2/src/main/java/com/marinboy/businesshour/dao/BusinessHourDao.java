@@ -15,5 +15,7 @@ public interface BusinessHourDao {
 
     BusinessHourDto findByDayOfWeek(int dayOfWeek);
 
+    BusinessHourDto findByDayOfWeekForUpdate(int dayOfWeek);
+
     int update(BusinessHourDto businessHourDto);
 }

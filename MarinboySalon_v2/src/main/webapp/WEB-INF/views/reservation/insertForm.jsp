@@ -21,6 +21,7 @@
         </c:if>
 
         <form action="${pageContext.request.contextPath}/reservation/insert" method="post">
+            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
             <div class="mb-3">
                 <label class="form-label" for="serviceId">시술</label>
                 <select class="form-select" id="serviceId" name="serviceId" required>

@@ -50,6 +50,7 @@
                                href="${pageContext.request.contextPath}/serviceItem/updateForm?id=${serviceItem.id}">수정</a>
                             <c:if test="${serviceItem.active}">
                                 <form action="${pageContext.request.contextPath}/serviceItem/delete" method="post">
+                                    <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
                                     <input type="hidden" name="id" value="${serviceItem.id}">
                                     <button class="btn btn-outline-danger btn-sm" type="submit">비공개</button>
                                 </form>

@@ -24,6 +24,7 @@
             <div class="col-12">
                 <form class="card border-primary-subtle shadow-sm"
                       action="${pageContext.request.contextPath}/businessHour/update" method="post">
+                    <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
                     <div class="card-body">
                         <input type="hidden" name="id" value="${businessHour.id}">
                         <div class="row g-3 align-items-end">

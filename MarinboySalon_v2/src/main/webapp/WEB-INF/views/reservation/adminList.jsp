@@ -40,6 +40,7 @@
                     <td>
                         <%-- 각 예약의 id와 상태가 한 폼 안에서 함께 전송되도록 구성합니다. --%>
                         <form class="d-flex gap-2" action="${pageContext.request.contextPath}/reservation/statusUpdate" method="post">
+                            <jsp:include page="/WEB-INF/views/common/csrf.jsp"/>
                             <input type="hidden" name="id" value="${reservation.id}">
                             <select class="form-select form-select-sm" name="status" aria-label="예약 상태">
                                 <option value="REQUESTED" ${reservation.status == 'REQUESTED' ? 'selected' : ''}>접수</option>
