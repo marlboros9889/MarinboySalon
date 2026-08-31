@@ -13,6 +13,7 @@ export default function Login() {
   const { me, logInLoading, logInError } = useSelector((state) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const oauthError = router.query.oauthError === 'failed';
 
   useEffect(() => {
     // 관리자와 고객은 사용하는 업무 화면이 달라 역할별 기본 화면으로 이동합니다.
@@ -38,6 +39,7 @@ export default function Login() {
           <label htmlFor="password">비밀번호</label>
           <input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
           {logInError && <p className="error-message">{logInError}</p>}
+          {oauthError && <p className="error-message">소셜 로그인에 실패했습니다. 제공자 계정 권한과 콜백 주소를 확인해 주세요.</p>}
           <button type="submit" className="primary-button" disabled={logInLoading}>
             {logInLoading ? '확인 중...' : '로그인'}
           </button>

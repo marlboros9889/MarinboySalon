@@ -12,6 +12,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.marinboy.auth.service.CustomOAuth2UserService;
+import com.marinboy.global.oauth2.OAuth2FailureHandler;
 import com.marinboy.global.oauth2.OAuth2SuccessHandler;
 import com.marinboy.global.oauth2.RedisOAuthAuthorizationRequestRepository;
 import com.marinboy.global.security.JwtAuthenticationFilter;
@@ -30,6 +31,7 @@ class SecurityConfigCorsTest {
                 mock(JwtAuthenticationFilter.class),
                 mock(CustomOAuth2UserService.class),
                 mock(OAuth2SuccessHandler.class),
+                mock(OAuth2FailureHandler.class),
                 mock(RedisOAuthAuthorizationRequestRepository.class),
                 mock(ObjectProvider.class),
                 mock(RestAuthenticationEntryPoint.class),
