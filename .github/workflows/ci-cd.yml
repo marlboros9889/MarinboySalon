@@ -25,6 +25,7 @@ jobs:
       - name: 백엔드 테스트와 JAR 생성
         working-directory: MarinboySalon_v3/back
         run: |
+          sed -i 's/\r$//' gradlew
           chmod +x gradlew
           ./gradlew test bootJar
       - name: Node.js 설정
@@ -91,6 +92,7 @@ jobs:
           tar -xzf "$ARCHIVE" -C "$RELEASE_DIR"
           rsync -a --delete --exclude=.git --exclude=back/build --exclude=front/node_modules --exclude=front/.next "$RELEASE_DIR/" "$APP_DIR/"
           cd "$APP_DIR/back"
+          sed -i 's/\r$//' gradlew
           chmod +x gradlew
           ./gradlew bootJar
           cd "$APP_DIR/front"
