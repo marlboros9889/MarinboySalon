@@ -24,7 +24,9 @@ jobs:
           cache: gradle
       - name: 백엔드 테스트와 JAR 생성
         working-directory: MarinboySalon_v3/back
-        run: ./gradlew test bootJar
+        run: |
+          chmod +x gradlew
+          ./gradlew test bootJar
       - name: Node.js 설정
         uses: actions/setup-node@v4
         with:
@@ -89,6 +91,7 @@ jobs:
           tar -xzf "$ARCHIVE" -C "$RELEASE_DIR"
           rsync -a --delete --exclude=.git --exclude=back/build --exclude=front/node_modules --exclude=front/.next "$RELEASE_DIR/" "$APP_DIR/"
           cd "$APP_DIR/back"
+          chmod +x gradlew
           ./gradlew bootJar
           cd "$APP_DIR/front"
           npm ci
