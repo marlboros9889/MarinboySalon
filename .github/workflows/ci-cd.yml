@@ -48,6 +48,16 @@ jobs:
           NEXT_PUBLIC_SOCIAL_LOGIN_ENABLED: 'false'
         run: npm run build
 
+      - name: 배포 결과물 압축
+        run: tar -C MarinboySalon_v3 -czf marinboy-runtime.tar.gz back/build/libs front/.next
+
+      - name: 배포 결과물 보관
+        uses: actions/upload-artifact@v4
+        with:
+          name: marinboy-runtime
+          path: marinboy-runtime.tar.gz
+          retention-days: 1
+
   deploy:
     name: Deploy to EC2
     needs: verify
@@ -57,19 +67,18 @@ jobs:
     steps:
       - name: 소스 내려받기
         uses: actions/checkout@v4
+      - name: 검증된 빌드 결과물 받기
+        uses: actions/download-artifact@v4
+        with:
+          name: marinboy-runtime
+          path: runtime
       - name: EC2에 배포
         run: |
           set -euo pipefail
           APP_DIR=/opt/marinboy/app/MarinboySalon_v3
           RELEASE_DIR="$GITHUB_WORKSPACE/MarinboySalon_v3"
           rsync -a --delete --exclude=.git --exclude=back/build --exclude=front/node_modules --exclude=front/.next "$RELEASE_DIR/" "$APP_DIR/"
-          cd "$APP_DIR/back"
-          sed -i 's/\r$//' gradlew
-          chmod +x gradlew
-          ./gradlew bootJar
-          cd "$APP_DIR/front"
-          npm ci
-          NEXT_PUBLIC_API_URL=/backend INTERNAL_API_URL=http://127.0.0.1:8082 NEXT_PUBLIC_SOCIAL_LOGIN_ENABLED=false npm run build
+          tar -xzf "$GITHUB_WORKSPACE/runtime/marinboy-runtime.tar.gz" -C "$APP_DIR"
           sudo systemctl restart marinboy-back marinboy-front
           sleep 5
           curl --fail --silent --show-error http://127.0.0.1:8082/actuator/health > /dev/null
