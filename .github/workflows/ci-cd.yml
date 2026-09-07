@@ -80,6 +80,11 @@ jobs:
           rsync -a --delete --exclude=.git --exclude=back/build --exclude=front/node_modules --exclude=front/.next "$RELEASE_DIR/" "$APP_DIR/"
           tar -xzf "$GITHUB_WORKSPACE/runtime/marinboy-runtime.tar.gz" -C "$APP_DIR"
           sudo systemctl restart marinboy-back marinboy-front
-          sleep 5
-          curl --fail --silent --show-error http://127.0.0.1:8082/actuator/health > /dev/null
-          curl --fail --silent --show-error http://127.0.0.1:3000/ > /dev/null
+          for attempt in {1..12}; do
+            if curl --fail --silent http://127.0.0.1:8082/actuator/health > /dev/null && curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "서비스 기동 시간 초과" >&2
+          exit 1
