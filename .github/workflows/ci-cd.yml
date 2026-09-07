@@ -77,7 +77,8 @@ jobs:
           set -euo pipefail
           APP_DIR=/opt/marinboy/app/MarinboySalon_v3
           RELEASE_DIR="$GITHUB_WORKSPACE/MarinboySalon_v3"
-          rsync -a --delete --exclude=.git --exclude=back/build --exclude=front/node_modules --exclude=front/.next "$RELEASE_DIR/" "$APP_DIR/"
+          # 실행 중인 Node.js 의존성은 서버에 유지하고, 소스와 검증된 결과물만 갱신합니다.
+          rsync -a --exclude=.git --exclude=back/build --exclude=front/node_modules --exclude=front/.next "$RELEASE_DIR/" "$APP_DIR/"
           tar -xzf "$GITHUB_WORKSPACE/runtime/marinboy-runtime.tar.gz" -C "$APP_DIR"
           sudo systemctl restart marinboy-back marinboy-front
           for attempt in {1..12}; do
