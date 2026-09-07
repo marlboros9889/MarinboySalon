@@ -1,0 +1,16 @@
+[Unit]
+Description=MarinboySalon Spring Boot API
+After=network.target mariadb.service redis6.service
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/opt/marinboy/app/MarinboySalon_v3/back
+EnvironmentFile=/opt/marinboy/app.env
+Environment=JAVA_OPTS=-Xms256m -Xmx700m
+ExecStart=/usr/bin/java $JAVA_OPTS -jar /opt/marinboy/app/MarinboySalon_v3/back/build/libs/marinboy-salon-back-0.0.1-SNAPSHOT.jar
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

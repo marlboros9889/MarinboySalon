@@ -372,7 +372,7 @@ main {
 .lumiere-menu-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .lumiere-menu-card {
@@ -403,17 +403,44 @@ main {
   transform: scale(1.02);
 }
 
-.popular-service-badge {
-  background: var(--brand-brown-dark);
-  border-radius: 999px;
-  color: #ffffff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  left: 12px;
-  letter-spacing: 0.04em;
-  padding: 7px 10px;
+.popular-service-stamp {
+  inset: 0;
+  pointer-events: none;
   position: absolute;
-  top: 12px;
+  z-index: 2;
+}
+
+/* 우상단의 손글씨 M은 마린보이 인기 메뉴 도장 역할을 합니다. */
+.m-badge {
+  height: 42px;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 42px;
+}
+
+.m-svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  height: 100%;
+  width: 100%;
+}
+
+.rank-text {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: #a66861;
+  font-size: 0.65rem;
+  font-weight: 800;
+  left: 10px;
+  letter-spacing: 0.08em;
+  padding: 6px 9px;
+  position: absolute;
+  top: 10px;
+}
+
+.nail-stamp .rank-text {
+  color: #835e9e;
 }
 
 .lumiere-menu-copy {

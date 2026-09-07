@@ -2,8 +2,9 @@ spring:
   application:
     name: marinboy-salon-back
   profiles:
-    # 소셜 로그인 설정을 모든 실행 환경에서 읽되, 키 값은 환경변수로만 받습니다.
-    include: oauth
+    # 소셜 로그인 키가 있는 환경에서만 `oauth` 프로필을 활성화합니다.
+    # 운영 서버는 키를 등록하기 전까지 기본 예약·로그인 기능만 안전하게 실행합니다.
+    include: ${SPRING_PROFILES_INCLUDE:}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 로컬 MySQL 8의 caching_sha2_password 인증에 필요한 공개키 조회를 허용합니다.

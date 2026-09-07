@@ -1,0 +1,17 @@
+[Unit]
+Description=MarinboySalon Next.js frontend
+After=network.target marinboy-back.service
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/opt/marinboy/app/MarinboySalon_v3/front
+Environment=NODE_ENV=production
+# SSR은 브라우저 상대 경로 대신 EC2 내부 Spring API로 메뉴를 조회합니다.
+Environment=INTERNAL_API_URL=http://127.0.0.1:8082
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

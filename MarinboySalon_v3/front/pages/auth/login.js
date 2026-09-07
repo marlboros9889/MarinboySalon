@@ -14,6 +14,8 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const oauthError = router.query.oauthError === 'failed';
+  // OAuth 제공자 키를 등록하기 전 운영 화면에서 실패하는 로그인 버튼을 숨깁니다.
+  const socialLoginEnabled = process.env.NEXT_PUBLIC_SOCIAL_LOGIN_ENABLED !== 'false';
 
   useEffect(() => {
     // 관리자와 고객은 사용하는 업무 화면이 달라 역할별 기본 화면으로 이동합니다.
@@ -43,11 +45,13 @@ export default function Login() {
           <button type="submit" className="primary-button" disabled={logInLoading}>
             {logInLoading ? '확인 중...' : '로그인'}
           </button>
-          <div className="social-login-list" aria-label="소셜 로그인">
-            <a href={`${apiBaseUrl}/oauth2/authorization/google`}>Google</a>
-            <a href={`${apiBaseUrl}/oauth2/authorization/kakao`}>Kakao</a>
-            <a href={`${apiBaseUrl}/oauth2/authorization/naver`}>Naver</a>
-          </div>
+          {socialLoginEnabled && (
+            <div className="social-login-list" aria-label="소셜 로그인">
+              <a href={`${apiBaseUrl}/oauth2/authorization/google`}>Google</a>
+              <a href={`${apiBaseUrl}/oauth2/authorization/kakao`}>Kakao</a>
+              <a href={`${apiBaseUrl}/oauth2/authorization/naver`}>Naver</a>
+            </div>
+          )}
           <p className="form-guide">처음 방문하셨나요? <Link href="/auth/signup">회원가입</Link></p>
         </form>
       </section>

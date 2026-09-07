@@ -40,11 +40,13 @@ export default function AdminReservations() {
     {newRequestCount > 0 && <p className="admin-notification" role="status">새 예약 접수 {newRequestCount}건이 있습니다.</p>}
     {error && <p className="error-message">{error}</p>}
     <div className="table-responsive paper-table-wrap"><table className="table align-middle">
-      <thead><tr><th>고객</th><th>시술</th><th>예약 일시</th><th>상태</th></tr></thead><tbody>
+      <thead><tr><th>고객</th><th>시술</th><th>예약 일시</th><th>요청사항</th><th>상태</th></tr></thead><tbody>
         {reservations.map((item) => {
           const currentStatus = statusInfo[item.status] || statusInfo.REQUESTED;
           const locked = currentStatus.nextStatuses.length === 0;
-          return <tr key={item.id}><td>{item.userName}<br /><small>{item.userPhone}</small></td><td>{item.serviceName}</td><td>{item.reservationStart.replace('T', ' ')}</td><td>
+          // 요청사항이 없을 때도 관리자가 빈 값으로 혼동하지 않도록 안내 문구를 표시합니다.
+          const requestMemo = item.requestMemo?.trim() || '요청사항 없음';
+          return <tr key={item.id}><td>{item.userName}<br /><small>{item.userPhone}</small></td><td>{item.serviceName}</td><td>{item.reservationStart.replace('T', ' ')}</td><td>{requestMemo}</td><td>
             <span className={`reservation-status status-${item.status.toLowerCase()}`}>{currentStatus.label}</span>
             {locked ? <small className="status-lock">변경 불가</small> : <select value={item.status} onChange={(event) => onStatusChange(item.id, event.target.value)}>
               <option value={item.status}>{currentStatus.label}</option>{currentStatus.nextStatuses.map((status) => <option key={status} value={status}>{statusInfo[status].label}</option>)}</select>}

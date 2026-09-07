@@ -41,6 +41,65 @@ const reviews = [
   { score: '5.0', text: '홈케어 방법까지 알려주셔서 손질하기 훨씬 편해졌어요.', customer: '30대 고객' },
 ];
 
+/** 헤어와 네일 메뉴를 이름 기준으로 분리해 메인 인기 메뉴에 표시합니다. */
+function isNailService(serviceItem) {
+  return serviceItem.name.includes('네일');
+}
+
+function isHairService(serviceItem) {
+  return !isNailService(serviceItem) && !serviceItem.name.includes('메이크업');
+}
+
+/** 헤어·네일 영역이 같은 카드 디자인을 사용하도록 공통 메뉴 목록을 만듭니다. */
+function PopularMenuCards({ serviceItems, categoryLabel }) {
+  const isNailMenu = categoryLabel === 'NAIL';
+  const gradientColors = isNailMenu
+    ? ['#E6D6F1', '#B78CC9', '#835E9E']
+    : ['#F5D0CC', '#C88A83', '#A66861'];
+
+  return (
+    <div className="lumiere-menu-grid">
+      {serviceItems.map((serviceItem, index) => (
+        <article className="lumiere-menu-card" key={serviceItem.id}>
+          <ServiceImageCarousel serviceItem={serviceItem} className="lumiere-menu-image">
+            <div className={`popular-service-stamp ${isNailMenu ? 'nail-stamp' : 'hair-stamp'}`}>
+              <span className="rank-text">TOP {index + 1}</span>
+              <div className="m-badge" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="m-svg">
+                  <defs>
+                    <linearGradient id={`popular-stamp-${serviceItem.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor={gradientColors[0]} />
+                      <stop offset="50%" stopColor={gradientColors[1]} />
+                      <stop offset="100%" stopColor={gradientColors[2]} />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M 20 60 C 15 60, 15 50, 20 45 C 25 35, 32 25, 38 23 C 41 22, 42 25, 43 28 C 47 38, 52 52, 54 58 C 58 45, 67 27, 74 23 C 77 21, 79 23, 78 27 C 75 38, 70 55, 68 62 C 67 66, 63 66, 61 62 C 55 50, 47 36, 44 30 C 39 40, 31 55, 25 61 C 23 62, 21 60, 20 60 Z"
+                    fill="none"
+                    stroke={`url(#popular-stamp-${serviceItem.id})`}
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
+          </ServiceImageCarousel>
+          <div className="lumiere-menu-copy">
+            <span>POPULAR SERVICE</span>
+            <h3>{serviceItem.name}</h3>
+            <p>{serviceItem.description || '고객의 스타일과 상태를 고려한 맞춤 디자인'}</p>
+            <div>
+              <strong>{serviceItem.price.toLocaleString()}원~</strong>
+              <small><FiClock /> 약 {serviceItem.durationMinutes}분</small>
+            </div>
+            <Link href={`/reservations/new?serviceId=${serviceItem.id}`} aria-label={`${serviceItem.name} 예약하기`} />
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 export default function Home({ initialServiceItems = [], initialLoadError = null }) {
   const dispatch = useDispatch();
   const { serviceItems, loadServiceItemsLoading, loadServiceItemsError } = useSelector(
@@ -55,9 +114,10 @@ export default function Home({ initialServiceItems = [], initialLoadError = null
     dispatch({ type: LOAD_SERVICE_ITEMS_REQUEST });
   }, [dispatch, initialServiceItems]);
 
-  // 현재 메뉴 정렬의 앞 3개를 메인 화면 인기 시술로 고정합니다.
+  // 헤어와 네일을 섞지 않고 각각 인기 메뉴 5개씩 보여줍니다.
   const displayedServiceItems = serviceItems.length > 0 ? serviceItems : initialServiceItems;
-  const popularServiceItems = displayedServiceItems.slice(0, 3);
+  const popularHairItems = displayedServiceItems.filter(isHairService).slice(0, 5);
+  const popularNailItems = displayedServiceItems.filter(isNailService).slice(0, 5);
   const serviceItemsError = loadServiceItemsError || initialLoadError;
 
   return (
@@ -111,32 +171,25 @@ export default function Home({ initialServiceItems = [], initialLoadError = null
       <section className="lumiere-section container" id="menu" aria-labelledby="best-menu-title">
         <header className="lumiere-title-row">
           <div>
-            <p className="eyebrow">POPULAR SERVICES</p>
-            <h2 id="best-menu-title" className="display-text">BEST MENU</h2>
+            <p className="eyebrow">MONTHLY HAIR</p>
+            <h2 id="best-menu-title" className="display-text">HAIR TOP 5</h2>
           </div>
           <Link href="/services">전체 메뉴 보기 <FiArrowRight /></Link>
         </header>
         {loadServiceItemsLoading && <p className="status-message">메뉴를 불러오는 중입니다.</p>}
         {serviceItemsError && <p className="error-message">{serviceItemsError}</p>}
-        <div className="lumiere-menu-grid">
-          {popularServiceItems.map((serviceItem, index) => (
-            <article className="lumiere-menu-card" key={serviceItem.id}>
-              <ServiceImageCarousel serviceItem={serviceItem} className="lumiere-menu-image">
-                <span className="popular-service-badge">인기 시술 TOP {index + 1}</span>
-              </ServiceImageCarousel>
-              <div className="lumiere-menu-copy">
-                <span>POPULAR SERVICE</span>
-                <h3>{serviceItem.name}</h3>
-                <p>{serviceItem.description || '고객의 얼굴형과 모발 상태를 고려한 맞춤 디자인'}</p>
-                <div>
-                  <strong>{serviceItem.price.toLocaleString()}원~</strong>
-                  <small><FiClock /> 약 {serviceItem.durationMinutes}분</small>
-                </div>
-                <Link href={`/reservations/new?serviceId=${serviceItem.id}`} aria-label={`${serviceItem.name} 예약하기`} />
-              </div>
-            </article>
-          ))}
-        </div>
+        <PopularMenuCards serviceItems={popularHairItems} categoryLabel="HAIR" />
+      </section>
+
+      <section className="lumiere-section container" id="nail-menu" aria-labelledby="nail-menu-title">
+        <header className="lumiere-title-row">
+          <div>
+            <p className="eyebrow">MONTHLY NAIL</p>
+            <h2 id="nail-menu-title" className="display-text">NAIL TOP 5</h2>
+          </div>
+          <Link href="/services">전체 메뉴 보기 <FiArrowRight /></Link>
+        </header>
+        <PopularMenuCards serviceItems={popularNailItems} categoryLabel="NAIL" />
       </section>
 
       <section className="private-care-section container">

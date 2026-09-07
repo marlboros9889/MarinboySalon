@@ -72,6 +72,15 @@ export default function NewReservation() {
       router.push('/auth/login?returnTo=/reservations/new');
       return;
     }
+
+    // 예약을 실제로 등록하기 전에 노쇼 안내를 확인받습니다.
+    const agreedToNoShowNotice = window.confirm(
+      '노쇼 안내\n\n예약 시간에 방문이 어려우면 매장에 미리 연락해 주세요.\n다음 단계로 예약을 신청하시겠습니까?',
+    );
+    if (!agreedToNoShowNotice) {
+      return;
+    }
+
     dispatch({
       type: CREATE_RESERVATION_REQUEST,
       data: {

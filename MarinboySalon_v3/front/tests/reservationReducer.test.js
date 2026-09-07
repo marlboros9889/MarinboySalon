@@ -5,6 +5,7 @@ import reservationReducer, {
   LOAD_AVAILABLE_TIMES_SUCCESS,
 } from '../reducers/reservationReducer';
 import { formatDateInputValue, formatTimeLabel } from '../utils/reservation';
+import { canCancelReservation } from '../utils/reservationStatus';
 
 // 예약 가능 시간과 취소 상태가 화면 저장소에 정확히 반영되는지 검증합니다.
 describe('예약 가능 시간 상태 흐름', () => {
@@ -43,5 +44,15 @@ describe('예약 가능 시간 상태 흐름', () => {
     });
 
     expect(canceledState.reservations[0].status).toBe('CANCELLED');
+  });
+
+  test('고객은 예약일 전날까지만 취소할 수 있다', () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    expect(canCancelReservation('REQUESTED', `${formatDateInputValue(today)}T10:00:00`)).toBe(false);
+    expect(canCancelReservation('REQUESTED', `${formatDateInputValue(tomorrow)}T10:00:00`)).toBe(true);
+    expect(canCancelReservation('COMPLETED', `${formatDateInputValue(tomorrow)}T10:00:00`)).toBe(false);
   });
 });

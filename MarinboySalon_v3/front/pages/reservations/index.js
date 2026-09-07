@@ -6,6 +6,7 @@ import {
   CANCEL_RESERVATION_REQUEST,
   LOAD_MY_RESERVATIONS_REQUEST,
 } from '../../reducers/reservationReducer';
+import { canCancelReservation } from '../../utils/reservationStatus';
 
 const statusLabel = {
   REQUESTED: '접수',
@@ -51,9 +52,13 @@ export default function ReservationList() {
                 <p>{item.reservationStart.replace('T', ' ')}</p>
                 {item.requestMemo && <small>{item.requestMemo}</small>}
               </div>
-              {item.status !== 'CANCELLED' && item.status !== 'COMPLETED' && (
+              {canCancelReservation(item.status, item.reservationStart) && (
                 <button type="button" className="outline-button" onClick={() => onCancel(item.id)}>예약 취소</button>
               )}
+              {item.status !== 'CANCELLED' && item.status !== 'COMPLETED'
+                && !canCancelReservation(item.status, item.reservationStart) && (
+                  <small className="status-lock">예약 취소는 예약일 전날까지만 가능합니다.</small>
+                )}
               {item.status === 'COMPLETED' && (
                 <Link className="outline-button" href={`/reviews/new?reservationId=${item.id}`}>리뷰 작성</Link>
               )}

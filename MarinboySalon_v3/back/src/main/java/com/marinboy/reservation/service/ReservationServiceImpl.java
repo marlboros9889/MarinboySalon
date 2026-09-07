@@ -3,6 +3,7 @@ package com.marinboy.reservation.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +39,8 @@ import lombok.RequiredArgsConstructor;
 public class ReservationServiceImpl implements ReservationService {
 
     private static final Logger log = LoggerFactory.getLogger(ReservationServiceImpl.class);
+    // EC2 서버 시간과 관계없이 고객 취소 기준일은 한국 시간으로 계산합니다.
+    private static final ZoneId KOREA_ZONE = ZoneId.of("Asia/Seoul");
 
     private final ReservationMapper reservationMapper;
     private final ReservationSlotLockMapper reservationSlotLockMapper;
@@ -138,8 +141,16 @@ public class ReservationServiceImpl implements ReservationService {
         ReservationStatus current = ReservationStatus.from(reservation.getStatus());
         if (admin) {
             current.assertTransitionTo(ReservationStatus.CANCELLED);
-        } else if (!current.canCustomerCancel()) {
-            throw new IllegalArgumentException("완료된 예약은 취소할 수 없습니다.");
+        } else {
+            if (!current.canCustomerCancel()) {
+                throw new IllegalArgumentException("완료되었거나 이미 취소된 예약은 취소할 수 없습니다.");
+            }
+
+            LocalDate koreaToday = LocalDate.now(KOREA_ZONE);
+            LocalDate reservationDate = reservation.getReservationStart().toLocalDate();
+            if (!reservationDate.isAfter(koreaToday)) {
+                throw new IllegalArgumentException("고객 예약 취소는 예약일 전날까지만 가능합니다.");
+            }
         }
         reservationMapper.updateStatus(id, ReservationStatus.CANCELLED.name());
         log.info("Reservation canceled id={} byAdmin={}", id, admin);
