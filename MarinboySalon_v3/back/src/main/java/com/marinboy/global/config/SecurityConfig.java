@@ -107,28 +107,39 @@ public class SecurityConfig {
             @Override
             public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
                 OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request);
-                boolean googleLogin = request.getRequestURI().endsWith("/oauth2/authorization/google");
-                return addGoogleAccountSelection(authorizationRequest, googleLogin);
+                String provider = request.getRequestURI().substring(
+                        request.getRequestURI().lastIndexOf('/') + 1);
+                return addProviderLoginPrompt(authorizationRequest, provider);
             }
 
             @Override
             public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String registrationId) {
                 OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, registrationId);
-                boolean googleLogin = "google".equals(registrationId);
-                return addGoogleAccountSelection(authorizationRequest, googleLogin);
+                return addProviderLoginPrompt(authorizationRequest, registrationId);
             }
         };
     }
 
-    /** Google OAuth 요청에만 계정 선택 파라미터를 추가합니다. */
-    private OAuth2AuthorizationRequest addGoogleAccountSelection(
-            OAuth2AuthorizationRequest authorizationRequest, boolean googleLogin) {
-        if (authorizationRequest == null || !googleLogin) {
+    /** 제공자별로 이전 계정의 자동 승인을 막는 로그인 화면을 요청합니다. */
+    private OAuth2AuthorizationRequest addProviderLoginPrompt(
+            OAuth2AuthorizationRequest authorizationRequest, String provider) {
+        if (authorizationRequest == null) {
             return authorizationRequest;
         }
 
+        String prompt = null;
+        if ("google".equals(provider)) {
+            prompt = "select_account";
+        } else if ("kakao".equals(provider)) {
+            prompt = "login";
+        }
+        if (prompt == null) {
+            return authorizationRequest;
+        }
+        String loginPrompt = prompt;
+
         return OAuth2AuthorizationRequest.from(authorizationRequest)
-                .additionalParameters(parameters -> parameters.put("prompt", "select_account"))
+                .additionalParameters(parameters -> parameters.put("prompt", loginPrompt))
                 .build();
     }
 
