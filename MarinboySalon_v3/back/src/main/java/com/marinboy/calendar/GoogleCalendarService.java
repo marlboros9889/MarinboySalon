@@ -103,19 +103,13 @@ public class GoogleCalendarService {
             CalendarList calendarList = calendar.calendarList().list().execute();
             List<CalendarListEntry> calendars = calendarList.getItems();
             int accessibleCalendarCount = calendars == null ? 0 : calendars.size();
-            CalendarListEntry targetCalendar = findTargetCalendar(calendars);
-
             result.put("accessibleCalendarCount", accessibleCalendarCount);
-            if (targetCalendar == null) {
-                result.put("connected", false);
-                result.put("message", "서비스 계정의 캘린더 목록에 대상 캘린더가 없습니다.");
-                result.put("reason", "캘린더 공유가 서버 계정에 적용되지 않음");
-                return result;
-            }
-
+            // 공유 캘린더는 서비스 계정의 목록에 바로 표시되지 않을 수 있으므로,
+            // 실제 예약을 등록할 대상 캘린더에 직접 읽기 요청을 보내 권한을 확인합니다.
+            calendar.events().list(calendarId).setMaxResults(1).execute();
             result.put("connected", true);
-            result.put("calendarId", targetCalendar.getId());
-            result.put("summary", targetCalendar.getSummary());
+            result.put("calendarId", calendarId);
+            result.put("summary", "Google Calendar 연결 확인 완료");
         } catch (Exception exception) {
             result.put("connected", false);
             result.put("message", "서비스 계정이 설정된 캘린더에 접근할 수 없습니다.");
