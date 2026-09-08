@@ -10,8 +10,8 @@ spring:
           kakao:
             client-id: ${KAKAO_CLIENT_ID:}
             client-secret: ${KAKAO_CLIENT_SECRET:}
-            # Kakao Client Secret 기능을 켜지 않은 포트폴리오 앱은 REST API 키만 사용합니다.
-            client-authentication-method: none
+            # Kakao REST API 키의 Client Secret을 POST 본문에 포함해 토큰을 발급합니다.
+            client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             # 카카오 콘솔에서 별도 동의를 켜지 않아도 로그인할 수 있도록 닉네임만 요청합니다.
