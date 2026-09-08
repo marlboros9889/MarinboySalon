@@ -127,19 +127,26 @@ public class SecurityConfig {
             return authorizationRequest;
         }
 
-        String prompt = null;
+        String parameterName = null;
+        String parameterValue = null;
         if ("google".equals(provider)) {
-            prompt = "select_account";
+            parameterName = "prompt";
+            parameterValue = "select_account";
         } else if ("kakao".equals(provider)) {
-            prompt = "login";
+            parameterName = "prompt";
+            parameterValue = "login";
+        } else if ("naver".equals(provider)) {
+            parameterName = "auth_type";
+            parameterValue = "reauthenticate";
         }
-        if (prompt == null) {
+        if (parameterName == null) {
             return authorizationRequest;
         }
-        String loginPrompt = prompt;
+        String requestParameterName = parameterName;
+        String requestParameterValue = parameterValue;
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)
-                .additionalParameters(parameters -> parameters.put("prompt", loginPrompt))
+                .additionalParameters(parameters -> parameters.put(requestParameterName, requestParameterValue))
                 .build();
     }
 
