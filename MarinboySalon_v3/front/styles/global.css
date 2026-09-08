@@ -1148,6 +1148,19 @@ textarea:focus {
 .admin-card-actions { display: flex; gap: 8px; }
 .danger-button { background: #fff; border: 1px solid #b94b4b; border-radius: 4px; color: #9c3838; cursor: pointer; font-size: 0.78rem; padding: 8px 11px; }
 .admin-notification { background: #fff0bd; border-left: 4px solid #b47c17; color: #6d5100; font-weight: 700; margin: 0 0 16px; padding: 12px 14px; }
+.payment-detail-button { font-size: 0.72rem; padding: 7px 9px; white-space: nowrap; }
+.admin-reservation-detail { background: var(--paper-color); border: 1px solid var(--line-color); border-radius: 5px; margin-top: 20px; padding: 22px; }
+.admin-reservation-detail h2 { font-size: 1.15rem; margin: 0 0 14px; }
+.admin-reservation-detail h3 { font-size: 0.95rem; margin: 24px 0 10px; }
+.payment-summary-card { display: grid; gap: 1px; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--line-color); }
+.payment-summary-card > div { background: #fff; display: flex; flex-direction: column; gap: 5px; padding: 14px; }
+.payment-summary-card span { color: var(--muted-color); font-size: 0.72rem; }
+.payment-summary-card strong { font-size: 0.9rem; }
+.payment-summary-card .payment-final { background: #f6eee8; color: var(--brand-brown-dark); }
+.payment-history-table { font-size: 0.8rem; margin-bottom: 0; }
+.customer-payment-total { margin: 14px 0 0; text-align: right; }
+.customer-payment-total strong { color: var(--brand-brown-dark); font-size: 1.05rem; }
+@media (max-width: 768px) { .payment-summary-card { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-reservation-detail { padding: 16px; } }
 .star-rating { display: flex; gap: 4px; margin: 6px 0 16px; }
 .star { background: none; border: 0; color: #ccc; cursor: pointer; font-size: 30px; line-height: 1; padding: 0; transition: color 0.2s; }
 .star.active, .star:hover { color: #f5c518; }
