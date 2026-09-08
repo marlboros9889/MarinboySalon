@@ -9,6 +9,8 @@ import {
 } from '../../reducers/reservationReducer';
 import { getValidServiceId } from '../../utils/serviceItem';
 import { formatDateInputValue, formatTimeLabel } from '../../utils/reservation';
+import { calculatePayment } from '../../utils/payment';
+import api from '../../api/axios';
 
 export default function NewReservation() {
   const dispatch = useDispatch();
@@ -29,13 +31,29 @@ export default function NewReservation() {
   const [reservationDate, setReservationDate] = useState('');
   const [reservationTime, setReservationTime] = useState('');
   const [requestMemo, setRequestMemo] = useState('');
+  const [discountEvent, setDiscountEvent] = useState(null);
   const minimumDate = formatDateInputValue(new Date());
   const selectedService = serviceItems.find((item) => String(item.id) === serviceId);
+  const payment = calculatePayment(selectedService?.price, discountEvent);
   const progressStep = !serviceId ? 1 : !reservationDate ? 2 : !reservationTime ? 3 : 4;
 
   useEffect(() => {
     dispatch({ type: LOAD_SERVICE_ITEMS_REQUEST });
   }, [dispatch]);
+
+  useEffect(() => {
+    // 서버가 판단한 오늘의 이벤트를 받아 화면 금액과 예약 저장 금액을 같은 기준으로 맞춥니다.
+    const loadCurrentDiscountEvent = async () => {
+      try {
+        const response = await api.get('/api/discount-events/current');
+        setDiscountEvent(response.data || null);
+      } catch (requestError) {
+        // 이벤트 정보를 못 받아도 예약 자체는 원가 기준으로 계속 진행할 수 있습니다.
+        setDiscountEvent(null);
+      }
+    };
+    loadCurrentDiscountEvent();
+  }, []);
 
   useEffect(() => {
     if (!router.isReady || serviceItems.length === 0 || !router.query.serviceId) {
@@ -169,8 +187,13 @@ export default function NewReservation() {
             {selectedService && (
               <div className="booking-selection-summary">
                 <strong>{selectedService.name}</strong>
-                <span>{selectedService.durationMinutes}분 · {selectedService.price.toLocaleString()}원</span>
+                <span>{selectedService.durationMinutes}분 · 정가 {payment.originalPrice.toLocaleString()}원</span>
+                {payment.discountRate > 0 && (
+                  <span className="booking-discount-message">{payment.eventName} {payment.discountRate}% 할인 · -{payment.discountAmount.toLocaleString()}원</span>
+                )}
+                <strong className="booking-final-price">예상 결제금액 {payment.finalPrice.toLocaleString()}원</strong>
                 <span>{reservationDate || '날짜 미선택'} · {reservationTime ? formatTimeLabel(reservationTime) : '시간 미선택'}</span>
+                <small>예약 신청 시 서버에서 할인 적용 여부와 결제 예정 금액을 다시 확인합니다.</small>
               </div>
             )}
           </div>

@@ -410,6 +410,16 @@ main {
   z-index: 2;
 }
 
+.booking-discount-message {
+  color: #b64f55;
+  font-weight: 700;
+}
+
+.booking-final-price {
+  color: var(--brand-brown-dark);
+  font-size: 1.05rem;
+}
+
 /* 우상단의 손글씨 M은 마린보이 인기 메뉴 도장 역할을 합니다. */
 .m-badge {
   height: 42px;
@@ -1226,9 +1236,18 @@ textarea:focus {
     min-height: 64px;
   }
 
-  .auth-nav > a:first-child,
+  .auth-nav .header-booking-link,
   .auth-nav .user-name {
     display: none;
+  }
+
+  .auth-nav .login-link {
+    border: 1px solid var(--brand-brown-dark);
+    border-radius: 3px;
+    color: var(--brand-brown-dark);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 9px 11px;
   }
 
   .lumiere-hero {

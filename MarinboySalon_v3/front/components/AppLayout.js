@@ -64,7 +64,7 @@ export default function AppLayout({ children }) {
               </>
             ) : (
               <>
-                <Link href="/auth/login">로그인</Link>
+                <Link href="/auth/login" className="login-link">로그인</Link>
                 <Link href="/reservations/new" className="header-booking-link">예약하기</Link>
               </>
             )}

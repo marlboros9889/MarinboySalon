@@ -14,4 +14,5 @@ public interface DiscountEventService {
     DiscountEventResponseDto update(Long id, DiscountEventRequestDto request);
     void delete(Long id);
     DiscountEvent findActiveEvent(LocalDate date);
+    DiscountEventResponseDto getCurrentEvent();
 }

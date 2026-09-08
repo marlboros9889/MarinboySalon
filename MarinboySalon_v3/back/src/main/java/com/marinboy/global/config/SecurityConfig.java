@@ -71,6 +71,7 @@ public class SecurityConfig {
                                 "/auth/signup", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/check-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/service-items/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/discount-events/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/service-items/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reservations/available-times").permitAll()

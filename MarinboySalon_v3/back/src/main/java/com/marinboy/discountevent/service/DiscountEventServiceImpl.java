@@ -63,6 +63,14 @@ public class DiscountEventServiceImpl implements DiscountEventService {
         return discountEventMapper.selectActiveByDate(date);
     }
 
+    /** 고객 화면은 서버 기준 오늘 날짜로만 현재 적용 이벤트를 확인합니다. */
+    @Override
+    @Transactional(readOnly = true)
+    public DiscountEventResponseDto getCurrentEvent() {
+        DiscountEvent event = findActiveEvent(LocalDate.now());
+        return event == null ? null : DiscountEventResponseDto.from(event);
+    }
+
     private DiscountEvent createValidatedEvent(DiscountEventRequestDto request, Long excludeId) {
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
