@@ -791,13 +791,17 @@ textarea:focus {
 }
 
 .social-login-list a {
-  border: 1px solid var(--line-color);
   border-radius: 4px;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 9px;
   text-align: center;
 }
+
+.social-login-google { background: #fff; border: 1px solid #dadce0; color: #3c4043; }
+.social-login-kakao { background: #fee500; border: 1px solid #fee500; color: #191919; }
+.social-login-naver { background: #03c75a; border: 1px solid #03c75a; color: #fff; }
+.social-login-list a:hover { filter: brightness(0.94); }
 
 .booking-layout {
   display: grid;

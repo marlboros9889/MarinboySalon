@@ -47,9 +47,9 @@ export default function Login() {
           </button>
           {socialLoginEnabled && (
             <div className="social-login-list" aria-label="소셜 로그인">
-              <a href={`${apiBaseUrl}/oauth2/authorization/google`}>Google</a>
-              <a href={`${apiBaseUrl}/oauth2/authorization/kakao`}>Kakao</a>
-              <a href={`${apiBaseUrl}/oauth2/authorization/naver`}>Naver</a>
+              <a className="social-login-google" href={`${apiBaseUrl}/oauth2/authorization/google`}>Google</a>
+              <a className="social-login-kakao" href={`${apiBaseUrl}/oauth2/authorization/kakao`}>Kakao</a>
+              <a className="social-login-naver" href={`${apiBaseUrl}/oauth2/authorization/naver`}>Naver</a>
             </div>
           )}
           <p className="form-guide">처음 방문하셨나요? <Link href="/auth/signup">회원가입</Link></p>
