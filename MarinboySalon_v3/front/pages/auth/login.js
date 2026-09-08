@@ -50,6 +50,7 @@ export default function Login() {
               <a href={`${apiBaseUrl}/oauth2/authorization/google`}>Google</a>
               <a href={`${apiBaseUrl}/oauth2/authorization/kakao`}>Kakao</a>
               <a href={`${apiBaseUrl}/oauth2/authorization/naver`}>Naver</a>
+              <p className="form-guide">다른 네이버 계정은 네이버에서 로그아웃한 뒤 로그인해 주세요.</p>
             </div>
           )}
           <p className="form-guide">처음 방문하셨나요? <Link href="/auth/signup">회원가입</Link></p>
