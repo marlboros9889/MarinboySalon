@@ -63,6 +63,22 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 일정 생성 중 취소된 예약에는 eventId를 남기지 않아 외부 일정을 즉시 정리합니다. -->
+    <update id="updateCalendarEventIdIfActive">
+        UPDATE reservation
+        SET calendar_event_id = #{calendarEventId}
+        WHERE id = #{id}
+          AND status IN ('REQUESTED', 'CONFIRMED')
+    </update>
+
+    <!-- 삭제가 성공한 동일 일정만 비워 다른 예약의 eventId를 건드리지 않습니다. -->
+    <update id="clearCalendarEventId">
+        UPDATE reservation
+        SET calendar_event_id = NULL
+        WHERE id = #{id}
+          AND calendar_event_id = #{calendarEventId}
+    </update>
+
     <select id="countOverlap" resultType="int">
         SELECT COUNT(*)
         FROM reservation r

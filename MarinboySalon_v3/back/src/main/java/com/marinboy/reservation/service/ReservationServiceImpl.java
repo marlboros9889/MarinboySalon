@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.marinboy.businesshour.entity.BusinessHour;
 import com.marinboy.businesshour.repository.BusinessHourMapper;
 import com.marinboy.calendar.GoogleCalendarReservationEvent;
+import com.marinboy.calendar.GoogleCalendarReservationCancelEvent;
 import com.marinboy.holiday.repository.HolidayMapper;
 import com.marinboy.reservation.domain.ReservationStatus;
 import com.marinboy.reservation.dto.request.ReservationRequestDto;
@@ -153,6 +154,7 @@ public class ReservationServiceImpl implements ReservationService {
             }
         }
         reservationMapper.updateStatus(id, ReservationStatus.CANCELLED.name());
+        eventPublisher.publishEvent(GoogleCalendarReservationCancelEvent.from(reservation));
         log.info("Reservation canceled id={} byAdmin={}", id, admin);
     }
 
@@ -166,6 +168,9 @@ public class ReservationServiceImpl implements ReservationService {
         ReservationStatus current = ReservationStatus.from(reservation.getStatus());
         current.assertTransitionTo(next);
         reservationMapper.updateStatus(id, next.name());
+        if (next == ReservationStatus.CANCELLED) {
+            eventPublisher.publishEvent(GoogleCalendarReservationCancelEvent.from(reservation));
+        }
         log.info("Reservation status changed id={} {} -> {}", id, current, next);
         return ReservationResponseDto.from(reservationMapper.selectById(id));
     }

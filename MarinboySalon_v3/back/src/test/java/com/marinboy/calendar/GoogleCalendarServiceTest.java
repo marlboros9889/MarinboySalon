@@ -67,4 +67,19 @@ class GoogleCalendarServiceTest {
 
         verify(calendarService).createReservationEvent(reservation);
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void listenerConnectsCommittedCancellationToCalendarTool() {
+        ObjectProvider<GoogleCalendarService> provider = mock(ObjectProvider.class);
+        GoogleCalendarService calendarService = mock(GoogleCalendarService.class);
+        when(provider.getIfAvailable()).thenReturn(calendarService);
+        GoogleCalendarReservationListener listener = new GoogleCalendarReservationListener(provider);
+        GoogleCalendarReservationCancelEvent cancellation =
+                new GoogleCalendarReservationCancelEvent(1L, "calendar-event-id");
+
+        listener.removeCalendarEvent(cancellation);
+
+        verify(calendarService).deleteReservationEvent(cancellation);
+    }
 }

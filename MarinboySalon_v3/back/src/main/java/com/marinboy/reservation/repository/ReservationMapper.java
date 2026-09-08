@@ -23,6 +23,10 @@ public interface ReservationMapper {
 
     int updateCalendarEventId(@Param("id") Long id, @Param("calendarEventId") String calendarEventId);
 
+    int updateCalendarEventIdIfActive(@Param("id") Long id, @Param("calendarEventId") String calendarEventId);
+
+    int clearCalendarEventId(@Param("id") Long id, @Param("calendarEventId") String calendarEventId);
+
     int countOverlap(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,

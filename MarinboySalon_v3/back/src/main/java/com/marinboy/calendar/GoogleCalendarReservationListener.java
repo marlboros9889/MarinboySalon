@@ -28,4 +28,15 @@ public class GoogleCalendarReservationListener {
         }
         calendarService.createReservationEvent(reservationEvent);
     }
+
+    /** 예약 취소 DB 반영이 확정된 뒤에만 외부 일정과 알림을 삭제합니다. */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void removeCalendarEvent(GoogleCalendarReservationCancelEvent cancelEvent) {
+        GoogleCalendarService calendarService = googleCalendarService.getIfAvailable();
+        if (calendarService == null) {
+            log.info("Google Calendar 연동이 꺼져 있어 일정 삭제를 건너뜁니다.");
+            return;
+        }
+        calendarService.deleteReservationEvent(cancelEvent);
+    }
 }

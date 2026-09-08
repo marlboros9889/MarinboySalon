@@ -74,8 +74,8 @@ export default function AdminServiceItems() {
     setSelectedImages(selectedImages.filter((imageFile, index) => index !== imageIndex));
   };
 
-  /** 삭제는 예약 이력을 보존하기 위해 메뉴를 비활성 상태로 바꿉니다. */
-  const onDelete = async (item) => {
+  /** 비활성화는 예약 이력을 보존하면서 고객 메뉴에서만 숨깁니다. */
+  const onDeactivate = async (item) => {
     if (!window.confirm(`'${item.name}' 메뉴를 비활성화할까요?`)) {
       return;
     }
@@ -86,7 +86,27 @@ export default function AdminServiceItems() {
       }
       await loadItems();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || '시술 메뉴 삭제에 실패했습니다.');
+      setError(requestError.response?.data?.message || '시술 메뉴 비활성화에 실패했습니다.');
+    }
+  };
+
+  /** 비활성 메뉴를 기존 정보와 이미지 그대로 다시 고객 메뉴에 표시합니다. */
+  const onActivate = async (item) => {
+    if (!window.confirm(`'${item.name}' 메뉴를 다시 고객에게 표시할까요?`)) {
+      return;
+    }
+    try {
+      await api.put(`/api/admin/service-items/${item.id}`, {
+        name: item.name,
+        price: item.price,
+        durationMinutes: item.durationMinutes,
+        description: item.description || '',
+        active: true,
+        imageUrls: item.imageUrls || [],
+      });
+      await loadItems();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || '시술 메뉴 활성화에 실패했습니다.');
     }
   };
 
@@ -174,7 +194,9 @@ export default function AdminServiceItems() {
             <p>{item.active ? '사용 중' : '비활성'}</p>
             <div className="admin-card-actions">
               <button className="secondary-button" type="button" onClick={() => onEdit(item)}>메뉴 수정</button>
-              <button className="danger-button" type="button" onClick={() => onDelete(item)}>메뉴 삭제</button>
+              {item.active
+                ? <button className="danger-button" type="button" onClick={() => onDeactivate(item)}>메뉴 비활성화</button>
+                : <button className="primary-button" type="button" onClick={() => onActivate(item)}>메뉴 활성화</button>}
             </div>
           </article>)}
         </div>

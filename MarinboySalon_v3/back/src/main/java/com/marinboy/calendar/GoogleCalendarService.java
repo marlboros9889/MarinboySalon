@@ -30,6 +30,7 @@ import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.EventReminder;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.marinboy.reservation.entity.Reservation;
 import com.marinboy.reservation.repository.ReservationMapper;
 
 import jakarta.annotation.PostConstruct;
@@ -79,15 +80,51 @@ public class GoogleCalendarService {
     @Transactional
     public void createReservationEvent(GoogleCalendarReservationEvent reservationEvent) {
         try {
+            // 취소가 먼저 확정된 예약은 외부 일정을 만들지 않습니다.
+            Reservation reservation = reservationMapper.selectById(reservationEvent.reservationId());
+            if (reservation == null || "CANCELLED".equals(reservation.getStatus())) {
+                log.info("취소된 예약이라 Google Calendar 일정 등록을 건너뜁니다: reservationId={}",
+                        reservationEvent.reservationId());
+                return;
+            }
             Calendar calendar = createCalendarClient();
             Event createdEvent = calendar.events().insert(calendarId, createEvent(reservationEvent)).execute();
-            reservationMapper.updateCalendarEventId(reservationEvent.reservationId(), createdEvent.getId());
+            int updatedCount = reservationMapper.updateCalendarEventIdIfActive(
+                    reservationEvent.reservationId(), createdEvent.getId());
+            if (updatedCount == 0) {
+                // 일정 생성 직후 취소된 경우에도 알림이 남지 않도록 바로 삭제합니다.
+                calendar.events().delete(calendarId, createdEvent.getId()).execute();
+                log.info("취소된 예약의 Google Calendar 일정을 정리했습니다: reservationId={}",
+                        reservationEvent.reservationId());
+                return;
+            }
             log.info("Google Calendar 예약 일정 등록을 완료했습니다: reservationId={}",
                     reservationEvent.reservationId());
         } catch (Exception exception) {
             // 외부 장애가 이미 저장된 예약을 되돌리지 않도록 실패 내용을 로그에 남깁니다.
             log.warn("Google Calendar 예약 일정 등록에 실패했습니다: reservationId={}, message={}",
                     reservationEvent.reservationId(), exception.getMessage());
+        }
+    }
+
+    /** 예약 취소 후 기존 Google Calendar 일정과 알림을 삭제합니다. */
+    @Async
+    @Transactional
+    public void deleteReservationEvent(GoogleCalendarReservationCancelEvent cancelEvent) {
+        if (cancelEvent.calendarEventId() == null || cancelEvent.calendarEventId().isBlank()) {
+            return;
+        }
+        try {
+            Calendar calendar = createCalendarClient();
+            calendar.events().delete(calendarId, cancelEvent.calendarEventId()).execute();
+            reservationMapper.clearCalendarEventId(
+                    cancelEvent.reservationId(), cancelEvent.calendarEventId());
+            log.info("Google Calendar 예약 일정 삭제를 완료했습니다: reservationId={}",
+                    cancelEvent.reservationId());
+        } catch (Exception exception) {
+            // DB 취소는 유지하고 외부 일정 정리 실패만 기록해 재시도 근거를 남깁니다.
+            log.warn("Google Calendar 예약 일정 삭제에 실패했습니다: reservationId={}, message={}",
+                    cancelEvent.reservationId(), exception.getMessage());
         }
     }
 
