@@ -10,7 +10,7 @@ export default function AdminReviews() {
 
   const loadReviews = async () => {
     try {
-      const response = await api.get('/api/reviews/admin');
+      const response = await api.get('/api/admin/reviews');
       setReviews(response.data);
       setError('');
     } catch (requestError) {
@@ -23,7 +23,7 @@ export default function AdminReviews() {
   const removeReview = async (review) => {
     if (!window.confirm(`${review.userName} 고객의 리뷰를 삭제할까요? 삭제 후 복구할 수 없습니다.`)) return;
     try {
-      await api.delete(`/api/reviews/${review.id}`);
+      await api.delete(`/api/admin/reviews/${review.id}`);
       await loadReviews();
     } catch (requestError) {
       setError(requestError.response?.data?.message || '리뷰 삭제에 실패했습니다.');
