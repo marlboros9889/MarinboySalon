@@ -132,8 +132,12 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setReservationStart(request.getReservationStart());
         reservation.setRequestMemo(request.getRequestMemo());
         reservationMapper.update(reservation);
+        Reservation updatedReservation = reservationMapper.selectById(id);
+        // 기존 일정이 있으면 삭제한 뒤 변경된 예약 정보로 새 일정을 만듭니다.
+        eventPublisher.publishEvent(GoogleCalendarReservationCancelEvent.from(reservation));
+        eventPublisher.publishEvent(GoogleCalendarReservationEvent.from(updatedReservation));
         log.info("Reservation updated id={} userId={}", id, userId);
-        return ReservationResponseDto.from(reservationMapper.selectById(id));
+        return ReservationResponseDto.from(updatedReservation);
     }
 
     @Override

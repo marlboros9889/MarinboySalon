@@ -44,7 +44,7 @@
 ### 관리자 운영
 
 - 신규 요청 수를 표시하는 예약 현황 및 상태 변경
-- 시술 메뉴 등록·수정·논리 삭제, 다중 이미지 선택·미리보기·업로드
+- 시술 메뉴 등록·수정·비활성화·재활성화, 다중 이미지 선택·미리보기·업로드
 - 고객 목록·상세·삭제 권한 제어
 - Google Calendar 연동 상태 확인과 예약 일정 생성 결과 관리
 
@@ -54,7 +54,7 @@
 | --- | --- | --- |
 | 같은 시간에 예약이 겹칠 수 있음 | 예약 생성 전 슬롯을 다시 검사하고, 활성 예약 상태를 기준으로 중복을 차단 | 이미 선택된 시간은 예약할 수 없음 |
 | 로그인 상태를 안전하게 유지해야 함 | JWT Access/Refresh Token과 Redis 기반 인증 상태를 사용 | 고객·관리자 권한별 화면과 API 접근 제어 |
-| 예약 이후 운영 일정이 분리됨 | DB 저장 완료 뒤 Google Calendar 이벤트를 비동기로 생성하고 이벤트 ID 저장 | 예약 데이터와 외부 일정 연결 추적 |
+| 예약 이후 운영 일정이 분리됨 | DB 저장 완료 뒤 Google Calendar 이벤트를 비동기로 생성하고, 변경·취소 시 연결된 일정을 동기화 | 예약 데이터와 외부 일정·알림을 함께 정리 |
 | 시술 이미지를 관리하기 번거로움 | 관리자가 파일 선택·미리보기 후 다중 업로드하도록 구현 | URL 입력 없이 메뉴 이미지를 관리 |
 
 ## 설계·보안 점검
@@ -70,7 +70,7 @@
 | OAuth2 콜백 | 성공·실패 리다이렉트 대상은 서버 설정의 app.front-url을 사용하고, access token을 URL에 싣지 않습니다. | OAuth 제공자 콘솔의 콜백 주소와 동의 항목은 배포 환경마다 별도 점검이 필요합니다. |
 | 토큰 보관 | access token은 프런트 메모리, refresh token은 HttpOnly 쿠키를 사용하며 브라우저 저장소 사용 흔적이 없습니다. | 새 인증 기능 추가 시 localStorage/sessionStorage 저장을 피합니다. |
 | 업로드 정적 서빙 | 이미지 저장 경로를 절대 경로로 정규화하고, /uploads/service-items/** 경로로만 노출합니다. | 업로드 파일명·확장자·크기 정책도 지속적으로 서버에서 검증합니다. |
-| Google Calendar | @TransactionalEventListener(AFTER_COMMIT)으로 DB 커밋 후에만 비동기 일정 생성을 호출하고, 성공한 이벤트 ID를 calendar_event_id에 저장합니다. | 외부 API 실패는 예약을 되돌리지 않으므로 운영 시 재시도·모니터링 정책을 추가로 둘 수 있습니다. |
+| Google Calendar | @TransactionalEventListener(AFTER_COMMIT)으로 DB 커밋 후에만 비동기 일정 생성·삭제를 호출하고, 생성된 이벤트 ID를 calendar_event_id에 저장합니다. | 외부 API 실패는 예약 상태를 되돌리지 않으므로 운영 시 재시도·모니터링 정책을 추가로 둘 수 있습니다. |
 
 ## 시스템 구성
 
@@ -165,12 +165,12 @@ Google Calendar를 사용할 때는 서비스 계정 이메일을 대상 캘린�
 
 ## 검증 결과
 
-2026-08-31 로컬 환경에서 아래 항목을 확인했습니다.
+2026-09-08 최종 점검에서 아래 항목을 확인했습니다.
 
 | 구분 | 확인 항목 | 결과 |
 | --- | --- | --- |
-| Backend test | Gradle 테스트 14 suites / 23 tests | 통과 |
-| Frontend test | Jest 7 suites / 15 tests | 통과 |
+| Backend test | Gradle 테스트 15 suites / 26 tests | 통과 |
+| Frontend test | Jest 7 suites / 16 tests | 통과 |
 | API | `/actuator/health`, `/api/service-items` | 200 OK |
 | 화면 | 메인, 시술 목록, 예약 화면 | 200 OK |
 | 동시성 | 같은 슬롯은 대기, 다른 슬롯은 즉시 처리 | MySQL 실측 확인 |

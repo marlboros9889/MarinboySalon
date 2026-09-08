@@ -57,7 +57,8 @@ public class ServiceItemServiceImpl implements ServiceItemService {
     public ServiceItemResponseDto insert(ServiceItemRequestDto request) {
         ServiceItem item = new ServiceItem();
         copyRequest(item, request);
-        item.setActive(true);
+        // 신규 등록에서도 관리자 화면의 '고객에게 메뉴 표시' 선택을 그대로 저장합니다.
+        item.setActive(request.getActive() == null || request.getActive());
         serviceItemMapper.insert(item);
         replaceImages(item.getId(), request.getImageUrls());
         return getDetail(item.getId());

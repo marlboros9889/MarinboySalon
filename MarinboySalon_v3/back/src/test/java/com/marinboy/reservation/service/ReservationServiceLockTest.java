@@ -1,10 +1,12 @@
 package com.marinboy.reservation.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -14,6 +16,7 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,6 +24,8 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import com.marinboy.businesshour.entity.BusinessHour;
 import com.marinboy.businesshour.repository.BusinessHourMapper;
+import com.marinboy.calendar.GoogleCalendarReservationCancelEvent;
+import com.marinboy.calendar.GoogleCalendarReservationEvent;
 import com.marinboy.holiday.repository.HolidayMapper;
 import com.marinboy.reservation.dto.request.ReservationRequestDto;
 import com.marinboy.reservation.entity.Reservation;
@@ -90,5 +95,48 @@ class ReservationServiceLockTest {
         order.verify(reservationSlotLockMapper).lockSlot(start.toLocalDate(), LocalTime.of(11, 30));
         order.verify(reservationMapper).countOverlapForUpdate(start, start.plusMinutes(60), null);
         order.verify(reservationMapper).insert(any(Reservation.class));
+    }
+
+    @Test
+    void updatePublishesCalendarDeleteAndCreateEvents() {
+        LocalDateTime oldStart = LocalDate.now().plusDays(14).atTime(11, 0);
+        LocalDateTime newStart = oldStart.plusHours(1);
+        Reservation reservation = new Reservation();
+        reservation.setId(11L);
+        reservation.setUserId(7L);
+        reservation.setServiceId(1L);
+        reservation.setReservationStart(oldStart);
+        reservation.setStatus("REQUESTED");
+        reservation.setCalendarEventId("old-calendar-event");
+        reservation.setUserName("테스트 고객");
+        reservation.setUserPhone("010-0000-0000");
+        reservation.setServiceName("테스트 시술");
+        reservation.setDurationMinutes(60);
+        when(reservationMapper.selectById(11L)).thenReturn(reservation);
+
+        ServiceItem item = new ServiceItem();
+        item.setId(1L);
+        item.setActive(true);
+        item.setDurationMinutes(60);
+        when(serviceItemMapper.selectById(1L)).thenReturn(item);
+
+        BusinessHour businessHour = new BusinessHour();
+        businessHour.setOpenTime(LocalTime.of(10, 0));
+        businessHour.setCloseTime(LocalTime.of(19, 0));
+        businessHour.setClosed(false);
+        when(businessHourMapper.selectByDayOfWeek(anyInt())).thenReturn(businessHour);
+        when(holidayMapper.selectByDate(any())).thenReturn(null);
+        when(reservationMapper.countOverlapForUpdate(any(), any(), any())).thenReturn(0);
+
+        ReservationRequestDto request = new ReservationRequestDto();
+        request.setServiceId(1L);
+        request.setReservationStart(newStart);
+
+        reservationService.update(11L, 7L, request);
+
+        ArgumentCaptor<Object> events = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, org.mockito.Mockito.times(2)).publishEvent(events.capture());
+        assertThat(events.getAllValues().get(0)).isInstanceOf(GoogleCalendarReservationCancelEvent.class);
+        assertThat(events.getAllValues().get(1)).isInstanceOf(GoogleCalendarReservationEvent.class);
     }
 }
