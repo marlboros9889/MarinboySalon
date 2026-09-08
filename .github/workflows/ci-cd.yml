@@ -45,7 +45,8 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: /backend
           INTERNAL_API_URL: http://127.0.0.1:8082
-          NEXT_PUBLIC_SOCIAL_LOGIN_ENABLED: 'false'
+          # 운영 서버에 등록된 OAuth 제공자 버튼을 로그인 화면에 표시합니다.
+          NEXT_PUBLIC_SOCIAL_LOGIN_ENABLED: 'true'
         run: npm run build
 
       - name: 배포 결과물 압축
