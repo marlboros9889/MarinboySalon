@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,8 @@ import com.marinboy.reservation.repository.ReservationSlotLockMapper;
 import com.marinboy.reservation.support.ReservationSlotSupport;
 import com.marinboy.serviceitem.entity.ServiceItem;
 import com.marinboy.serviceitem.repository.ServiceItemMapper;
+import com.marinboy.discountevent.entity.DiscountEvent;
+import com.marinboy.discountevent.service.DiscountEventService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +53,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final BusinessHourMapper businessHourMapper;
     private final HolidayMapper holidayMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final DiscountEventService discountEventService;
 
     @Override
     @Transactional(readOnly = true)
@@ -111,6 +116,7 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setReservationStart(request.getReservationStart());
         reservation.setRequestMemo(request.getRequestMemo());
         reservation.setStatus(ReservationStatus.REQUESTED.name());
+        applyCurrentDiscount(reservation);
         reservationMapper.insert(reservation);
         Reservation savedReservation = reservationMapper.selectById(reservation.getId());
         eventPublisher.publishEvent(GoogleCalendarReservationEvent.from(savedReservation));
@@ -131,6 +137,7 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setServiceId(request.getServiceId());
         reservation.setReservationStart(request.getReservationStart());
         reservation.setRequestMemo(request.getRequestMemo());
+        applyCurrentDiscount(reservation);
         reservationMapper.update(reservation);
         Reservation updatedReservation = reservationMapper.selectById(id);
         // 기존 일정이 있으면 삭제한 뒤 변경된 예약 정보로 새 일정을 만듭니다.
@@ -216,6 +223,32 @@ public class ReservationServiceImpl implements ReservationService {
         if (overlap > 0) {
             throw new IllegalStateException("이미 예약된 시간과 겹칩니다.");
         }
+    }
+
+    /** 예약을 저장하거나 고객이 접수 상태에서 변경할 때, 오늘 적용 중인 할인 한 건을 계산합니다. */
+    private void applyCurrentDiscount(Reservation reservation) {
+        ServiceItem item = serviceItemMapper.selectById(reservation.getServiceId());
+        int originalPrice = item.getPrice();
+        DiscountEvent event = discountEventService.findActiveEvent(LocalDate.now(KOREA_ZONE));
+
+        reservation.setOriginalPrice(originalPrice);
+        reservation.setDiscountRate(BigDecimal.ZERO);
+        reservation.setDiscountAmount(0);
+        reservation.setFinalPrice(originalPrice);
+        reservation.setDiscountEventId(null);
+
+        if (event == null) {
+            return;
+        }
+
+        int discountAmount = BigDecimal.valueOf(originalPrice)
+                .multiply(event.getDiscountRate())
+                .divide(BigDecimal.valueOf(100), 0, RoundingMode.DOWN)
+                .intValue();
+        reservation.setDiscountRate(event.getDiscountRate());
+        reservation.setDiscountAmount(discountAmount);
+        reservation.setFinalPrice(originalPrice - discountAmount);
+        reservation.setDiscountEventId(event.getId());
     }
 
     /**

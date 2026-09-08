@@ -1,6 +1,7 @@
 package com.marinboy.reservation.dto.response;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 import com.marinboy.reservation.entity.Reservation;
 
@@ -29,6 +30,11 @@ public class ReservationResponseDto {
     private String serviceName;
     private Integer servicePrice;
     private Integer durationMinutes;
+    private Integer originalPrice;
+    private BigDecimal discountRate;
+    private Integer discountAmount;
+    private Integer finalPrice;
+    private Long discountEventId;
 
     public static ReservationResponseDto from(Reservation reservation) {
         LocalDateTime end = reservation.getReservationStart()
@@ -48,6 +54,11 @@ public class ReservationResponseDto {
                 .serviceName(reservation.getServiceName())
                 .servicePrice(reservation.getServicePrice())
                 .durationMinutes(reservation.getDurationMinutes())
+                .originalPrice(reservation.getOriginalPrice())
+                .discountRate(reservation.getDiscountRate())
+                .discountAmount(reservation.getDiscountAmount())
+                .finalPrice(reservation.getFinalPrice())
+                .discountEventId(reservation.getDiscountEventId())
                 .build();
     }
 }

@@ -6,6 +6,9 @@
     <sql id="reservationColumns">
         r.id, r.user_id, r.service_id, r.reservation_start, r.status,
         r.request_memo, r.calendar_event_id, r.created_at,
+        COALESCE(r.original_price, s.price) AS original_price,
+        r.discount_rate, r.discount_amount,
+        COALESCE(r.final_price, s.price) AS final_price, r.discount_event_id,
         u.name AS user_name, u.phone AS user_phone,
         s.name AS service_name, s.price AS service_price,
         s.duration_minutes
@@ -38,16 +41,23 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservation
-            (user_id, service_id, reservation_start, status, request_memo)
+            (user_id, service_id, reservation_start, status, request_memo,
+             original_price, discount_rate, discount_amount, final_price, discount_event_id)
         VALUES
-            (#{userId}, #{serviceId}, #{reservationStart}, #{status}, #{requestMemo})
+            (#{userId}, #{serviceId}, #{reservationStart}, #{status}, #{requestMemo},
+             #{originalPrice}, #{discountRate}, #{discountAmount}, #{finalPrice}, #{discountEventId})
     </insert>
 
     <update id="update">
         UPDATE reservation
         SET service_id = #{serviceId},
             reservation_start = #{reservationStart},
-            request_memo = #{requestMemo}
+            request_memo = #{requestMemo},
+            original_price = #{originalPrice},
+            discount_rate = #{discountRate},
+            discount_amount = #{discountAmount},
+            final_price = #{finalPrice},
+            discount_event_id = #{discountEventId}
         WHERE id = #{id}
     </update>
 

@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS user_account (
     name VARCHAR(50) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'CUSTOMER',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL
 );
 
 -- 고객에게 보여줄 시술 항목을 저장합니다.
@@ -49,12 +50,29 @@ CREATE TABLE IF NOT EXISTS reservation (
     status VARCHAR(20) NOT NULL DEFAULT 'REQUESTED',
     request_memo VARCHAR(500),
     calendar_event_id VARCHAR(255),
+    original_price INT,
+    discount_rate DECIMAL(5,2) NOT NULL DEFAULT 0,
+    discount_amount INT NOT NULL DEFAULT 0,
+    final_price INT,
+    discount_event_id BIGINT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_reservation_user FOREIGN KEY (user_id) REFERENCES user_account(id),
     CONSTRAINT fk_reservation_service FOREIGN KEY (service_id) REFERENCES service_item(id),
     -- 예약 상태 철자를 한 종류로 고정해 CANCELED/CANCELLED 같은 데이터 오류를 막습니다.
     CONSTRAINT ck_reservation_status CHECK (status IN ('REQUESTED', 'CONFIRMED', 'COMPLETED', 'CANCELLED')),
     INDEX idx_reservation_status_start (status, reservation_start)
+);
+
+-- 관리자 기간 할인 이벤트입니다. 할인 적용 값은 예약에 복사해 과거 금액을 보존합니다.
+CREATE TABLE IF NOT EXISTS discount_event (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    discount_rate DECIMAL(5,2) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT ck_discount_event_period CHECK (start_date <= end_date),
+    CONSTRAINT ck_discount_event_rate CHECK (discount_rate > 0 AND discount_rate <= 100)
 );
 
 -- 예약 생성 시 같은 날짜·30분 슬롯만 트랜잭션으로 직렬화합니다.

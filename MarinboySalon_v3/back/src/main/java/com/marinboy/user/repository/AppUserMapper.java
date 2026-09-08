@@ -27,7 +27,9 @@ public interface AppUserMapper {
 
     int updateAdminUser(@Param("id") Long id, @Param("email") String email, @Param("name") String name, @Param("phone") String phone);
 
-    int countReservations(@Param("userId") Long userId);
+    int countRequestedReservations(@Param("userId") Long userId);
 
-    int deleteById(@Param("id") Long id);
+    int withdrawById(@Param("id") Long id);
+
+    int deleteSocialAccountsByUserId(@Param("userId") Long userId);
 }

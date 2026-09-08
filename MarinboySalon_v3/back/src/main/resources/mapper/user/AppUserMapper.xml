@@ -7,6 +7,7 @@
         SELECT id, email, password, name, phone, role, created_at
         FROM user_account
         WHERE id = #{id}
+          AND deleted_at IS NULL
     </select>
 
     <!-- selectByEmail: 로그인할 회원을 이메일로 조회합니다. -->
@@ -14,6 +15,7 @@
         SELECT id, email, password, name, phone, role, created_at
         FROM user_account
         WHERE email = #{email}
+          AND deleted_at IS NULL
     </select>
 
     <!-- insert: 비밀번호를 BCrypt로 암호화한 회원을 등록합니다. -->
@@ -37,7 +39,10 @@
     </select>
 
     <select id="selectAll" resultType="AppUser">
-        SELECT id, email, password, name, phone, role, created_at FROM user_account ORDER BY created_at DESC
+        SELECT id, email, password, name, phone, role, created_at
+        FROM user_account
+        WHERE deleted_at IS NULL
+        ORDER BY created_at DESC
     </select>
 
     <update id="updateRole">
@@ -48,11 +53,26 @@
         UPDATE user_account SET email = #{email}, name = #{name}, phone = #{phone} WHERE id = #{id}
     </update>
 
-    <select id="countReservations" resultType="int">
-        SELECT COUNT(*) FROM reservation WHERE user_id = #{userId}
+    <!-- 접수 중인 예약만 탈퇴를 막고, 완료·취소 이력은 보존합니다. -->
+    <select id="countRequestedReservations" resultType="int">
+        SELECT COUNT(*) FROM reservation
+        WHERE user_id = #{userId}
+          AND status = 'REQUESTED'
     </select>
 
-    <delete id="deleteById">
-        DELETE FROM user_account WHERE id = #{id}
+    <!-- 예약·리뷰 이력의 외래키를 보존하면서 로그인과 개인정보를 제거합니다. -->
+    <update id="withdrawById">
+        UPDATE user_account
+        SET email = CONCAT('withdrawn-', id, '-', UNIX_TIMESTAMP(), '@deleted.local'),
+            password = 'WITHDRAWN',
+            name = '탈퇴 회원',
+            phone = '',
+            deleted_at = NOW()
+        WHERE id = #{id}
+          AND deleted_at IS NULL
+    </update>
+
+    <delete id="deleteSocialAccountsByUserId">
+        DELETE FROM user_social_account WHERE user_id = #{userId}
     </delete>
 </mapper>

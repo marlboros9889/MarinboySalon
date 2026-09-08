@@ -42,8 +42,27 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public List<ReviewResponseDto> getPublicList() {
+        return toResponseList(reviewMapper.selectPublicList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewResponseDto> getAdminList() {
+        return toResponseList(reviewMapper.selectAll());
+    }
+
+    @Override
+    public void deleteByAdmin(Long id) {
+        if (reviewMapper.deleteById(id) == 0) {
+            throw new IllegalArgumentException("삭제할 후기를 찾을 수 없습니다.");
+        }
+    }
+
+    private List<ReviewResponseDto> toResponseList(List<Review> reviews) {
         List<ReviewResponseDto> responses = new ArrayList<>();
-        for (Review review : reviewMapper.selectPublicList()) responses.add(ReviewResponseDto.from(review));
+        for (Review review : reviews) {
+            responses.add(ReviewResponseDto.from(review));
+        }
         return responses;
     }
 }

@@ -5,6 +5,8 @@ const adminMenus = [
   { href: '/admin/reservations', label: '예약 관리' },
   { href: '/admin/schedule', label: '영업일 관리' },
   { href: '/admin/service-items', label: '시술 메뉴 관리' },
+  { href: '/admin/discount-events', label: '할인 이벤트 관리' },
+  { href: '/admin/reviews', label: '리뷰 관리' },
   { href: '/admin/users', label: '계정 관리' },
 ];
 

@@ -8,5 +8,7 @@ public interface ReviewMapper {
     int insert(Review review);
     int countByReservationId(Long reservationId);
     List<Review> selectPublicList();
+    List<Review> selectAll();
     List<Review> selectMyList(Long userId);
+    int deleteById(Long id);
 }

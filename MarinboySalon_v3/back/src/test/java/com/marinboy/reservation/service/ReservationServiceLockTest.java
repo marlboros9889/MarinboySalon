@@ -33,6 +33,9 @@ import com.marinboy.reservation.repository.ReservationMapper;
 import com.marinboy.reservation.repository.ReservationSlotLockMapper;
 import com.marinboy.serviceitem.entity.ServiceItem;
 import com.marinboy.serviceitem.repository.ServiceItemMapper;
+import com.marinboy.discountevent.service.DiscountEventService;
+import com.marinboy.discountevent.entity.DiscountEvent;
+import java.math.BigDecimal;
 
 // 예약 겹침 검사 전에 시술에 포함된 슬롯만 잠가 동시 요청 순서를 지키는지 확인합니다.
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +47,7 @@ class ReservationServiceLockTest {
     @Mock private BusinessHourMapper businessHourMapper;
     @Mock private HolidayMapper holidayMapper;
     @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private DiscountEventService discountEventService;
 
     @InjectMocks
     private ReservationServiceImpl reservationService;
@@ -59,7 +63,12 @@ class ReservationServiceLockTest {
         item.setId(1L);
         item.setActive(true);
         item.setDurationMinutes(60);
+        item.setPrice(30000);
         when(serviceItemMapper.selectById(1L)).thenReturn(item);
+        DiscountEvent discountEvent = new DiscountEvent();
+        discountEvent.setId(3L);
+        discountEvent.setDiscountRate(new BigDecimal("15.00"));
+        when(discountEventService.findActiveEvent(any())).thenReturn(discountEvent);
 
         BusinessHour businessHour = new BusinessHour();
         businessHour.setDayOfWeek(start.getDayOfWeek().getValue());
@@ -86,6 +95,13 @@ class ReservationServiceLockTest {
         when(reservationMapper.selectById(99L)).thenReturn(saved);
 
         reservationService.insert(7L, request);
+
+        ArgumentCaptor<Reservation> savedReservation = ArgumentCaptor.forClass(Reservation.class);
+        verify(reservationMapper).insert(savedReservation.capture());
+        assertThat(savedReservation.getValue().getOriginalPrice()).isEqualTo(30000);
+        assertThat(savedReservation.getValue().getDiscountAmount()).isEqualTo(4500);
+        assertThat(savedReservation.getValue().getFinalPrice()).isEqualTo(25500);
+        assertThat(savedReservation.getValue().getDiscountEventId()).isEqualTo(3L);
 
         InOrder order = inOrder(businessHourMapper, serviceItemMapper, holidayMapper, reservationSlotLockMapper, reservationMapper);
         order.verify(businessHourMapper).selectByDayOfWeek(start.getDayOfWeek().getValue());
@@ -118,7 +134,10 @@ class ReservationServiceLockTest {
         item.setId(1L);
         item.setActive(true);
         item.setDurationMinutes(60);
+        item.setPrice(30000);
         when(serviceItemMapper.selectById(1L)).thenReturn(item);
+        when(discountEventService.findActiveEvent(any())).thenReturn(null);
+        when(discountEventService.findActiveEvent(any())).thenReturn(null);
 
         BusinessHour businessHour = new BusinessHour();
         businessHour.setOpenTime(LocalTime.of(10, 0));

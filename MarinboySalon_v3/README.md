@@ -120,7 +120,7 @@ MarinboySalon_v3
 
 - Java 17, Node.js 20.9 이상, MySQL 8, Redis 7
 - MySQL에 `marinboy_salon` 데이터베이스를 준비하고 `database/`의 SQL을 적용합니다.
-- 기존 DB를 사용한다면 `database/migrations/20260831_reservation_slot_lock.sql`도 적용합니다.
+- 기존 DB를 사용한다면 `database/migrations/20260831_reservation_slot_lock.sql`와 `database/migrations/20260908_account_withdrawal_and_discount_events.sql`도 적용합니다.
 - Redis를 먼저 실행합니다. Redis가 꺼져 있으면 인증·헬스 체크가 실패할 수 있습니다.
 
 ### 2. 백엔드 실행

@@ -21,6 +21,7 @@ import com.marinboy.auth.dto.request.UserRequestDto;
 import com.marinboy.user.service.AppUserService;
 import com.marinboy.user.entity.AppUser;
 import com.marinboy.user.repository.AppUserMapper;
+import com.marinboy.global.security.TokenStore;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +33,7 @@ public class AdminUserController {
     private final AppUserMapper userMapper;
     private final AuthUserJwtService authUserJwtService;
     private final AppUserService appUserService;
+    private final TokenStore tokenStore;
 
     /** 관리자가 새 관리자 계정을 만들고 바로 관리자 권한을 부여합니다. */
     @PostMapping
@@ -66,8 +68,15 @@ public class AdminUserController {
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
         Long currentUserId = authUserJwtService.getCurrentUserId(authentication);
         if (currentUserId.equals(id)) throw new IllegalArgumentException("본인 계정은 삭제할 수 없습니다.");
-        if (userMapper.countReservations(id) > 0) throw new IllegalArgumentException("예약 이력이 있는 계정은 삭제할 수 없습니다.");
-        userMapper.deleteById(id);
+        if (userMapper.countRequestedReservations(id) > 0) {
+            throw new IllegalArgumentException("접수 중인 예약이 있어 계정을 삭제할 수 없습니다.");
+        }
+        // 소셜 연결과 재발급 토큰을 먼저 지워 탈퇴 계정으로 다시 로그인하지 못하게 합니다.
+        userMapper.deleteSocialAccountsByUserId(id);
+        tokenStore.deleteRefreshToken(String.valueOf(id));
+        if (userMapper.withdrawById(id) == 0) {
+            throw new IllegalArgumentException("이미 삭제되었거나 존재하지 않는 계정입니다.");
+        }
         return ResponseEntity.noContent().build();
     }
 }

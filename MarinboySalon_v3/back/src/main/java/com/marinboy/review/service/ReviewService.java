@@ -8,4 +8,6 @@ import com.marinboy.review.dto.response.ReviewResponseDto;
 public interface ReviewService {
     ReviewResponseDto create(Long userId, ReviewRequestDto request);
     List<ReviewResponseDto> getPublicList();
+    List<ReviewResponseDto> getAdminList();
+    void deleteByAdmin(Long id);
 }
