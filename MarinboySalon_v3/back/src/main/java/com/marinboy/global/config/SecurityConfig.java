@@ -11,12 +11,17 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.marinboy.global.security.JwtAuthenticationFilter;
 import com.marinboy.global.security.RestAccessDeniedHandler;
@@ -73,9 +78,12 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        if (clientRegistrationRepositoryProvider.getIfAvailable() != null) {
+        ClientRegistrationRepository clientRegistrationRepository = clientRegistrationRepositoryProvider.getIfAvailable();
+        if (clientRegistrationRepository != null) {
             http.oauth2Login(oauth -> oauth
                     .authorizationEndpoint(endpoint -> endpoint
+                            .authorizationRequestResolver(
+                                    googleAccountSelectionResolver(clientRegistrationRepository))
                             .authorizationRequestRepository(authorizationRequestRepository))
                     .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                     .successHandler(oauth2SuccessHandler)
@@ -83,6 +91,45 @@ public class SecurityConfig {
                     .failureHandler(oauth2FailureHandler));
         }
         return http.build();
+    }
+
+    /**
+     * Google은 브라우저에 로그인된 계정이 있어도 계정 선택 화면을 보여 줍니다.
+     * Kakao와 Naver는 제공자 세션을 강제로 끄지 않아 기존 로그인 경험을 유지합니다.
+     */
+    private OAuth2AuthorizationRequestResolver googleAccountSelectionResolver(
+            ClientRegistrationRepository clientRegistrationRepository) {
+        DefaultOAuth2AuthorizationRequestResolver defaultResolver =
+                new DefaultOAuth2AuthorizationRequestResolver(
+                        clientRegistrationRepository, "/oauth2/authorization");
+
+        return new OAuth2AuthorizationRequestResolver() {
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+                OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request);
+                boolean googleLogin = request.getRequestURI().endsWith("/oauth2/authorization/google");
+                return addGoogleAccountSelection(authorizationRequest, googleLogin);
+            }
+
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String registrationId) {
+                OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, registrationId);
+                boolean googleLogin = "google".equals(registrationId);
+                return addGoogleAccountSelection(authorizationRequest, googleLogin);
+            }
+        };
+    }
+
+    /** Google OAuth 요청에만 계정 선택 파라미터를 추가합니다. */
+    private OAuth2AuthorizationRequest addGoogleAccountSelection(
+            OAuth2AuthorizationRequest authorizationRequest, boolean googleLogin) {
+        if (authorizationRequest == null || !googleLogin) {
+            return authorizationRequest;
+        }
+
+        return OAuth2AuthorizationRequest.from(authorizationRequest)
+                .additionalParameters(parameters -> parameters.put("prompt", "select_account"))
+                .build();
     }
 
     @Bean
