@@ -513,12 +513,14 @@ main {
 
 .private-care-image {
   min-height: 430px;
+  overflow: hidden;
 }
 
 .private-care-image img {
   display: block;
   height: 100%;
   object-fit: cover;
+  transition: opacity 0.45s ease;
   width: 100%;
 }
 
@@ -567,7 +569,11 @@ main {
   border: 1px solid var(--line-color);
   border-radius: 5px;
   padding: 22px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
+.review-card:hover { border-color: var(--brand-brown); transform: translateY(-3px); }
 
 .review-card p {
   font-size: 0.74rem;
@@ -1160,6 +1166,11 @@ textarea:focus {
 .payment-history-table { font-size: 0.8rem; margin-bottom: 0; }
 .customer-payment-total { margin: 14px 0 0; text-align: right; }
 .customer-payment-total strong { color: var(--brand-brown-dark); font-size: 1.05rem; }
+.payment-help { color: var(--muted-color); font-size: 0.78rem; margin: 16px 0 0; }
+.review-detail-card { background: var(--paper-color); border: 1px solid var(--line-color); border-radius: 5px; max-width: 620px; padding: 32px; }
+.review-detail-card h2 { font-size: 1.1rem; margin: 18px 0 14px; }
+.review-detail-card > p:not(.review-score) { font-size: 1rem; line-height: 1.8; white-space: pre-line; }
+.review-detail-card small { color: var(--muted-color); }
 @media (max-width: 768px) { .payment-summary-card { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-reservation-detail { padding: 16px; } }
 .star-rating { display: flex; gap: 4px; margin: 6px 0 16px; }
 .star { background: none; border: 0; color: #ccc; cursor: pointer; font-size: 30px; line-height: 1; padding: 0; transition: color 0.2s; }

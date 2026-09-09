@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fi';
 import AppLayout from '../components/AppLayout';
 import ServiceImageCarousel from '../components/ServiceImageCarousel';
+import api from '../api/axios';
 import { LOAD_SERVICE_ITEMS_REQUEST } from '../reducers/serviceItemReducer';
 import { LOAD_SERVICE_ITEMS_SUCCESS } from '../reducers/serviceItemReducer';
 import { loadServiceItemsForServer } from '../server/serviceItemServer';
@@ -34,11 +35,12 @@ const concerns = [
   { icon: FiDroplet, title: '컬러가 고민이에요', description: '피부 톤과 분위기에 맞는 자연스러운 컬러를 제안해드려요.' },
 ];
 
-const reviews = [
-  { score: '5.0', text: '상담이 정말 꼼꼼하고 친절해요. 결과도 너무 만족합니다.', customer: '20대 고객' },
-  { score: '5.0', text: '원하는 느낌을 정확히 이해해주셔서 편하게 맡길 수 있었어요.', customer: '30대 고객' },
-  { score: '4.9', text: '조용한 공간에서 처음부터 끝까지 세심하게 관리받았어요.', customer: '20대 고객' },
-  { score: '5.0', text: '홈케어 방법까지 알려주셔서 손질하기 훨씬 편해졌어요.', customer: '30대 고객' },
+const privateCareImages = [
+  { src: '/images/private-care/private-care-1.png', alt: '디자이너가 고객의 모발을 염색하는 모습' },
+  { src: '/images/private-care/private-care-2.png', alt: '프라이빗 공간에서 헤드 스파를 받는 모습' },
+  { src: '/images/private-care/private-care-3.png', alt: '밝고 편안한 마린보이 살롱 내부' },
+  { src: '/images/private-care/private-care-4.png', alt: '시술 도구와 헤어 제품이 놓인 거울 앞 공간' },
+  { src: '/images/private-care/private-care-5.png', alt: '마린보이 살롱의 프라이빗한 리셉션 공간' },
 ];
 
 /** 헤어와 네일 메뉴를 이름 기준으로 분리해 메인 인기 메뉴에 표시합니다. */
@@ -105,6 +107,9 @@ export default function Home({ initialServiceItems = [], initialLoadError = null
   const { serviceItems, loadServiceItemsLoading, loadServiceItemsError } = useSelector(
     (state) => state.serviceItem,
   );
+  const [privateCareImageIndex, setPrivateCareImageIndex] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [reviewStartIndex, setReviewStartIndex] = useState(0);
 
   useEffect(() => {
     if (initialServiceItems.length > 0) {
@@ -114,11 +119,43 @@ export default function Home({ initialServiceItems = [], initialLoadError = null
     dispatch({ type: LOAD_SERVICE_ITEMS_REQUEST });
   }, [dispatch, initialServiceItems]);
 
+  useEffect(() => {
+    // 1인 디자이너 공간의 다양한 분위기를 일정한 간격으로 보여 줍니다.
+    const timerId = window.setInterval(() => {
+      setPrivateCareImageIndex((currentIndex) => (currentIndex + 1) % privateCareImages.length);
+    }, 4500);
+    return () => window.clearInterval(timerId);
+  }, []);
+
+  useEffect(() => {
+    const loadHighRatedReviews = async () => {
+      try {
+        const response = await api.get('/api/reviews');
+        const highRatedReviews = response.data.filter((review) => review.rating >= 4);
+        setReviews(highRatedReviews);
+      } catch (error) {
+        console.log('메인 리뷰를 불러오지 못했습니다.', error);
+      }
+    };
+    loadHighRatedReviews();
+  }, []);
+
+  useEffect(() => {
+    if (reviews.length <= 1) return undefined;
+    const timerId = window.setInterval(() => {
+      setReviewStartIndex((currentIndex) => (currentIndex + 1) % reviews.length);
+    }, 5000);
+    return () => window.clearInterval(timerId);
+  }, [reviews.length]);
+
   // 헤어와 네일을 섞지 않고 각각 인기 메뉴 5개씩 보여줍니다.
   const displayedServiceItems = serviceItems.length > 0 ? serviceItems : initialServiceItems;
   const popularHairItems = displayedServiceItems.filter(isHairService).slice(0, 5);
   const popularNailItems = displayedServiceItems.filter(isNailService).slice(0, 5);
   const serviceItemsError = loadServiceItemsError || initialLoadError;
+  const displayedReviews = reviews.length <= 4
+    ? reviews
+    : Array.from({ length: 4 }, (_, index) => reviews[(reviewStartIndex + index) % reviews.length]);
 
   return (
     <AppLayout>
@@ -194,7 +231,7 @@ export default function Home({ initialServiceItems = [], initialLoadError = null
 
       <section className="private-care-section container">
         <div className="private-care-image">
-          <img src="/images/designer-private-care.webp" alt="고객의 모발을 상담하는 1인 헤어 디자이너" />
+          <img src={privateCareImages[privateCareImageIndex].src} alt={privateCareImages[privateCareImageIndex].alt} />
         </div>
         <div className="private-care-content">
           <p className="eyebrow">PRIVATE CARE</p>
@@ -212,13 +249,12 @@ export default function Home({ initialServiceItems = [], initialLoadError = null
           <div><p className="eyebrow">CUSTOMER STORY</p><h2 className="display-text">REAL REVIEW</h2></div>
         </header>
         <div className="review-grid">
-          {reviews.map((review) => (
-            <article className="review-card" key={review.text}>
-              <p className="review-score"><span>★★★★★</span> {review.score}</p>
-              <p>{review.text}</p>
-              <small>— {review.customer}</small>
-            </article>
-          ))}
+          {reviews.length === 0 && <p className="status-message">4점 이상 리뷰를 불러오는 중입니다.</p>}
+          {displayedReviews.map((review) => <Link className="review-card" key={review.id} href={`/reviews/${review.id}`} target="_blank" rel="noopener noreferrer">
+            <p className="review-score"><span>{'★'.repeat(review.rating)}</span> {review.rating.toFixed(1)}</p>
+            <p>{review.content}</p>
+            <small>— {review.userName} · {review.serviceName}</small>
+          </Link>)}
         </div>
       </section>
     </AppLayout>
