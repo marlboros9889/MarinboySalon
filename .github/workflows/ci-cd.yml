@@ -81,6 +81,19 @@ jobs:
           # 실행 중인 Node.js 의존성은 서버에 유지하고, 소스와 검증된 결과물만 갱신합니다.
           rsync -a --exclude=.git --exclude=back/build --exclude=front/node_modules --exclude=front/.next "$RELEASE_DIR/" "$APP_DIR/"
           tar -xzf "$GITHUB_WORKSPACE/runtime/marinboy-runtime.tar.gz" -C "$APP_DIR"
+          # 운영 환경 파일의 DB 접속값으로, 중복 실행해도 늘어나지 않는 포트폴리오 후기 시드를 적용합니다.
+          sudo bash -c '
+            set -euo pipefail
+            set -a
+            source /opt/marinboy/app.env
+            set +a
+            DB_HOST_AND_PORT="${DB_URL#jdbc:mysql://}"
+            DB_HOST_AND_PORT="${DB_HOST_AND_PORT%%/*}"
+            DB_HOST="${DB_HOST_AND_PORT%%:*}"
+            DB_PORT="${DB_HOST_AND_PORT#*:}"
+            if [ "$DB_PORT" = "$DB_HOST_AND_PORT" ]; then DB_PORT=3306; fi
+            MYSQL_PWD="$DB_PASSWORD" mysql --protocol=TCP --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USERNAME" marinboy_salon < "$1"
+          ' bash "$APP_DIR/database/migrations/20260909_portfolio_review_seed.sql"
           sudo systemctl restart marinboy-back marinboy-front
           for attempt in {1..12}; do
             if curl --fail --silent http://127.0.0.1:8082/actuator/health > /dev/null && curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
