@@ -87,12 +87,16 @@ jobs:
             set -a
             source /opt/marinboy/app.env
             set +a
-            DB_HOST_AND_PORT="${DB_URL#jdbc:mysql://}"
+            # app.env에 URL·계정이 없을 때는 application.yml의 운영 기본값과 맞춥니다.
+            DB_CONNECTION_URL="${DB_URL:-jdbc:mysql://localhost:3306/marinboy_salon}"
+            DB_LOGIN_USER="${DB_USERNAME:-root}"
+            DB_LOGIN_PASSWORD="${DB_PASSWORD:-}"
+            DB_HOST_AND_PORT="${DB_CONNECTION_URL#jdbc:mysql://}"
             DB_HOST_AND_PORT="${DB_HOST_AND_PORT%%/*}"
             DB_HOST="${DB_HOST_AND_PORT%%:*}"
             DB_PORT="${DB_HOST_AND_PORT#*:}"
             if [ "$DB_PORT" = "$DB_HOST_AND_PORT" ]; then DB_PORT=3306; fi
-            MYSQL_PWD="$DB_PASSWORD" mysql --protocol=TCP --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USERNAME" marinboy_salon < "$1"
+            MYSQL_PWD="$DB_LOGIN_PASSWORD" mysql --protocol=TCP --host="$DB_HOST" --port="$DB_PORT" --user="$DB_LOGIN_USER" marinboy_salon < "$1"
           ' bash "$APP_DIR/database/migrations/20260909_portfolio_review_seed.sql"
           sudo systemctl restart marinboy-back marinboy-front
           for attempt in {1..12}; do
