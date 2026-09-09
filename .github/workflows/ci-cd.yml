@@ -83,12 +83,13 @@ jobs:
           tar -xzf "$GITHUB_WORKSPACE/runtime/marinboy-runtime.tar.gz" -C "$APP_DIR"
           # DB는 새로 만들지 않고, 기존 운영 DB 접속 정보를 환경 파일 한 곳에서 관리합니다.
           sudo touch /opt/marinboy/app.env
-          # 비어 있는 이전 설정은 제거하고, URL의 & 문자가 셸에서 분리되지 않게 이스케이프합니다.
-          if ! sudo grep -q '^DB_URL=.\+' /opt/marinboy/app.env; then
+          # 비어 있거나 셸에서 읽을 수 없는 이전 설정은 교체합니다.
+          # 단순 문자열 존재 여부가 아니라 실제로 source 가능한 값인지 확인합니다.
+          if ! sudo bash -c 'set -a; source /opt/marinboy/app.env; test -n "${DB_URL:-}"'; then
             sudo sed -i '/^DB_URL=/d' /opt/marinboy/app.env
             sudo bash -c 'printf "\nDB_URL=%q\n" "jdbc:mysql://localhost:3306/marinboy_salon?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8" >> /opt/marinboy/app.env'
           fi
-          if ! sudo grep -q '^DB_USERNAME=.\+' /opt/marinboy/app.env; then
+          if ! sudo bash -c 'set -a; source /opt/marinboy/app.env; test -n "${DB_USERNAME:-}"'; then
             sudo sed -i '/^DB_USERNAME=/d' /opt/marinboy/app.env
             sudo bash -c 'printf "DB_USERNAME=root\n" >> /opt/marinboy/app.env'
           fi
