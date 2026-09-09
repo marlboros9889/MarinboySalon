@@ -81,22 +81,35 @@ jobs:
           # 실행 중인 Node.js 의존성은 서버에 유지하고, 소스와 검증된 결과물만 갱신합니다.
           rsync -a --exclude=.git --exclude=back/build --exclude=front/node_modules --exclude=front/.next "$RELEASE_DIR/" "$APP_DIR/"
           tar -xzf "$GITHUB_WORKSPACE/runtime/marinboy-runtime.tar.gz" -C "$APP_DIR"
+          # DB는 새로 만들지 않고, 기존 운영 DB 접속 정보를 환경 파일 한 곳에서 관리합니다.
+          sudo touch /opt/marinboy/app.env
+          if ! sudo grep -q '^DB_URL=' /opt/marinboy/app.env; then
+            sudo bash -c 'printf "\nDB_URL=jdbc:mysql://localhost:3306/marinboy_salon?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8\n" >> /opt/marinboy/app.env'
+          fi
+          if ! sudo grep -q '^DB_USERNAME=' /opt/marinboy/app.env; then
+            sudo bash -c 'printf "DB_USERNAME=root\n" >> /opt/marinboy/app.env'
+          fi
           # 운영 환경 파일의 DB 접속값으로, 중복 실행해도 늘어나지 않는 포트폴리오 후기 시드를 적용합니다.
           sudo bash -c '
             set -euo pipefail
             set -a
             source /opt/marinboy/app.env
             set +a
-            # app.env에 URL·계정이 없을 때는 application.yml의 운영 기본값과 맞춥니다.
-            DB_CONNECTION_URL="${DB_URL:-jdbc:mysql://localhost:3306/marinboy_salon}"
-            DB_LOGIN_USER="${DB_USERNAME:-root}"
-            DB_LOGIN_PASSWORD="${DB_PASSWORD:-}"
+            : "${DB_URL:?DB_URL 설정이 필요합니다.}"
+            : "${DB_USERNAME:?DB_USERNAME 설정이 필요합니다.}"
+            : "${DB_PASSWORD:?DB_PASSWORD 설정이 필요합니다.}"
+            DB_CONNECTION_URL="$DB_URL"
+            DB_LOGIN_USER="$DB_USERNAME"
+            DB_LOGIN_PASSWORD="$DB_PASSWORD"
             DB_HOST_AND_PORT="${DB_CONNECTION_URL#jdbc:mysql://}"
             DB_HOST_AND_PORT="${DB_HOST_AND_PORT%%/*}"
+            DB_PATH_AND_QUERY="${DB_CONNECTION_URL#jdbc:mysql://}"
+            DB_DATABASE_AND_QUERY="${DB_PATH_AND_QUERY#*/}"
+            DB_DATABASE="${DB_DATABASE_AND_QUERY%%\?*}"
             DB_HOST="${DB_HOST_AND_PORT%%:*}"
             DB_PORT="${DB_HOST_AND_PORT#*:}"
             if [ "$DB_PORT" = "$DB_HOST_AND_PORT" ]; then DB_PORT=3306; fi
-            MYSQL_PWD="$DB_LOGIN_PASSWORD" mysql --protocol=TCP --host="$DB_HOST" --port="$DB_PORT" --user="$DB_LOGIN_USER" marinboy_salon < "$1"
+            MYSQL_PWD="$DB_LOGIN_PASSWORD" mysql --protocol=TCP --host="$DB_HOST" --port="$DB_PORT" --user="$DB_LOGIN_USER" "$DB_DATABASE" < "$1"
           ' bash "$APP_DIR/database/migrations/20260909_portfolio_review_seed.sql"
           sudo systemctl restart marinboy-back marinboy-front
           for attempt in {1..12}; do
