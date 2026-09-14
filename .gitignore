@@ -58,3 +58,8 @@ MarinboySalon_v3_incorrect_backup_*/
 # 운영 중 생성되는 업로드 파일
 uploads/
 **/uploads/
+
+# 포트폴리오 생성 중간 산출물과 로컬 보관본
+portfolio-ppt-work/
+MarinboySalon_v3/portfolio-ppt-build/
+MarinboySalon_v3/docs/portfolio/
