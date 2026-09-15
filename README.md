@@ -1,10 +1,8 @@
 # MarinboySalon 포트폴리오
 
 1인 헤어샵의 필수 기능을 수업 단계에 맞춰 v1, v2, v3로 나눈 학습용 포트폴리오입니다. 제출·시연 대상은 **MarinboySalon_v3**입니다.
-```
-- [MarinboySalon_v1](https://marinboysalon.duckdns.org/)
-```
 
+- [MarinboySalon](https://marinboysalon.duckdns.org/)
 
 ## 버전 구성
 
