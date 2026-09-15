@@ -19,7 +19,7 @@
 <p align="center">
   <a href="https://marinboysalon.duckdns.org/"><img src="https://img.shields.io/badge/Live%20Demo-Visit%20Service-2F855A?style=for-the-badge&logo=googlechrome&logoColor=white" alt="배포 서비스 열기" /></a>
   <a href="MarinboySalon_v3/README.md"><img src="https://img.shields.io/badge/Portfolio-V3%20Project-2563EB?style=for-the-badge&logo=github&logoColor=white" alt="V3 프로젝트 문서 열기" /></a>
-  <a href="MarinboySalon_v3/docs/portfolio/MarinboySalon_V3_Project_Presentation.pptx"><img src="https://img.shields.io/badge/Presentation-PPTX-EA580C?style=for-the-badge&logo=microsoftpowerpoint&logoColor=white" alt="발표 자료 다운로드" /></a>
+  <a href="MarinboySalon_v3/docs/portfolio/MarinboySalon_v3_취업포트폴리오_2026_최종.pptx"><img src="https://img.shields.io/badge/Presentation-PPTX-EA580C?style=for-the-badge&logo=microsoftpowerpoint&logoColor=white" alt="발표 자료 다운로드" /></a>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
 | --- | --- |
 | [배포 서비스](https://marinboysalon.duckdns.org/) | 고객 화면과 예약 흐름을 확인합니다. |
 | [V3 프로젝트 문서](MarinboySalon_v3/README.md) | 문제 해결 방식, 기술 스택, 검증 결과를 확인합니다. |
-| [발표 자료 PPTX](MarinboySalon_v3/docs/portfolio/MarinboySalon_V3_Project_Presentation.pptx) | 프로젝트 배경부터 설계·검증 내용을 한 번에 봅니다. |
+| [발표 자료 PPTX](MarinboySalon_v3/docs/portfolio/MarinboySalon_v3_취업포트폴리오_2026_최종.pptx) | 취업 포트폴리오 최종 발표 자료를 확인합니다. |
 | [최종 점검 문서](docs/PORTFOLIO_FINAL_GUIDE.md) | 실행 및 포트폴리오 점검 기준을 확인합니다. |
 
 ## 프로젝트 한눈에 보기
