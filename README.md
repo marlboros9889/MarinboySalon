@@ -19,7 +19,7 @@
 <p align="center">
   <a href="https://marinboysalon.duckdns.org/"><img src="https://img.shields.io/badge/Live%20Demo-Visit%20Service-2F855A?style=for-the-badge&logo=googlechrome&logoColor=white" alt="배포 서비스 열기" /></a>
   <a href="MarinboySalon_v3/README.md"><img src="https://img.shields.io/badge/Portfolio-V3%20Project-2563EB?style=for-the-badge&logo=github&logoColor=white" alt="V3 프로젝트 문서 열기" /></a>
-  <a href="MarinboySalon_v3/docs/portfolio/MarinboySalon_v3_취업포트폴리오_2026_최종.pptx"><img src="https://img.shields.io/badge/Presentation-PPTX-EA580C?style=for-the-badge&logo=microsoftpowerpoint&logoColor=white" alt="발표 자료 다운로드" /></a>
+  <a href="MarinboySalon_v3/docs/portfolio/preview/README.md"><img src="https://img.shields.io/badge/Presentation-View%20Slides-EA580C?style=for-the-badge&logo=microsoftpowerpoint&logoColor=white" alt="발표 자료 전체 미리보기" /></a>
 </p>
 
 <p align="center">
@@ -36,8 +36,8 @@
 | --- | --- |
 | [배포 서비스](https://marinboysalon.duckdns.org/) | 고객 화면과 예약 흐름을 확인합니다. |
 | [V3 프로젝트 문서](MarinboySalon_v3/README.md) | 문제 해결 방식, 기술 스택, 검증 결과를 확인합니다. |
-| [발표 자료 PPTX](MarinboySalon_v3/docs/portfolio/MarinboySalon_v3_취업포트폴리오_2026_최종.pptx) | 취업 포트폴리오 최종 발표 자료를 확인합니다. |
-| [발표 자료 미리보기](MarinboySalon_v3/docs/portfolio/preview/README.md) | 전체 12개 슬라이드 이미지를 GitHub에서 바로 확인합니다. |
+| [발표 자료 전체 보기](MarinboySalon_v3/docs/portfolio/preview/README.md) | 전체 12개 슬라이드 이미지를 GitHub에서 바로 확인합니다. |
+| [발표 자료 PPTX 다운로드](MarinboySalon_v3/docs/portfolio/MarinboySalon_v3_취업포트폴리오_2026_최종.pptx) | PowerPoint에서 편집·발표할 수 있는 원본 파일입니다. |
 | [Django 분석 대시보드](MarinboySalon_v3/portfolio-dashboard/README.md) | 예약·후기 데이터를 Django·Pandas·Chart.js로 분석한 포트폴리오 프로젝트를 확인합니다. |
 | [최종 점검 문서](docs/PORTFOLIO_FINAL_GUIDE.md) | 실행 및 포트폴리오 점검 기준을 확인합니다. |
 
