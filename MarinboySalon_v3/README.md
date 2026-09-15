@@ -12,7 +12,7 @@
 | --- | --- |
 | 배포 서비스 | [MarinboySalon 열기](https://marinboysalon.duckdns.org/) |
 | 저장소 시작 화면 | [루트 포트폴리오 README](../README.md) |
-| 발표 자료 | [전체 슬라이드 미리보기](docs/portfolio/preview/README.md) · [PPTX 다운로드](docs/portfolio/MarinboySalon_v3_취업포트폴리오_2026_최종.pptx) |
+| 발표 자료 | [전체 슬라이드 미리보기](docs/portfolio/preview/README.md) |
 
 ## 프로젝트 소개
 
@@ -194,7 +194,7 @@ npm test -- --runInBand
 
 ## 포트폴리오 발표 자료
 
-취업 면접용 [발표 자료 전체 보기](docs/portfolio/preview/README.md)에서 12개 슬라이드 내용을 바로 확인할 수 있습니다. 편집·발표가 필요하면 [PPTX를 다운로드](docs/portfolio/MarinboySalon_v3_취업포트폴리오_2026_최종.pptx)할 수 있습니다.
+취업 면접용 [발표 자료 전체 보기](docs/portfolio/preview/README.md)에서 12개 슬라이드 내용을 바로 확인할 수 있습니다.
 
 ## 버전 구분
 
