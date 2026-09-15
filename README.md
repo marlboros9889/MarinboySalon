@@ -3,7 +3,7 @@
 <h3 align="center">고객 예약부터 관리자 운영까지 연결한 1인 헤어살롱 풀스택 플랫폼</h3>
 ## ✨ 화면 포트폴리오
 
-> 고객 화면 → 예약 과정 → 관리자 운영 화면이 3초 간격으로 자동 전환됩니다. GIF를 클릭하면 배포 서비스가 새 탭에서 열립니다.
+> 고객 화면 → 예약 과정 → GIF를 클릭하면 배포 서비스가 새 탭에서 열립니다.
 
 <p align="center">
   <a href="https://marinboysalon.duckdns.org/" target="_blank">
