@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marinboy Salon 분석 대시보드</title>
+    <link rel="stylesheet" href="{% static 'analytics/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <main class="dashboard-container">
+        <section class="hero-section">
+            <p class="eyebrow">DJANGO · PANDAS · CHART.JS</p>
+            <h1>Marinboy Salon<br>예약·후기 분석 대시보드</h1>
+            <p class="hero-description">포트폴리오 완료 예약·후기 시드 데이터를 분석해 운영자가 바로 확인할 수 있는 핵심 지표로 정리했습니다.</p>
+        </section>
+
+        {% if is_empty %}
+            <section class="empty-box">
+                <h2>분석 데이터가 아직 없습니다.</h2>
+                <p><code>python manage.py load_portfolio_data</code>를 실행한 뒤 다시 접속해 주세요.</p>
+            </section>
+        {% else %}
+            <section class="period-row">
+                <span>분석 기간</span>
+                <strong>{{ analysis_period }}</strong>
+                <span class="source-badge">익명 포트폴리오 시드 20건</span>
+            </section>
+
+            <section class="summary-grid" aria-label="핵심 분석 지표">
+                <article class="summary-card"><p>완료 예약</p><strong>{{ stats.total_reservations }}건</strong></article>
+                <article class="summary-card"><p>분석용 매출 합계</p><strong>{{ stats.total_sales }}원</strong></article>
+                <article class="summary-card"><p>평균 후기 평점</p><strong>{{ stats.average_rating }}점</strong></article>
+                <article class="summary-card"><p>4점 이상 비율</p><strong>{{ stats.high_rating_ratio }}%</strong></article>
+            </section>
+
+            <section class="chart-grid">
+                <article class="panel panel-wide">
+                    <div class="panel-heading"><div><p class="panel-label">RESERVATION TREND</p><h2>일자별 완료 예약 추이</h2></div></div>
+                    <div class="chart-area"><canvas id="reservationTrendChart"></canvas></div>
+                </article>
+                <article class="panel">
+                    <div class="panel-heading"><div><p class="panel-label">REVIEW SCORE</p><h2>후기 평점 분포</h2></div></div>
+                    <div class="chart-area"><canvas id="ratingChart"></canvas></div>
+                </article>
+            </section>
+
+            <section class="panel table-panel">
+                <div class="panel-heading"><div><p class="panel-label">SERVICE SUMMARY</p><h2>시술별 실적</h2></div><span class="top-service">최다 예약: {{ top_service }}</span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>시술</th><th>완료 예약</th><th>분석용 매출</th></tr></thead>
+                        <tbody>
+                            {% for row in service_rows %}
+                                <tr><td>{{ row.service_name }}</td><td>{{ row.reservation_count }}건</td><td>{{ row.sales_amount|floatformat:0 }}원</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        {% endif %}
+    </main>
+
+    {% if not is_empty %}
+        {{ daily_dates|json_script:"daily-dates-data" }}
+        {{ daily_counts|json_script:"daily-counts-data" }}
+        {{ rating_labels|json_script:"rating-labels-data" }}
+        {{ rating_counts|json_script:"rating-counts-data" }}
+        <script>
+            // Django json_script 필터로 전달받은 데이터를 안전하게 차트에 사용합니다.
+            const dailyDates = JSON.parse(document.getElementById('daily-dates-data').textContent);
+            const dailyCounts = JSON.parse(document.getElementById('daily-counts-data').textContent);
+            const ratingLabels = JSON.parse(document.getElementById('rating-labels-data').textContent);
+            const ratingCounts = JSON.parse(document.getElementById('rating-counts-data').textContent);
+
+            new Chart(document.getElementById('reservationTrendChart'), {
+                type: 'line',
+                data: { labels: dailyDates, datasets: [{ label: '완료 예약', data: dailyCounts, borderColor: '#3a7655', backgroundColor: 'rgba(58, 118, 85, 0.12)', fill: true, tension: 0.35, pointRadius: 3 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+
+            new Chart(document.getElementById('ratingChart'), {
+                type: 'doughnut',
+                data: { labels: ratingLabels, datasets: [{ data: ratingCounts, backgroundColor: ['#d9d9d4', '#d9d9d4', '#d9d9d4', '#b6cfbe', '#3a7655'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+            });
+        </script>
+    {% endif %}
+</body>
+</html>

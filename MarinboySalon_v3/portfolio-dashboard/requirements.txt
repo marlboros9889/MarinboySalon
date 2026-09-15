@@ -1,0 +1,4 @@
+# Django 대시보드와 Pandas 통계 처리를 재현하기 위한 Python 패키지입니다.
+Django==6.1.1
+pandas==3.0.5
+requests==2.34.2

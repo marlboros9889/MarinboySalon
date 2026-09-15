@@ -1,0 +1,6 @@
+# 실행 중 생성되는 로컬 파일은 포트폴리오 소스에 포함하지 않습니다.
+__pycache__/
+*.py[cod]
+db.sqlite3
+venv/
+.playwright-cli/

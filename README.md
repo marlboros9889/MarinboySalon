@@ -37,7 +37,8 @@
 | [배포 서비스](https://marinboysalon.duckdns.org/) | 고객 화면과 예약 흐름을 확인합니다. |
 | [V3 프로젝트 문서](MarinboySalon_v3/README.md) | 문제 해결 방식, 기술 스택, 검증 결과를 확인합니다. |
 | [발표 자료 PPTX](MarinboySalon_v3/docs/portfolio/MarinboySalon_v3_취업포트폴리오_2026_최종.pptx) | 취업 포트폴리오 최종 발표 자료를 확인합니다. |
-| [Django 분석 대시보드](https://github.com/marlboros9889/AI_Full_stack/tree/main/Track/track010_python%2Bdjango) | 예약·후기 데이터를 Django·Pandas·Chart.js로 분석한 별도 프로젝트를 확인합니다. |
+| [발표 자료 미리보기](MarinboySalon_v3/docs/portfolio/preview/README.md) | 전체 12개 슬라이드 이미지를 GitHub에서 바로 확인합니다. |
+| [Django 분석 대시보드](MarinboySalon_v3/portfolio-dashboard/README.md) | 예약·후기 데이터를 Django·Pandas·Chart.js로 분석한 포트폴리오 프로젝트를 확인합니다. |
 | [최종 점검 문서](docs/PORTFOLIO_FINAL_GUIDE.md) | 실행 및 포트폴리오 점검 기준을 확인합니다. |
 
 ## 프로젝트 한눈에 보기
@@ -54,14 +55,14 @@
 완료 예약·후기 시드 20건을 익명 분석 CSV로 분리한 뒤, Django SQLite와 Pandas로 집계하고 Chart.js로 시각화했습니다.
 
 <p align="center">
-  <a href="https://github.com/marlboros9889/AI_Full_stack/tree/main/Track/track010_python%2Bdjango">
-    <img src="https://raw.githubusercontent.com/marlboros9889/AI_Full_stack/main/Track/track010_python%2Bdjango/report/screenshots/marinboy-dashboard.png" alt="Marinboy Salon 예약 후기 분석 대시보드" width="760" />
+  <a href="MarinboySalon_v3/portfolio-dashboard/README.md">
+    <img src="MarinboySalon_v3/portfolio-dashboard/report/screenshots/marinboy-dashboard.png" alt="Marinboy Salon 예약 후기 분석 대시보드" width="760" />
   </a>
 </p>
 
 | 결과 | 바로 보기 |
 | --- | --- |
-| 완료 예약 20건 · 분석용 매출 1,800,000원 · 평균 평점 4.7점 | [소스·실행 방법](https://github.com/marlboros9889/AI_Full_stack/blob/main/Track/track010_python%2Bdjango/PORTFOLIO_DASHBOARD_README.md) · [분석 결과보고서](https://github.com/marlboros9889/AI_Full_stack/blob/main/Track/track010_python%2Bdjango/report/ANALYSIS_REPORT.md) |
+| 완료 예약 20건 · 분석용 매출 1,800,000원 · 평균 평점 4.7점 | [소스·실행 방법](MarinboySalon_v3/portfolio-dashboard/README.md) · [분석 결과보고서](MarinboySalon_v3/portfolio-dashboard/report/ANALYSIS_REPORT.md) |
 
 ## 🔑 핵심 구현 포인트
 
