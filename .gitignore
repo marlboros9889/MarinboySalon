@@ -62,4 +62,5 @@ uploads/
 # 포트폴리오 생성 중간 산출물과 로컬 보관본
 portfolio-ppt-work/
 MarinboySalon_v3/portfolio-ppt-build/
-MarinboySalon_v3/docs/portfolio/
+MarinboySalon_v3/docs/portfolio/*
+!MarinboySalon_v3/docs/portfolio/MarinboySalon_V3_Project_Presentation.pptx

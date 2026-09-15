@@ -8,6 +8,12 @@
 [![Database](https://img.shields.io/badge/Database-MySQL%208-4479A1?logo=mysql)](database)
 [![State](https://img.shields.io/badge/State-Redux%20Saga-764ABC?logo=redux)](front)
 
+| 바로 보기 | 링크 |
+| --- | --- |
+| 배포 서비스 | [MarinboySalon 열기](https://marinboysalon.duckdns.org/) |
+| 저장소 시작 화면 | [루트 포트폴리오 README](../README.md) |
+| 발표 자료 | [PPTX 다운로드](docs/portfolio/MarinboySalon_V3_Project_Presentation.pptx) |
+
 ## 프로젝트 소개
 
 **MarinboySalon v3**는 고객이 시술을 탐색하고 원하는 날짜와 시간에 예약한 뒤, 관리자가 예약·시술 메뉴·고객 정보를 운영할 수 있도록 만든 풀스택 웹 서비스입니다.
@@ -23,9 +29,9 @@
 ## 화면 미리보기
 
 <p align="center">
-  <img src="docs/images/portfolio/home.png" alt="MarinboySalon 메인 화면" width="31%" />
-  <img src="docs/images/portfolio/popular-menu.png" alt="인기 시술 메뉴 화면" width="31%" />
-  <img src="docs/images/portfolio/services.png" alt="시술 아카이브 화면" width="31%" />
+  <img src="docs/images/portfolio/home.png" alt="MarinboySalon 메인 화면" height="170" />
+  <img src="docs/images/portfolio/popular-menu.png" alt="인기 시술 메뉴 화면" height="170" />
+  <img src="docs/images/portfolio/services.png" alt="시술 아카이브 화면" height="170" />
 </p>
 
 | 메인 | 인기 메뉴 | 시술 아카이브 |
@@ -188,9 +194,7 @@ npm test -- --runInBand
 
 ## 포트폴리오 발표 자료
 
-별도로 제작한 취업 면접용 발표 자료는 프로젝트의 문제 정의, 화면 설계, 예약 충돌 방지, 인증·Calendar 연동, 검증 결과를 담고 있습니다.
-
-> 발표 파일은 배포 시 저장소의 `docs/portfolio/`에 추가하거나 GitHub Releases에 첨부할 수 있습니다.
+취업 면접용 [발표 자료 PPTX](docs/portfolio/MarinboySalon_V3_Project_Presentation.pptx)에는 문제 정의, 화면 설계, 예약 충돌 방지, 인증·Calendar 연동, 검증 결과를 담았습니다.
 
 ## 버전 구분
 

@@ -1,70 +1,78 @@
-# MarinboySalon 포트폴리오
+# 💇 [MarinboySalon — 1인 헤어살롱 예약·운영 플랫폼](https://marinboysalon.duckdns.org/)
 
-1인 헤어샵의 필수 기능을 수업 단계에 맞춰 v1, v2, v3로 나눈 학습용 포트폴리오입니다. 제출·시연 대상은 **MarinboySalon_v3**입니다.
+<h3 align="center">고객 예약부터 관리자 운영까지 연결한 1인 헤어살롱 풀스택 플랫폼</h3>
 
-<a href="https://marinboysalon.duckdns.org/" target="_blank">
-  <img
-    width="800"
-    height="600"
-    alt="MarinboySalon 메인 화면"
-    src="https://github.com/user-attachments/assets/3a779382-d109-4f49-9c51-51b3d137829e"
-  />
-</a>
+<p align="center">
+  <sub>같은 시간대 예약은 서버와 데이터베이스에서 한 번 더 확인해 안전하게 차단합니다.</sub>
+</p>
 
-## 버전 구성
+<p align="center">
+  <a href="https://marinboysalon.duckdns.org/"><img src="https://img.shields.io/badge/Live%20Demo-Visit%20Service-2F855A?style=for-the-badge&logo=googlechrome&logoColor=white" alt="배포 서비스 열기" /></a>
+  <a href="MarinboySalon_v3/README.md"><img src="https://img.shields.io/badge/Portfolio-V3%20Project-2563EB?style=for-the-badge&logo=github&logoColor=white" alt="V3 프로젝트 문서 열기" /></a>
+  <a href="MarinboySalon_v3/docs/portfolio/MarinboySalon_V3_Project_Presentation.pptx"><img src="https://img.shields.io/badge/Presentation-PPTX-EA580C?style=for-the-badge&logo=microsoftpowerpoint&logoColor=white" alt="발표 자료 다운로드" /></a>
+</p>
 
-```
-MarinboySalon_v1/  Spring Boot + JSP + MyBatis + MySQL 기본 예약
-MarinboySalon_v2/  v1 구조 + 관리자 메뉴 영업시간 휴무일 예약 상태 관리
-MarinboySalon_v3/  front(Next.js) + back(Spring Boot REST API) 완전 분리
-```
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-15-111827?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js 15" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-3-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 3" />
+  <img src="https://img.shields.io/badge/MySQL-8-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8" />
+  <img src="https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis 7" />
+  <img src="https://img.shields.io/badge/AWS%20EC2-Deploy-FF9900?style=flat-square&logo=amazonec2&logoColor=white" alt="AWS EC2 배포" />
+</p>
 
-> V1·V2는 학습 과정 보관용입니다. 포트폴리오 시연 때는 실행하지 않으며 V3만 실행합니다.
+---
 
-- [MarinboySalon_v1](MarinboySalon_v1/README.md)
-- [MarinboySalon_v2](MarinboySalon_v2/README.md)
-- [MarinboySalon_v3](MarinboySalon_v3/README.md)
-- [개선 사항 2026-08-28](docs/IMPROVEMENTS_20260828.md)
-- [포트폴리오 최종 점검](docs/PORTFOLIO_FINAL_GUIDE.md)
+| 바로 보기 | 설명 |
+| --- | --- |
+| [배포 서비스](https://marinboysalon.duckdns.org/) | 고객 화면과 예약 흐름을 확인합니다. |
+| [V3 프로젝트 문서](MarinboySalon_v3/README.md) | 문제 해결 방식, 기술 스택, 검증 결과를 확인합니다. |
+| [발표 자료 PPTX](MarinboySalon_v3/docs/portfolio/MarinboySalon_V3_Project_Presentation.pptx) | 프로젝트 배경부터 설계·검증 내용을 한 번에 봅니다. |
+| [최종 점검 문서](docs/PORTFOLIO_FINAL_GUIDE.md) | 실행 및 포트폴리오 점검 기준을 확인합니다. |
 
-## 한 번에 실행하는 순서
+## 프로젝트 한눈에 보기
 
-1. MySQL에 `MarinboySalon_v3/database/schema.sql` 및 `sample_data.sql` 적용
-2. 기존 DB에는 `MarinboySalon_v3/database/migrations/` SQL을 날짜순으로 적용
-3. Redis 기동 (v3)
-4. 환경 변수 설정 후 back → front 실행
+| 구분 | 내용 |
+| --- | --- |
+| 서비스 | 고객 예약, 예약 조회·취소, 후기 작성, 관리자 예약·시술·고객 관리 |
+| 핵심 문제 | 같은 시간대 예약이 겹치지 않도록 저장 직전에 서버와 DB가 다시 검증 |
+| 구조 | Next.js·React 화면 ↔ Spring Boot REST API ↔ MySQL·Redis·Google Calendar |
+| 운영 | AWS EC2와 Nginx 기반 배포 환경 적용 |
 
-### 필수 환경 변수
+## ✨ 화면 포트폴리오
 
-| 변수 | 설명 |
-|------|------|
-| `DB_URL` / `DB_USERNAME` / `DB_PASSWORD` | DB 접속 (운영에서 비밀번호 필수) |
-| `JWT_SECRET` | 32자 이상 (운영 필수, prod에서 로컬 기본값 금지) |
-| `REDIS_HOST` / `REDIS_PORT` | Redis |
-| `CORS_ALLOWED_ORIGINS` / `FRONT_URL` | 프론트 주소 |
+> 고객 화면 → 예약 과정 → 관리자 운영 화면이 3초 간격으로 자동 전환됩니다. GIF를 클릭하면 배포 서비스가 새 탭에서 열립니다.
 
-### 포트 고정 규칙
+<p align="center">
+  <a href="https://marinboysalon.duckdns.org/" target="_blank">
+    <img src="MarinboySalon_v3/docs/images/portfolio/marinboysalon-flow.gif" alt="MarinboySalon 주요 기능 화면 순환 미리보기" width="784" />
+  </a>
+</p>
 
-| 구성 요소 | 고정 포트 | 시연 규칙 |
-|---|---:|---|
-| V3 Next.js | 3000 | `MarinboySalon_v3/front`만 실행 |
-| V3 Spring Boot API | 8082 | V1·V2의 8080과 함께 실행하지 않음 |
-| MySQL | 3306 | `marinboy_salon` 데이터베이스 사용 |
-| Redis | 6379 | JWT Refresh Token과 로그아웃 토큰 차단에 사용 |
+<p align="center"><sub>고객 서비스 · 로그인과 예약 · 내 예약 · 관리자 예약·시술·이벤트·계정 관리</sub></p>
 
-- Health: `http://localhost:8082/actuator/health`
-- Swagger: `http://localhost:8082/swagger-ui/index.html`
+## 🔑 핵심 구현 포인트
 
-## 범위 메모
+1. **예약 무결성** — 30분 슬롯을 잠근 뒤 겹치는 예약을 재검사해, 화면을 우회한 요청과 동시 요청도 서버에서 차단합니다.
+2. **인증·권한 분리** — JWT Access Token, HttpOnly Refresh Cookie, Redis를 활용해 고객·관리자 접근을 구분합니다.
+3. **운영 흐름 연결** — 예약 DB 저장이 완료된 뒤 Google Calendar 일정을 생성·동기화해 외부 연동 실패가 예약 저장을 되돌리지 않도록 분리했습니다.
 
-- **v1**: 예약은 현재 이후 시간·활성 시술·겹침만 검사 (영업시간·휴무일 없음)
-- **v2**: `AdminAuthInterceptor` + Controller 이중 권한 검사, 전체 POST 폼 CSRF 검증
-- **v3**: 상태 전이 enum, 30분 슬롯 공통 규칙, 겹침 FOR UPDATE, Actuator, Swagger
-- **메뉴 이미지**: 관리자가 JPG·PNG·WEBP 파일을 최대 4장 업로드하고, DB에는 저장된 이미지 URL과 표시 순서만 보관
+## 🗂️ 버전 구성
 
-## 인증과 동시성 경계
+| 버전 | 역할 | 주요 기술 |
+| --- | --- | --- |
+| [V1](MarinboySalon_v1/README.md) | 예약 기능의 기본 흐름 학습 | Spring MVC, JSP, MyBatis, MySQL |
+| [V2](MarinboySalon_v2/README.md) | 관리자 기능과 예약 운영 확장 | Spring Boot, Spring Security, MyBatis |
+| [V3](MarinboySalon_v3/README.md) | **포트폴리오 제출·시연 대상** | Next.js, Spring Boot REST API, Redis, OAuth |
 
-- v2는 `JSESSIONID` 세션, v3는 Access JWT + HttpOnly Refresh 쿠키 + Redis를 사용합니다.
-- 두 버전은 `user_account` 데이터만 공유하며 로그인 상태는 공유하지 않습니다. 한 버전에서 로그인해도 다른 버전에는 다시 로그인해야 합니다.
-- v2와 v3 예약 생성은 모두 해당 요일 `business_hour` 행을 `FOR UPDATE`로 잠근 뒤 겹침을 조회하고 저장합니다.
-- 행 잠금은 같은 요일 요청을 순서대로 처리하고, DB 유니크 제약은 완전히 같은 단일 값의 중복만 막는 마지막 방어선입니다. 시술 시간이 구간으로 겹치는지는 행 잠금과 겹침 쿼리가 담당합니다.
+> V1·V2는 학습 과정을 보존한 버전이며, 서비스 시연과 포트폴리오 설명은 V3를 기준으로 합니다.
+
+## 🚀 실행과 환경 정보
+
+V3 로컬 실행, 필수 환경 변수, 고정 포트, 테스트 명령은 [V3 README](MarinboySalon_v3/README.md#로컬-실행)에서 확인할 수 있습니다.
+
+| 구성 요소 | 포트 |
+| --- | ---: |
+| Next.js | 3000 |
+| Spring Boot API | 8082 |
+| MySQL | 3306 |
+| Redis | 6379 |
