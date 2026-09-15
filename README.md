@@ -1,7 +1,17 @@
 # 💇 [MarinboySalon — 1인 헤어살롱 예약·운영 플랫폼](https://marinboysalon.duckdns.org/)
 
 <h3 align="center">고객 예약부터 관리자 운영까지 연결한 1인 헤어살롱 풀스택 플랫폼</h3>
+## ✨ 화면 포트폴리오
 
+> 고객 화면 → 예약 과정 → 관리자 운영 화면이 3초 간격으로 자동 전환됩니다. GIF를 클릭하면 배포 서비스가 새 탭에서 열립니다.
+
+<p align="center">
+  <a href="https://marinboysalon.duckdns.org/" target="_blank">
+    <img src="MarinboySalon_v3/docs/images/portfolio/marinboysalon-flow.gif" alt="MarinboySalon 주요 기능 화면 순환 미리보기" width="784" />
+  </a>
+</p>
+
+<p align="center"><sub>고객 서비스 · 로그인과 예약 · 내 예약 · 관리자 예약·시술·이벤트·계정 관리</sub></p>
 <p align="center">
   <sub>같은 시간대 예약은 서버와 데이터베이스에서 한 번 더 확인해 안전하게 차단합니다.</sub>
 </p>
@@ -37,18 +47,6 @@
 | 핵심 문제 | 같은 시간대 예약이 겹치지 않도록 저장 직전에 서버와 DB가 다시 검증 |
 | 구조 | Next.js·React 화면 ↔ Spring Boot REST API ↔ MySQL·Redis·Google Calendar |
 | 운영 | AWS EC2와 Nginx 기반 배포 환경 적용 |
-
-## ✨ 화면 포트폴리오
-
-> 고객 화면 → 예약 과정 → 관리자 운영 화면이 3초 간격으로 자동 전환됩니다. GIF를 클릭하면 배포 서비스가 새 탭에서 열립니다.
-
-<p align="center">
-  <a href="https://marinboysalon.duckdns.org/" target="_blank">
-    <img src="MarinboySalon_v3/docs/images/portfolio/marinboysalon-flow.gif" alt="MarinboySalon 주요 기능 화면 순환 미리보기" width="784" />
-  </a>
-</p>
-
-<p align="center"><sub>고객 서비스 · 로그인과 예약 · 내 예약 · 관리자 예약·시술·이벤트·계정 관리</sub></p>
 
 ## 🔑 핵심 구현 포인트
 
