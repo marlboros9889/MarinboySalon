@@ -17,7 +17,8 @@ jobs:
       - name: 소스 내려받기
         uses: actions/checkout@v4
       - name: Java 17 설정
-        uses: actions/setup-java@v4
+        # v5는 GitHub Actions의 현재 Node.js 실행 환경을 지원합니다.
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
