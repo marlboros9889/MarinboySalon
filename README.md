@@ -40,8 +40,17 @@
 | [Django 분석 대시보드](MarinboySalon_v3/portfolio-dashboard/README.md) | 예약·후기 데이터를 Django·Pandas·Chart.js로 분석한 포트폴리오 프로젝트를 확인합니다. |
 | [최종 점검 문서](docs/PORTFOLIO_FINAL_GUIDE.md) | 실행 및 포트폴리오 점검 기준을 확인합니다. |
 
-## 프로젝트 한눈에 보기
 
+## 🗂️ 버전 구성
+
+| 버전 | 역할 | 주요 기술 |
+| --- | --- | --- |
+| [V1](MarinboySalon_v1/README.md) | 예약 기능의 기본 흐름 학습 | Spring MVC, JSP, MyBatis, MySQL |
+| [V2](MarinboySalon_v2/README.md) | 관리자 기능과 예약 운영 확장 | Spring Boot, Spring Security, MyBatis |
+| [V3](MarinboySalon_v3/README.md) | **포트폴리오 제출·시연 대상** | Next.js, Spring Boot REST API, Redis, OAuth |
+> V1·V2는 학습 과정을 보존한 버전이며, 서비스 시연과 포트폴리오 설명은 V3를 기준으로 합니다.
+> 
+## 프로젝트 한눈에 보기
 | 구분 | 내용 |
 | --- | --- |
 | 서비스 | 고객 예약, 예약 조회·취소, 후기 작성, 관리자 예약·시술·고객 관리 |
@@ -63,11 +72,6 @@
 | --- | --- |
 | 완료 예약 20건 · 분석용 매출 1,800,000원 · 평균 평점 4.7점 | [소스·실행 방법](MarinboySalon_v3/portfolio-dashboard/README.md) · [분석 결과보고서](MarinboySalon_v3/portfolio-dashboard/report/ANALYSIS_REPORT.md) |
 
-## 🔑 핵심 구현 포인트
-
-1. **예약 무결성** — 30분 슬롯을 잠근 뒤 겹치는 예약을 재검사해, 화면을 우회한 요청과 동시 요청도 서버에서 차단합니다.
-2. **인증·권한 분리** — JWT Access Token, HttpOnly Refresh Cookie, Redis를 활용해 고객·관리자 접근을 구분합니다.
-3. **운영 흐름 연결** — 예약 DB 저장이 완료된 뒤 Google Calendar 일정을 생성·동기화해 외부 연동 실패가 예약 저장을 되돌리지 않도록 분리했습니다.
 
 ## 🗂️ 버전 구성
 
