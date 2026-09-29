@@ -10,6 +10,35 @@ permissions:
   contents: read
 
 jobs:
+  flutter-v4-verify:
+    name: Flutter V4 test and web build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: MarinboySalon_v4
+    steps:
+      - name: 소스 내려받기
+        uses: actions/checkout@v4
+      - name: Flutter 설정
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: 패키지 설치
+        run: flutter pub get
+      - name: 정적 분석
+        run: flutter analyze
+      - name: 단위 테스트
+        run: flutter test
+      - name: 웹 빌드
+        run: flutter build web --release --dart-define=DEMO_MODE=true
+      - name: V4 웹 결과물 보관
+        uses: actions/upload-artifact@v4
+        with:
+          name: marinboy-flutter-v4-web
+          path: MarinboySalon_v4/build/web
+          retention-days: 1
+
   verify:
     name: Build and test
     runs-on: ubuntu-latest
