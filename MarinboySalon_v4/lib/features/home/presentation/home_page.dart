@@ -158,71 +158,100 @@ class _ServiceCard extends StatelessWidget {
         ? ''
         : ApiConfig.resolveImageUrl(item.imageUrls.first);
 
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (imageUrl.isNotEmpty) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  color: const Color(0xfff3ece9),
-                  child: Image.network(
-                    imageUrl,
-                    width: double.infinity,
-                    height: 260,
-                    // 사진 전체가 보이도록 비율을 유지해 남는 공간은 배경색으로 채웁니다.
-                    fit: BoxFit.contain,
-                    // 이미지 서버가 일시적으로 응답하지 않아도 예약 화면은 계속 보입니다.
-                    errorBuilder: (_, error, stackTrace) =>
-                        const _ImagePlaceholder(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-            ],
-            Text(
-              item.name,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            if (item.description.isNotEmpty)
-              Text(
-                item.description,
-                style: const TextStyle(color: Colors.black54),
-              ),
-            const SizedBox(height: 12),
-            Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final imageWidth = constraints.maxWidth < 380 ? 96.0 : 132.0;
+        final imageHeight = constraints.maxWidth < 380 ? 142.0 : 176.0;
+
+        return Card(
+          elevation: 0,
+          color: Colors.white,
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  formatWon(item.price),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '${item.durationMinutes}분',
-                  style: const TextStyle(color: Colors.black54),
-                ),
-                const Spacer(),
-                FilledButton.tonal(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ReservationFormPage(service: item),
+                if (imageUrl.isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: imageWidth,
+                      height: imageHeight,
+                      color: const Color(0xfff3ece9),
+                      child: Image.network(
+                        imageUrl,
+                        // 사진을 자르지 않고 카드 안에 맞춰 전체를 보여줍니다.
+                        fit: BoxFit.contain,
+                        // 이미지 서버가 응답하지 않아도 메뉴와 예약 버튼은 유지합니다.
+                        errorBuilder: (_, error, stackTrace) =>
+                            const _ImagePlaceholder(),
+                      ),
                     ),
                   ),
-                  child: const Text('예약'),
+                  const SizedBox(width: 14),
+                ],
+                Expanded(
+                  child: SizedBox(
+                    height: imageUrl.isEmpty ? 110 : imageHeight,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        if (item.description.isNotEmpty)
+                          Expanded(
+                            child: Text(
+                              item.description,
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.black54),
+                            ),
+                          )
+                        else
+                          const Spacer(),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              formatWon(item.price),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '${item.durationMinutes}분',
+                              style: const TextStyle(color: Colors.black54),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ReservationFormPage(service: item),
+                                ),
+                              ),
+                              child: const Text('예약'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -233,7 +262,7 @@ class _ImagePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 260,
+      height: double.infinity,
       color: const Color(0xfff3ece9),
       alignment: Alignment.center,
       child: const Icon(Icons.image_outlined, color: Color(0xff8e7770)),

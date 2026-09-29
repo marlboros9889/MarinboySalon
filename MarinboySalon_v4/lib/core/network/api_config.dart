@@ -13,6 +13,10 @@ class ApiConfig {
     if (imageUrl.startsWith('/uploads/')) {
       return '$baseUrl$imageUrl';
     }
+    if (imageUrl.startsWith('/')) {
+      // 도메인 루트의 공개 이미지도 모바일에서 절대 주소로 열 수 있게 변환합니다.
+      return Uri.parse(baseUrl).resolve(imageUrl).toString();
+    }
     return imageUrl;
   }
 }

@@ -1,85 +1,79 @@
-# 💇 [MarinboySalon — 1인 헤어살롱 예약·운영 플랫폼](https://marinboysalon.duckdns.org/)
+# MarinboySalon | 예약 중심 미용실 운영 플랫폼
 
-<h3 align="center">고객 예약부터 관리자 운영까지 연결한 1인 헤어살롱 풀스택 플랫폼</h3>
-## ✨ 화면 포트폴리오
-
-> 고객 화면 → 예약 과정 → GIF를 클릭하면 배포 서비스가 새 탭에서 열립니다.
+고객이 웹이나 모바일 앱에서 시술을 살펴보고 예약하면, 관리자가 하나의 운영 데이터에서 예약 현황을 처리하는 풀스택 프로젝트입니다. V4는 별도 백엔드를 복제하지 않고 V3의 Spring Boot API와 데이터베이스를 함께 사용합니다.
 
 <p align="center">
-  <a href="https://marinboysalon.duckdns.org/" target="_blank">
-    <img src="MarinboySalon_v3/docs/images/portfolio/marinboysalon-flow.gif" alt="MarinboySalon 주요 기능 화면 순환 미리보기" width="784" />
-  </a>
+  <a href="https://marinboysalon.duckdns.org/">웹 서비스</a> ·
+  <a href="https://marinboysalon.duckdns.org/v4/">V4 웹 앱</a> ·
+  <a href="MarinboySalon_v3/README.md">V3 기술 문서</a> ·
+  <a href="MarinboySalon_v4/README.md">V4 실행 안내</a>
 </p>
 
-<p align="center"><sub>고객 서비스 · 로그인과 예약 · 내 예약 · 관리자 예약·시술·이벤트·계정 관리</sub></p>
-<p align="center">
-  <sub>같은 시간대 예약은 서버와 데이터베이스에서 한 번 더 확인해 안전하게 차단합니다.</sub>
-</p>
+## 프로젝트 개요
 
-<p align="center">
-  <a href="https://marinboysalon.duckdns.org/"><img src="https://img.shields.io/badge/Live%20Demo-Visit%20Service-2F855A?style=for-the-badge&logo=googlechrome&logoColor=white" alt="배포 서비스 열기" /></a>
-  <a href="MarinboySalon_v3/README.md"><img src="https://img.shields.io/badge/Portfolio-V3%20Project-2563EB?style=for-the-badge&logo=github&logoColor=white" alt="V3 프로젝트 문서 열기" /></a>
-  <a href="MarinboySalon_v3/docs/portfolio/preview/README.md"><img src="https://img.shields.io/badge/Presentation-View%20Slides-EA580C?style=for-the-badge&logo=microsoftpowerpoint&logoColor=white" alt="발표 자료 전체 미리보기" /></a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-15-111827?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js 15" />
-  <img src="https://img.shields.io/badge/Spring%20Boot-3-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 3" />
-  <img src="https://img.shields.io/badge/MySQL-8-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8" />
-  <img src="https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis 7" />
-  <img src="https://img.shields.io/badge/AWS%20EC2-Deploy-FF9900?style=flat-square&logo=amazonec2&logoColor=white" alt="AWS EC2 배포" />
-</p>
-
----
-
-| 바로 보기 | 설명 |
+| 항목 | 설명 |
 | --- | --- |
-| [배포 서비스](https://marinboysalon.duckdns.org/) | 고객 화면과 예약 흐름을 확인합니다. |
-| [V3 프로젝트 문서](MarinboySalon_v3/README.md) | 문제 해결 방식, 기술 스택, 검증 결과를 확인합니다. |
-| [발표 자료 전체 보기](MarinboySalon_v3/docs/portfolio/preview/README.md) | PPT내용을 바로 볼수있는 파일입니다. |
-| [Django 분석 대시보드](MarinboySalon_v3/portfolio-dashboard/README.md) | 예약·후기 데이터를 Django·Pandas·Chart.js로 분석한 포트폴리오 프로젝트를 확인합니다. |
-| [최종 점검 문서](docs/PORTFOLIO_FINAL_GUIDE.md) | 실행 및 포트폴리오 점검 기준을 확인합니다. |
+| 목표 | 예약 과정을 간편하게 하고, 예약·시술 운영 정보를 웹과 앱에서 이어서 확인 |
+| V3 웹 | Next.js 고객 서비스와 관리자 운영 화면 |
+| V4 앱 | Flutter/Dart 고객 예약 앱 및 예약 운영 대시보드 |
+| 공통 서버 | Spring Boot REST API, MyBatis, MySQL; 인증·예약·시술 정보를 공유 |
+| 연동 | Google·Kakao·Naver 로그인 흐름, Google Calendar 예약 일정 연동(서버 설정과 제공자 권한 필요) |
+| 배포 | AWS EC2 기반 운영, Nginx 경로로 웹·V4 웹·백엔드 연결 |
 
+## 버전 구성
 
-## 🗂️ 버전 구성
-
-| 버전 | 역할 | 주요 기술 |
+| 버전 | 역할 | 기술 |
 | --- | --- | --- |
-| [V1](MarinboySalon_v1/README.md) | 예약 기능의 기본 흐름 학습 | Spring MVC, JSP, MyBatis, MySQL |
+| [V1](MarinboySalon_v1/README.md) | 예약 기능의 기초 학습 | Spring MVC, JSP, MyBatis, MySQL |
 | [V2](MarinboySalon_v2/README.md) | 관리자 기능과 예약 운영 확장 | Spring Boot, Spring Security, MyBatis |
-| [V3](MarinboySalon_v3/README.md) | **포트폴리오 제출·시연 대상** | Next.js, Spring Boot REST API, Redis, OAuth |
-> V1·V2는 학습 과정을 보존한 버전이며, 서비스 시연과 포트폴리오 설명은 V3를 기준으로 합니다.
-> 
-## 프로젝트 한눈에 보기
-| 구분 | 내용 |
+| [V3](MarinboySalon_v3/README.md) | 웹 서비스와 공통 백엔드 | Next.js, Spring Boot REST API, MySQL, Redis |
+| [V4](MarinboySalon_v4/README.md) | 기존 서비스를 공유하는 모바일·웹 앱 | Flutter, Dart, Riverpod, Dio |
+
+## 기능 범위
+
+- 고객: 시술 메뉴와 이미지 조회, 일반/OAuth 로그인, 예약 가능한 시간 조회, 예약 등록 및 내 예약 확인·취소
+- 관리자 앱: 전체 예약 확인, 예약 상태 변경, 예약 상태를 바탕으로 한 예상 매출 확인
+- 예약: 서버가 날짜별 가능 시간과 중복 여부를 검증하고, 예약을 V3와 같은 데이터베이스에 저장
+- 캘린더: 예약 확정 후 V3 서버가 Google Calendar 일정을 연동하고 이벤트 ID를 기록
+- 제외 범위: 직원 관리, 직원 배정, 근무표 기능은 V4에 포함하지 않음
+
+V4는 V3 웹 화면 전체를 Flutter 화면으로 복제하는 프로젝트가 아닙니다. V3 백엔드와 계정·예약 데이터를 공유하며, V4에서 구현한 고객 예약 및 관리자 예약 운영 기능을 제공합니다. 후기·시술 편집·이벤트 등 V3 웹에만 있는 화면은 웹에서 계속 이용합니다.
+
+## 시스템 구성
+
+```text
+고객 브라우저 ── V3 Next.js 웹 ─┐
+                               ├── Spring Boot REST API ── MyBatis ── MySQL
+Android / V4 웹 ─ Flutter 앱 ──┘               ├── Redis
+                                               └── Google Calendar API
+```
+
+두 화면이 예약 API와 데이터베이스를 공유하므로 한쪽에서 생성한 예약도 다른 쪽 운영 화면에서 확인할 수 있습니다. 소셜 로그인의 경우 V3 서버가 OAuth 절차를 담당하고, 모바일 앱은 앱 전용 콜백 코드 교환 방식으로 로그인 정보를 받습니다. 실제 OAuth·캘린더 사용은 운영 환경의 키, 허용 콜백 주소와 권한 설정에 영향을 받습니다.
+
+## 저장소 안내
+
+| 경로 | 내용 |
 | --- | --- |
-| 서비스 | 고객 예약, 예약 조회·취소, 후기 작성, 관리자 예약·시술·고객 관리 |
-| 핵심 문제 | 같은 시간대 예약이 겹치지 않도록 저장 직전에 서버와 DB가 다시 검증 |
-| 구조 | Next.js·React 화면 ↔ Spring Boot REST API ↔ MySQL·Redis·Google Calendar |
-| 운영 | AWS EC2와 Nginx 기반 배포 환경 적용 |
+| `MarinboySalon_v3/front` | V3 Next.js 웹 화면 |
+| `MarinboySalon_v3/back` | 공통 Spring Boot API 및 서버 기능 |
+| `MarinboySalon_v3/database` | 데이터베이스 스키마와 마이그레이션 |
+| `MarinboySalon_v4` | Flutter 앱, 테스트, Android·웹 실행 설정 |
+| `MarinboySalon_v3/portfolio-dashboard` | Django·Pandas·Chart.js 예약·후기 분석 포트폴리오 |
+| `docs` | 프로젝트 기록 및 개발 문서 |
 
-## 📊 예약·후기 분석 대시보드
+## 개발 및 검증
 
-완료 예약·후기 시드 20건을 익명 분석 CSV로 분리한 뒤, Django SQLite와 Pandas로 집계하고 Chart.js로 시각화했습니다.
+- V3 백엔드: Gradle 테스트와 실행 패키지 빌드
+- V3 프런트엔드: Jest 테스트와 Next.js 프로덕션 빌드
+- V4: Flutter 정적 분석·단위 테스트·웹 빌드·Android APK 빌드
+- CI/CD: GitHub Actions가 테스트와 빌드 후 AWS 서비스 배포를 수행
 
-<p align="center">
-  <a href="MarinboySalon_v3/portfolio-dashboard/README.md">
-    <img src="MarinboySalon_v3/portfolio-dashboard/report/screenshots/marinboy-dashboard.png" alt="Marinboy Salon 예약 후기 분석 대시보드" width="760" />
-  </a>
-</p>
+각 실행 명령과 환경 변수 설정은 [V3 안내](MarinboySalon_v3/README.md)와 [V4 안내](MarinboySalon_v4/README.md)를 참고하세요. OAuth 비밀값, DB 접속 정보, Google 서비스 계정 키는 저장소에 넣지 않고 운영 환경 변수로 관리합니다.
 
-| 결과 | 바로 보기 |
-| --- | --- |
-| 완료 예약 20건 · 분석용 매출 1,800,000원 · 평균 평점 4.7점 | [소스·실행 방법](MarinboySalon_v3/portfolio-dashboard/README.md) · [분석 결과보고서](MarinboySalon_v3/portfolio-dashboard/report/ANALYSIS_REPORT.md) |
+## 관련 자료
 
-
-## 🗂️ 버전 구성
-
-| 버전 | 역할 | 주요 기술 |
-| --- | --- | --- |
-| [V1](MarinboySalon_v1/README.md) | 예약 기능의 기본 흐름 학습 | Spring MVC, JSP, MyBatis, MySQL |
-| [V2](MarinboySalon_v2/README.md) | 관리자 기능과 예약 운영 확장 | Spring Boot, Spring Security, MyBatis |
-| [V3](MarinboySalon_v3/README.md) | **포트폴리오 제출·시연 대상** | Next.js, Spring Boot REST API, Redis, OAuth |
-
-> V1·V2는 학습 과정을 보존한 버전이며, 서비스 시연과 포트폴리오 설명은 V3를 기준으로 합니다.
-
+- [V3 아키텍처·API·데이터베이스 문서](MarinboySalon_v3/README.md)
+- [V4 Flutter 실행 방법](MarinboySalon_v4/README.md)
+- [예약·후기 분석 대시보드](MarinboySalon_v3/portfolio-dashboard/README.md)
+- [프로젝트 최종 점검 가이드](docs/PORTFOLIO_FINAL_GUIDE.md)
+- [라이브 V3 웹](https://marinboysalon.duckdns.org/) · [라이브 V4 웹](https://marinboysalon.duckdns.org/v4/)
