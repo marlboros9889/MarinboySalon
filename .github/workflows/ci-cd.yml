@@ -32,10 +32,10 @@ jobs:
         run: flutter test
       - name: 웹 빌드
         # V3와 같은 도메인의 /v4/ 경로에서 실제 Spring API를 사용합니다.
-        run: flutter build web --release --base-href /v4/ --dart-define=API_BASE_URL=https://marinboysalon.duckdns.org
+        run: flutter build web --release --base-href /v4/ --dart-define=API_BASE_URL=https://marinboysalon.duckdns.org/backend
       - name: Android 테스트용 APK 빌드
         # 배포 서명 전에도 스마트폰에 직접 설치해 확인할 수 있는 debug APK입니다.
-        run: flutter build apk --debug --dart-define=API_BASE_URL=https://marinboysalon.duckdns.org
+        run: flutter build apk --debug --dart-define=API_BASE_URL=https://marinboysalon.duckdns.org/backend
       - name: V4 웹 결과물 보관
         uses: actions/upload-artifact@v4
         with:
