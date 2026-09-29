@@ -24,8 +24,3 @@ flutter test --no-pub
 flutter build web --no-pub
 ```
 
-## 평가 자료
-
-- [문항 1 프로젝트 설계 답안](제출자료/01_문항1_프로젝트_설계_답안.md)
-- [REST API 명세서](제출자료/api_spec.md)
-- [문항 2 결과보고서 및 PPT 구성](제출자료/02_문항2_결과보고서_발표구성.md)
