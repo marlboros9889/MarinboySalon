@@ -1,9 +1,10 @@
 class ApiConfig {
   const ApiConfig._();
 
-  // 실행 환경마다 서버 주소가 다르므로 --dart-define으로 안전하게 주입합니다.
+  // 기본값은 AWS에 배포된 MarinboySalon V3 서버입니다.
+  // 필요하면 --dart-define=API_BASE_URL=주소 옵션으로 다른 서버를 지정합니다.
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8080',
+    defaultValue: 'https://marinboysalon.duckdns.org',
   );
 }
