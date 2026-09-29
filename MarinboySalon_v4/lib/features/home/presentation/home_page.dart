@@ -39,15 +39,21 @@ class HomePage extends ConsumerWidget {
           else
             PopupMenuButton<String>(
               onSelected: (value) async {
-                if (value == 'logout')
+                if (value == 'logout') {
                   await ref.read(authProvider.notifier).logout();
-                if (value == 'admin')
+                  return;
+                }
+                if (value == 'admin') {
+                  if (!context.mounted) {
+                    return;
+                  }
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => const AdminDashboardPage(),
                     ),
                   );
+                }
               },
               itemBuilder: (context) => [
                 if (auth.isAdmin)

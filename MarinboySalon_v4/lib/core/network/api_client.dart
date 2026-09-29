@@ -37,12 +37,18 @@ final dioProvider = Provider<Dio>((ref) {
 String apiErrorMessage(Object error) {
   if (error is DioException) {
     final data = error.response?.data;
-    if (data is Map && data['message'] != null)
+    if (data is Map && data['message'] != null) {
       return data['message'].toString();
-    if (error.response?.statusCode == 401) return '로그인이 필요합니다.';
-    if (error.response?.statusCode == 403) return '관리자 권한이 필요합니다.';
-    if (error.type == DioExceptionType.connectionError)
+    }
+    if (error.response?.statusCode == 401) {
+      return '로그인이 필요합니다.';
+    }
+    if (error.response?.statusCode == 403) {
+      return '관리자 권한이 필요합니다.';
+    }
+    if (error.type == DioExceptionType.connectionError) {
       return '서버에 연결할 수 없습니다.';
+    }
   }
   return '요청 처리 중 문제가 발생했습니다.';
 }
