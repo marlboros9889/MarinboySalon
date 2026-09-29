@@ -17,12 +17,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.marinboy.auth.dto.request.LoginRequest;
+import com.marinboy.auth.dto.request.MobileOAuthExchangeRequest;
 import com.marinboy.auth.dto.request.UserRequestDto;
 import com.marinboy.auth.dto.response.UserResponseDto;
 import com.marinboy.auth.service.AuthUserJwtService;
 import com.marinboy.global.security.JwtProperties;
 import com.marinboy.global.security.JwtProvider;
 import com.marinboy.global.security.TokenStore;
+import com.marinboy.global.oauth2.MobileOAuthCodeStore;
 import com.marinboy.user.service.AppUserService;
 
 import io.jsonwebtoken.Claims;
@@ -44,6 +46,7 @@ public class AuthController {
     private final JwtProvider jwtProvider;
     private final JwtProperties jwtProperties;
     private final TokenStore tokenStore;
+    private final MobileOAuthCodeStore mobileOAuthCodeStore;
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponseDto> signup(@Valid @RequestBody UserRequestDto request) {
@@ -63,6 +66,21 @@ public class AuthController {
         tokenStore.saveRefreshToken(userId, refreshToken, jwtProperties.getRefreshTokenExpSeconds());
         response.addHeader(HttpHeaders.SET_COOKIE, createRefreshCookie(refreshToken).toString());
 
+        return ResponseEntity.ok(Map.of("accessToken", accessToken, "user", user));
+    }
+
+    /** 모바일 소셜 로그인에서 받은 1회용 코드를 일반 앱 로그인 결과로 바꿉니다. */
+    @PostMapping("/mobile/exchange")
+    public ResponseEntity<Map<String, Object>> exchangeMobileOAuthCode(
+            @Valid @RequestBody MobileOAuthExchangeRequest request) {
+        Long userId = mobileOAuthCodeStore.consumeUserId(request.code());
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        UserResponseDto user = appUserService.findById(userId);
+        String accessToken = jwtProvider.createAccessToken(
+                userId.toString(), Map.of("role", user.getRole()));
         return ResponseEntity.ok(Map.of("accessToken", accessToken, "user", user));
     }
 

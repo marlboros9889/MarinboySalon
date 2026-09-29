@@ -3,6 +3,8 @@ package com.marinboy.global.oauth2;
 import java.time.Duration;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,7 @@ public class RedisOAuthAuthorizationRequestRepository
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
     private static final String KEY_PREFIX = "marinboy:oauth:";
+    private static final String MOBILE_CLIENT_ATTRIBUTE = "mobileClient";
     private final RedisTemplate<String, OAuth2AuthorizationRequest> redisTemplate;
 
     @Override
@@ -51,6 +54,16 @@ public class RedisOAuthAuthorizationRequestRepository
             HttpServletResponse response) {
         String state = request.getParameter("state");
         OAuth2AuthorizationRequest saved = loadAuthorizationRequest(request);
+        if (saved != null && Boolean.TRUE.equals(saved.getAttribute(MOBILE_CLIENT_ATTRIBUTE))) {
+            ResponseCookie cookie = ResponseCookie.from("mobileOAuth", "true")
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(Duration.ofMinutes(2))
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        }
         if (state != null) {
             redisTemplate.delete(KEY_PREFIX + state);
         }

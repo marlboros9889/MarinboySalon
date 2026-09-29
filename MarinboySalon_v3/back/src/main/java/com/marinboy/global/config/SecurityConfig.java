@@ -41,6 +41,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final String MOBILE_CLIENT_ATTRIBUTE = "mobileClient";
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oauth2SuccessHandler;
@@ -68,7 +70,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/v3/api-docs/**",
                                 "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/auth/signup", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
+                                "/auth/signup", "/auth/login", "/auth/refresh", "/auth/logout", "/auth/mobile/exchange").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/check-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/service-items/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/discount-events/**").permitAll()
@@ -110,20 +112,20 @@ public class SecurityConfig {
                 OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request);
                 String provider = request.getRequestURI().substring(
                         request.getRequestURI().lastIndexOf('/') + 1);
-                return addProviderLoginPrompt(authorizationRequest, provider);
+                return addProviderLoginPrompt(authorizationRequest, provider, request);
             }
 
             @Override
             public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String registrationId) {
                 OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, registrationId);
-                return addProviderLoginPrompt(authorizationRequest, registrationId);
+                return addProviderLoginPrompt(authorizationRequest, registrationId, request);
             }
         };
     }
 
     /** 제공자별로 이전 계정의 자동 승인을 막는 로그인 화면을 요청합니다. */
     private OAuth2AuthorizationRequest addProviderLoginPrompt(
-            OAuth2AuthorizationRequest authorizationRequest, String provider) {
+            OAuth2AuthorizationRequest authorizationRequest, String provider, HttpServletRequest request) {
         if (authorizationRequest == null) {
             return authorizationRequest;
         }
@@ -140,15 +142,18 @@ public class SecurityConfig {
             parameterName = "auth_type";
             parameterValue = "reauthenticate";
         }
-        if (parameterName == null) {
-            return authorizationRequest;
+        OAuth2AuthorizationRequest.Builder requestBuilder = OAuth2AuthorizationRequest.from(authorizationRequest);
+        if (parameterName != null) {
+            String requestParameterName = parameterName;
+            String requestParameterValue = parameterValue;
+            requestBuilder.additionalParameters(
+                    parameters -> parameters.put(requestParameterName, requestParameterValue));
         }
-        String requestParameterName = parameterName;
-        String requestParameterValue = parameterValue;
-
-        return OAuth2AuthorizationRequest.from(authorizationRequest)
-                .additionalParameters(parameters -> parameters.put(requestParameterName, requestParameterValue))
-                .build();
+        // 임의 주소가 아닌 client=mobile 값만 보관해 오픈 리다이렉트를 막습니다.
+        if ("mobile".equals(request.getParameter("client"))) {
+            requestBuilder.attributes(attributes -> attributes.put(MOBILE_CLIENT_ATTRIBUTE, true));
+        }
+        return requestBuilder.build();
     }
 
     @Bean

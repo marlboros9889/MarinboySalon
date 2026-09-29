@@ -8,6 +8,7 @@ class Reservation {
     this.userName,
     this.userPhone,
     this.requestMemo,
+    this.calendarEventId,
   });
   final int id;
   final String serviceName;
@@ -17,6 +18,7 @@ class Reservation {
   final String? userName;
   final String? userPhone;
   final String? requestMemo;
+  final String? calendarEventId;
 
   factory Reservation.fromJson(Map<String, dynamic> json) => Reservation(
     id: (json['id'] as num).toInt(),
@@ -27,5 +29,6 @@ class Reservation {
     userName: json['userName']?.toString(),
     userPhone: json['userPhone']?.toString(),
     requestMemo: json['requestMemo']?.toString(),
+    calendarEventId: json['calendarEventId']?.toString(),
   );
 }

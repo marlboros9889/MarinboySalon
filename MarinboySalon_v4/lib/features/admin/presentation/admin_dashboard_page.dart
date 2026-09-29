@@ -142,6 +142,12 @@ class _ReservationTile extends ConsumerWidget {
                 padding: const EdgeInsets.only(top: 5),
                 child: Text('요청: ${item.requestMemo}'),
               ),
+            if (item.calendarEventId != null &&
+                item.calendarEventId!.isNotEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Text('Google Calendar 일정 등록 완료'),
+              ),
             const SizedBox(height: 8),
             DropdownButton<String>(
               value: item.status,

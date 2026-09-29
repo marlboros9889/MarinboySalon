@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,12 +16,43 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final appLinks = AppLinks();
+  StreamSubscription<Uri>? linkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    linkSubscription = appLinks.uriLinkStream.listen(handleMobileOAuthLink);
+  }
 
   @override
   void dispose() {
+    linkSubscription?.cancel();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> handleMobileOAuthLink(Uri uri) async {
+    if (uri.scheme != 'marinboysalon' || uri.host != 'oauth') return;
+    final code = uri.queryParameters['code'];
+    if (code == null || code.isEmpty) return;
+    final success = await ref
+        .read(authProvider.notifier)
+        .exchangeMobileOAuthCode(code);
+    if (!mounted) return;
+    if (success) {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> openSocialLogin(String provider) async {
+    final opened = await ref
+        .read(authProvider.notifier)
+        .openSocialLogin(provider);
+    if (!mounted || opened) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('소셜 로그인 화면을 열지 못했습니다.')));
   }
 
   Future<void> submit() async {
@@ -82,6 +116,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             FilledButton(
               onPressed: state.loading ? null : submit,
               child: Text(state.loading ? '로그인 중...' : '로그인'),
+            ),
+            const SizedBox(height: 16),
+            const Text('소셜 계정으로 로그인', textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: state.loading
+                      ? null
+                      : () => openSocialLogin('google'),
+                  child: const Text('Google'),
+                ),
+                OutlinedButton(
+                  onPressed: state.loading
+                      ? null
+                      : () => openSocialLogin('kakao'),
+                  child: const Text('Kakao'),
+                ),
+                OutlinedButton(
+                  onPressed: state.loading
+                      ? null
+                      : () => openSocialLogin('naver'),
+                  child: const Text('Naver'),
+                ),
+              ],
             ),
           ],
         ),
