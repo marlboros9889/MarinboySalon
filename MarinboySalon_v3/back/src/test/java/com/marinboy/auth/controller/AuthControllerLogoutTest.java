@@ -14,6 +14,7 @@ import com.marinboy.auth.service.AuthUserJwtService;
 import com.marinboy.global.security.JwtProperties;
 import com.marinboy.global.security.JwtProvider;
 import com.marinboy.global.security.TokenStore;
+import com.marinboy.global.oauth2.MobileOAuthCodeStore;
 import com.marinboy.user.service.AppUserService;
 
 import io.jsonwebtoken.Claims;
@@ -32,6 +33,7 @@ class AuthControllerLogoutTest {
         JwtProperties jwtProperties = new JwtProperties();
         jwtProperties.setCookieSecure(false);
         TokenStore tokenStore = mock(TokenStore.class);
+        MobileOAuthCodeStore mobileOAuthCodeStore = mock(MobileOAuthCodeStore.class);
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
@@ -46,7 +48,8 @@ class AuthControllerLogoutTest {
                 authUserJwtService,
                 jwtProvider,
                 jwtProperties,
-                tokenStore);
+                tokenStore,
+                mobileOAuthCodeStore);
         controller.logout(null, request, response);
 
         verify(tokenStore).blockAccessToken(
