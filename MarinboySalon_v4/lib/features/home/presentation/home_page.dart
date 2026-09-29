@@ -170,14 +170,18 @@ class _ServiceCard extends StatelessWidget {
             if (imageUrl.isNotEmpty) ...[
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  imageUrl,
-                  width: double.infinity,
-                  height: 160,
-                  fit: BoxFit.cover,
-                  // 이미지 서버가 일시적으로 응답하지 않아도 예약 화면은 계속 보입니다.
-                  errorBuilder: (_, error, stackTrace) =>
-                      const _ImagePlaceholder(),
+                child: Container(
+                  color: const Color(0xfff3ece9),
+                  child: Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    height: 260,
+                    // 사진 전체가 보이도록 비율을 유지해 남는 공간은 배경색으로 채웁니다.
+                    fit: BoxFit.contain,
+                    // 이미지 서버가 일시적으로 응답하지 않아도 예약 화면은 계속 보입니다.
+                    errorBuilder: (_, error, stackTrace) =>
+                        const _ImagePlaceholder(),
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
@@ -229,7 +233,7 @@ class _ImagePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 160,
+      height: 260,
       color: const Color(0xfff3ece9),
       alignment: Alignment.center,
       child: const Icon(Icons.image_outlined, color: Color(0xff8e7770)),
