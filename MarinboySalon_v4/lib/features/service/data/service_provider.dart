@@ -14,6 +14,7 @@ final serviceListProvider = FutureProvider<List<ServiceItem>>((ref) async {
         price: 25000,
         durationMinutes: 40,
         description: '얼굴형과 모발 상태를 고려한 커트',
+        imageUrls: [],
       ),
       ServiceItem(
         id: 2,
@@ -21,6 +22,7 @@ final serviceListProvider = FutureProvider<List<ServiceItem>>((ref) async {
         price: 120000,
         durationMinutes: 120,
         description: '손상 모발 케어를 포함한 펌',
+        imageUrls: [],
       ),
       ServiceItem(
         id: 3,
@@ -28,6 +30,7 @@ final serviceListProvider = FutureProvider<List<ServiceItem>>((ref) async {
         price: 95000,
         durationMinutes: 90,
         description: '상담 후 원하는 색상으로 진행',
+        imageUrls: [],
       ),
     ];
   }

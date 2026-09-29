@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/service_item.dart';
+import '../../../core/network/api_config.dart';
 import '../../../core/utils/formatters.dart';
 import '../../admin/presentation/admin_dashboard_page.dart';
 import '../../auth/data/auth_provider.dart';
@@ -153,6 +154,10 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = item.imageUrls.isEmpty
+        ? ''
+        : ApiConfig.resolveImageUrl(item.imageUrls.first);
+
     return Card(
       elevation: 0,
       color: Colors.white,
@@ -162,6 +167,21 @@ class _ServiceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (imageUrl.isNotEmpty) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  imageUrl,
+                  width: double.infinity,
+                  height: 160,
+                  fit: BoxFit.cover,
+                  // 이미지 서버가 일시적으로 응답하지 않아도 예약 화면은 계속 보입니다.
+                  errorBuilder: (_, error, stackTrace) =>
+                      const _ImagePlaceholder(),
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
             Text(
               item.name,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -199,6 +219,20 @@ class _ServiceCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ImagePlaceholder extends StatelessWidget {
+  const _ImagePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 160,
+      color: const Color(0xfff3ece9),
+      alignment: Alignment.center,
+      child: const Icon(Icons.image_outlined, color: Color(0xff8e7770)),
     );
   }
 }

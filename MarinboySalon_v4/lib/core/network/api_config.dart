@@ -7,4 +7,12 @@ class ApiConfig {
     'API_BASE_URL',
     defaultValue: 'https://marinboysalon.duckdns.org',
   );
+
+  // /uploads/로 시작하는 기존 V3 이미지는 백엔드 주소를 붙여 사용합니다.
+  static String resolveImageUrl(String imageUrl) {
+    if (imageUrl.startsWith('/uploads/')) {
+      return '$baseUrl$imageUrl';
+    }
+    return imageUrl;
+  }
 }
